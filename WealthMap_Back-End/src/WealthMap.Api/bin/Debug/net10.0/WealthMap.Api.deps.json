@@ -1,0 +1,72 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "WealthMap.Api/1.0.0": {
+        "dependencies": {
+          "WealthMap.Application": "1.0.0",
+          "WealthMap.Infrastructure": "1.0.0"
+        },
+        "runtime": {
+          "WealthMap.Api.dll": {}
+        }
+      },
+      "WealthMap.Application/1.0.0": {
+        "dependencies": {
+          "WealthMap.Domain": "1.0.0"
+        },
+        "runtime": {
+          "WealthMap.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "WealthMap.Domain/1.0.0": {
+        "runtime": {
+          "WealthMap.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "WealthMap.Infrastructure/1.0.0": {
+        "dependencies": {
+          "WealthMap.Application": "1.0.0"
+        },
+        "runtime": {
+          "WealthMap.Infrastructure.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "WealthMap.Api/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WealthMap.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WealthMap.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "WealthMap.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

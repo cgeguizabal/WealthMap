@@ -1,0 +1,15 @@
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\bin\Debug\net10.0\WealthMap.Application.deps.json
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\bin\Debug\net10.0\WealthMap.Application.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\bin\Debug\net10.0\WealthMap.Application.pdb
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\bin\Debug\net10.0\WealthMap.Domain.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\bin\Debug\net10.0\WealthMap.Domain.pdb
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.csproj.AssemblyReference.cache
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.AssemblyInfoInputs.cache
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.AssemblyInfo.cs
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.csproj.CoreCompileInputs.cache
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMa.95DBF132.Up2Date
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\refint\WealthMap.Application.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\WealthMap.Application.pdb
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Application\obj\Debug\net10.0\ref\WealthMap.Application.dll

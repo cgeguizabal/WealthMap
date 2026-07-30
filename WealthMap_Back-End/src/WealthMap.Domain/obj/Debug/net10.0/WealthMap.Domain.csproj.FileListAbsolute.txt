@@ -1,0 +1,11 @@
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\bin\Debug\net10.0\WealthMap.Domain.deps.json
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\bin\Debug\net10.0\WealthMap.Domain.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\bin\Debug\net10.0\WealthMap.Domain.pdb
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\WealthMap.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\WealthMap.Domain.AssemblyInfoInputs.cache
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\WealthMap.Domain.AssemblyInfo.cs
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\WealthMap.Domain.csproj.CoreCompileInputs.cache
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\WealthMap.Domain.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\refint\WealthMap.Domain.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\WealthMap.Domain.pdb
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Domain\obj\Debug\net10.0\ref\WealthMap.Domain.dll

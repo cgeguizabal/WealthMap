@@ -1,0 +1,6 @@
+@WealthMap.Api_HostAddress = http://localhost:5015
+
+GET {{WealthMap.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
