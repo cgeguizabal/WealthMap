@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "Lhu2uA3e2Gg=",
+  "dgSpecHash": "uaHuVYxmCDQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\E120804\\OneDrive - RSM\\Documents\\Personal\\Projects\\WealthMap\\WealthMap_Back-End\\src\\WealthMap.Application\\WealthMap.Application.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\E120804\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.10\\microsoft.extensions.dependencyinjection.abstractions.10.0.10.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -1,0 +1,7 @@
+namespace WealthMap.Application.Common.Interfaces;
+
+public interface IUnitOfWork
+{
+    Task<int> SaveChangesAsync(CancellationToken ct = default);
+    Task ExecuteInTransactionAsync(Func<Task> operation, CancellationToken ct = default);
+}

@@ -193,6 +193,7 @@
       },
       "WealthMap.Application/1.0.0": {
         "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.10",
           "WealthMap.Domain": "1.0.0"
         },
         "runtime": {
