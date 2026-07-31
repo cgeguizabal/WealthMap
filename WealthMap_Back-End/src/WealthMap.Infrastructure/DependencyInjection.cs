@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WealthMap.Infrastructure.Persistence;
+using WealthMap.Application.Common.Interfaces;
+using WealthMap.Infrastructure.Persistence.Repositories;
 
 namespace WealthMap.Infrastructure;
 
@@ -19,6 +21,10 @@ public static class DependencyInjection
         services.AddDbContext<WealthMapDbContext>(options =>
            options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention());
+
+           services.AddScoped<IUnitOfWork, UnitOfWork>();
+services.AddScoped<IAccountRepository, AccountRepository>();
+services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

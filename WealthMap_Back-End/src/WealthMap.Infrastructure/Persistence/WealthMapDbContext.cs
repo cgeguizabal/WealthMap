@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WealthMap.Domain.Entities;
 
 
+
 namespace WealthMap.Infrastructure.Persistence;
 
 public class WealthMapDbContext : DbContext
