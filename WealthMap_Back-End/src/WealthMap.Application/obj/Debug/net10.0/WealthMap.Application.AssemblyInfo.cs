@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WealthMap.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac3256a90904611f57d3322f2dedc0e73d4228fd")]
 [assembly: System.Reflection.AssemblyProductAttribute("WealthMap.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WealthMap.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

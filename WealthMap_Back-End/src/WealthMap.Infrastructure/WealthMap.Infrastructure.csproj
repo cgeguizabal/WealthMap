@@ -2,6 +2,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WealthMap.Application\WealthMap.Application.csproj" />
+    <ProjectReference Include="..\WealthMap.Domain\WealthMap.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
 
   <PropertyGroup>

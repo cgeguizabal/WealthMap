@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("efe3f83e-0fb2-404f-9640-0d45fcf29851")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("WealthMap.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ac3256a90904611f57d3322f2dedc0e73d4228fd")]
 [assembly: System.Reflection.AssemblyProductAttribute("WealthMap.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WealthMap.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
