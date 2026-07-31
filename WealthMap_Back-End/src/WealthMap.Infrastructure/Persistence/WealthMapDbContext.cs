@@ -1,9 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using WealthMap.Domain.Entities;
+
 
 namespace WealthMap.Infrastructure.Persistence;
 
 public class WealthMapDbContext : DbContext
 {
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<CreditCard> CreditCards => Set<CreditCard>();
+
+    public DbSet<AccountMovement> AccountMovements => Set<AccountMovement>();
+    
     public WealthMapDbContext(DbContextOptions<WealthMapDbContext> options)
         : base(options)
     {

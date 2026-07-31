@@ -17,7 +17,8 @@ public static class DependencyInjection
                 "Did you set it via user-secrets?");
 
         services.AddDbContext<WealthMapDbContext>(options =>
-            options.UseNpgsql(connectionString));
+           options.UseNpgsql(connectionString)
+           .UseSnakeCaseNamingConvention());
 
         return services;
     }

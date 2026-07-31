@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "C3KIWK3v5n0=",
+  "dgSpecHash": "bCsG+fFeEAw=",
   "success": true,
   "projectFilePath": "C:\\Users\\E120804\\OneDrive - RSM\\Documents\\Personal\\Projects\\WealthMap\\WealthMap_Back-End\\src\\WealthMap.Api\\WealthMap.Api.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\E120804\\.nuget\\packages\\efcore.namingconventions\\10.0.1\\efcore.namingconventions.10.0.1.nupkg.sha512",
     "C:\\Users\\E120804\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\E120804\\.nuget\\packages\\microsoft.build.framework\\18.0.2\\microsoft.build.framework.18.0.2.nupkg.sha512",
     "C:\\Users\\E120804\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.11.0\\microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",

@@ -2,6 +2,20 @@
   "version": 4,
   "targets": {
     "net10.0": {
+      "EFCore.NamingConventions/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "[10.0.1, 11.0.0)",
+          "Microsoft.EntityFrameworkCore.Relational": "[10.0.1, 11.0.0)",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/EFCore.NamingConventions.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/EFCore.NamingConventions.dll": {}
+        }
+      },
       "Microsoft.EntityFrameworkCore/10.0.4": {
         "type": "package",
         "dependencies": {
@@ -291,6 +305,18 @@
     }
   },
   "libraries": {
+    "EFCore.NamingConventions/10.0.1": {
+      "sha512": "Xs5k8XfNKPkkQSkGmZkmDI1je0prLTdxse+s8PgTFZxyBrlrTLzTBUTVJtQKSsbvu4y+luAv8DdtO5SALJE++A==",
+      "type": "package",
+      "path": "efcore.namingconventions/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "efcore.namingconventions.10.0.1.nupkg.sha512",
+        "efcore.namingconventions.nuspec",
+        "lib/net10.0/EFCore.NamingConventions.dll"
+      ]
+    },
     "Microsoft.EntityFrameworkCore/10.0.4": {
       "sha512": "kzTsfFK2GCytp6DDTfQOmxPU4gbGdrIlP7PxrxF3ESNLtfXrC8BoUVZENBN2WORlZPAD7CVX6AYIglgkpXQooA==",
       "type": "package",
@@ -725,6 +751,7 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "EFCore.NamingConventions >= 10.0.1",
       "Microsoft.Extensions.Configuration.Abstractions >= 10.0.10",
       "Microsoft.Extensions.DependencyInjection.Abstractions >= 10.0.10",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 10.0.3",
@@ -792,6 +819,10 @@
         "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
+          "EFCore.NamingConventions": {
+            "target": "Package",
+            "version": "[10.0.1, )"
+          },
           "Microsoft.Extensions.Configuration.Abstractions": {
             "target": "Package",
             "version": "[10.0.10, )"

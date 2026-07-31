@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "WealthMap.Infrastructure/1.0.0": {
         "dependencies": {
+          "EFCore.NamingConventions": "10.0.1",
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.10",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.10",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
@@ -16,6 +17,19 @@
         },
         "runtime": {
           "WealthMap.Infrastructure.dll": {}
+        }
+      },
+      "EFCore.NamingConventions/10.0.1": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "10.0.4",
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.4",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.10"
+        },
+        "runtime": {
+          "lib/net10.0/EFCore.NamingConventions.dll": {
+            "assemblyVersion": "10.0.1.0",
+            "fileVersion": "10.0.1.0"
+          }
         }
       },
       "Microsoft.EntityFrameworkCore/10.0.4": {
@@ -203,6 +217,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "EFCore.NamingConventions/10.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Xs5k8XfNKPkkQSkGmZkmDI1je0prLTdxse+s8PgTFZxyBrlrTLzTBUTVJtQKSsbvu4y+luAv8DdtO5SALJE++A==",
+      "path": "efcore.namingconventions/10.0.1",
+      "hashPath": "efcore.namingconventions.10.0.1.nupkg.sha512"
     },
     "Microsoft.EntityFrameworkCore/10.0.4": {
       "type": "package",
