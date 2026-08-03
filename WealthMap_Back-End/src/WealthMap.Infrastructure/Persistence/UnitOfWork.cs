@@ -8,8 +8,8 @@ public class UnitOfWork : IUnitOfWork
 
     public UnitOfWork(WealthMapDbContext context) => _context = context;
 
-    public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
-        _context.SaveChangesAsync(ct);
+    public async Task<int> SaveChangesAsync(CancellationToken ct = default) =>
+        await _context.SaveChangesAsync(ct);
 
     public async Task ExecuteInTransactionAsync(Func<Task> operation, CancellationToken ct = default)
     {

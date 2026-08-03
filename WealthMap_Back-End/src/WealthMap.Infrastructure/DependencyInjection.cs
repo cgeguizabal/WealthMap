@@ -23,8 +23,8 @@ public static class DependencyInjection
            .UseSnakeCaseNamingConvention());
 
            services.AddScoped<IUnitOfWork, UnitOfWork>();
-services.AddScoped<IAccountRepository, AccountRepository>();
-services.AddScoped<IUserRepository, UserRepository>();
+           services.AddScoped<IAccountRepository, AccountRepository>();
+           services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

@@ -14,6 +14,7 @@ public class AccountRepository : Repository<Account>, IAccountRepository
     public async Task<IReadOnlyList<Account>> GetAllForUserAsync(Guid userId, CancellationToken ct = default) =>
         await Set.Where(a => a.UserId == userId)
                  .OrderBy(a => a.Name)
+                 .AsNoTracking()
                  .ToListAsync(ct);
 
     public async Task<bool> ExistsForUserAsync(Guid id, Guid userId, CancellationToken ct = default) =>
