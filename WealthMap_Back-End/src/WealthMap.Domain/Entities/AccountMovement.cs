@@ -22,7 +22,10 @@ public class AccountMovement : BaseEntity
                                   or MovementType.Bonus
                                   or MovementType.TransferIn;
 
-    private AccountMovement() { }   // EF Core
+    private AccountMovement()
+{
+    Description = null!;
+}  
 
     public AccountMovement(
         Guid accountId,

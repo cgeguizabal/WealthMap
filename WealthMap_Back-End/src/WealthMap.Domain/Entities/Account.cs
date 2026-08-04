@@ -15,7 +15,11 @@ public class Account : BaseEntity
     public bool IsBlockedForSaving { get; private set; }
     public string? Notes { get; private set; }
 
-    private Account() { }   // EF Core
+    private Account()
+{
+    Name = null!;
+    BankName = null!;
+}
 
     public Account(Guid userId, string name, string bankName, AccountType type, Money openingBalance)
     {

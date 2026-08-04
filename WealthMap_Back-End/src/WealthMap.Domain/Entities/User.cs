@@ -12,7 +12,14 @@ public class User : BaseEntity
     public string Currency { get; private set; }
     public DateOnly? BirthDate { get; private set; }
 
-    private User() { }   // required by EF Core
+    private User()
+{
+    Email = null!;
+    PasswordHash = null!;
+    FullName = null!;
+    Country = null!;
+    Currency = null!;
+}  // required by EF Core
 
     public User(string email, string passwordHash, string fullName, string country, string currency)
     {

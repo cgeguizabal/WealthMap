@@ -1,5 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using FluentValidation;
+using WealthMap.Application.Common.Behaviors;
 using WealthMap.Application.Common.Messaging;
 
 namespace WealthMap.Application;
@@ -11,18 +13,27 @@ public static class DependencyInjection
         var assembly = Assembly.GetExecutingAssembly();
 
         services.AddScoped<ISender, Sender>();
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-        // Find every class implementing IRequestHandler<,> and register it
-        var handlerTypes = assembly.GetTypes()
+        services.RegisterImplementationsOf(assembly, typeof(IRequestHandler<,>));
+        services.RegisterImplementationsOf(assembly, typeof(IValidator<>));
+
+        return services;
+    }
+
+    private static void RegisterImplementationsOf(
+        this IServiceCollection services,
+        Assembly assembly,
+        Type openGenericInterface)
+    {
+        var registrations = assembly.GetTypes()
             .Where(t => !t.IsAbstract && !t.IsInterface)
             .SelectMany(t => t.GetInterfaces()
                 .Where(i => i.IsGenericType &&
-                            i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>))
+                            i.GetGenericTypeDefinition() == openGenericInterface)
                 .Select(i => new { Implementation = t, Service = i }));
 
-        foreach (var handler in handlerTypes)
-            services.AddScoped(handler.Service, handler.Implementation);
-
-        return services;
+        foreach (var item in registrations)
+            services.AddScoped(item.Service, item.Implementation);
     }
 }

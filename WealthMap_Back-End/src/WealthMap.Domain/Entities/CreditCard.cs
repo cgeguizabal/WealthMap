@@ -18,7 +18,11 @@ public class CreditCard : BaseEntity
 
     public Money AvailableCredit => CreditLimit - UsedCredit;
 
-    private CreditCard() { }   // EF Core
+    private CreditCard()
+{
+    CardName = null!;
+    BankName = null!;
+}
 
     public CreditCard(
         Guid userId,

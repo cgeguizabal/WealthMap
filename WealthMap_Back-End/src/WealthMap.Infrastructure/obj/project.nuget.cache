@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "nm0H1l6LtFM=",
+  "dgSpecHash": "MfJN0xgJlOU=",
   "success": true,
   "projectFilePath": "C:\\Users\\E120804\\OneDrive - RSM\\Documents\\Personal\\Projects\\WealthMap\\WealthMap_Back-End\\src\\WealthMap.Infrastructure\\WealthMap.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\E120804\\.nuget\\packages\\efcore.namingconventions\\10.0.1\\efcore.namingconventions.10.0.1.nupkg.sha512",
+    "C:\\Users\\E120804\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
     "C:\\Users\\E120804\\.nuget\\packages\\microsoft.entityframeworkcore\\10.0.4\\microsoft.entityframeworkcore.10.0.4.nupkg.sha512",
     "C:\\Users\\E120804\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\10.0.4\\microsoft.entityframeworkcore.abstractions.10.0.4.nupkg.sha512",
     "C:\\Users\\E120804\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\10.0.4\\microsoft.entityframeworkcore.analyzers.10.0.4.nupkg.sha512",
