@@ -125,3 +125,8 @@ C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_
 C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\EFCore.NamingConventions.dll
 C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\FluentValidation.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\E120804\OneDrive - RSM\Documents\Personal\Projects\WealthMap\WealthMap_Back-End\src\WealthMap.Api\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll

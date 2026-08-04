@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using WealthMap.Infrastructure.Persistence;
 using WealthMap.Application.Common.Interfaces;
 using WealthMap.Infrastructure.Persistence.Repositories;
+using WealthMap.Infrastructure.Auth;
+
+
 
 namespace WealthMap.Infrastructure;
 
@@ -25,7 +28,9 @@ public static class DependencyInjection
            services.AddScoped<IUnitOfWork, UnitOfWork>();
            services.AddScoped<IAccountRepository, AccountRepository>();
            services.AddScoped<IUserRepository, UserRepository>();
-
+           services.AddSingleton<IPasswordHasher, PasswordHasher>();
+services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+services.AddSingleton<IJwtService, JwtService>();
         return services;
     }
 }

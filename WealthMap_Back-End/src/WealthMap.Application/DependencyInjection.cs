@@ -17,6 +17,7 @@ public static class DependencyInjection
 
         services.RegisterImplementationsOf(assembly, typeof(IRequestHandler<,>));
         services.RegisterImplementationsOf(assembly, typeof(IValidator<>));
+        
 
         return services;
     }
