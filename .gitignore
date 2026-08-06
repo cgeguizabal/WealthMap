@@ -1,0 +1,21 @@
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# User-specific / IDE
+.vs/
+.vscode/
+*.user
+*.suo
+.idea/
+
+# Test / coverage
+TestResults/
+*.trx
+coverage*.json
+coverage*.xml
+
+# OS
+Thumbs.db
+.DS_Store
