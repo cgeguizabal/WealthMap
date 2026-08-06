@@ -41,6 +41,15 @@ public class ExceptionHandlingMiddleware
                 detail = ex.Message
             });
         }
+        catch (NotFoundException ex)
+{
+    await WriteResponse(context, StatusCodes.Status404NotFound, new
+    {
+        title = "Resource not found",
+        status = 404,
+        detail = ex.Message
+    });
+}
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception on {Method} {Path}",

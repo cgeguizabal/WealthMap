@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WealthMap.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+21d38bc6c1e3b098fbc283e89a071c301096489e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0f4e7defe95765ade13d2d836f0e79e5b3369e44")]
 [assembly: System.Reflection.AssemblyProductAttribute("WealthMap.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WealthMap.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

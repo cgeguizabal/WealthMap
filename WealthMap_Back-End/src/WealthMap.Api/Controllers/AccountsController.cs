@@ -4,6 +4,8 @@ using WealthMap.Api.Extensions;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Accounts.Commands.CreateAccount;
 using WealthMap.Application.Features.Accounts.Queries.GetAccounts;
+using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
+
 
 
 namespace WealthMap.Api.Controllers;
@@ -34,12 +36,19 @@ public class AccountsController : ControllerBase
 
         var result = await _sender.Send(command, ct);
 
-        return Ok(result);    }
+return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);          }
 
       [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         var result = await _sender.Send(new GetAccountsQuery(User.GetUserId()), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetAccountByIdQuery(id, User.GetUserId()), ct);
         return Ok(result);
     }
 }
