@@ -8,6 +8,10 @@ using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
 using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
+using WealthMap.Application.Features.Accounts.Commands.DepositToAccount;
+using WealthMap.Application.Features.Accounts.Commands.WithdrawFromAccount;
+using WealthMap.Application.Features.Accounts.Commands.TransferBetweenAccounts;
+using WealthMap.Application.Features.Accounts.Queries.GetAccountMovements;
 
 
 
@@ -85,6 +89,68 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
         var result = await _sender.Send(new UnblockAccountCommand(id, User.GetUserId()), ct);
         return Ok(result);
     }
+
+    [HttpPost("{id:guid}/deposit")]
+    public async Task<IActionResult> Deposit(
+        Guid id,
+        [FromBody] DepositRequest request,
+        CancellationToken ct)
+    {
+        var command = new DepositToAccountCommand(
+            id,
+            User.GetUserId(),
+            request.Amount,
+            request.Description,
+            request.Type);
+
+        var result = await _sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/withdraw")]
+    public async Task<IActionResult> Withdraw(
+        Guid id,
+        [FromBody] WithdrawRequest request,
+        CancellationToken ct)
+    {
+        var command = new WithdrawFromAccountCommand(
+            id,
+            User.GetUserId(),
+            request.Amount,
+            request.Description,
+            request.Location);
+
+        var result = await _sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpPost("transfer")]
+    public async Task<IActionResult> Transfer(
+        [FromBody] TransferRequest request,
+        CancellationToken ct)
+    {
+        var command = new TransferBetweenAccountsCommand(
+            User.GetUserId(),
+            request.FromAccountId,
+            request.ToAccountId,
+            request.Amount,
+            request.Description);
+
+        var result = await _sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/movements")]
+    public async Task<IActionResult> GetMovements(
+        Guid id,
+        CancellationToken ct,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        var query = new GetAccountMovementsQuery(id, User.GetUserId(), page, pageSize);
+        var result = await _sender.Send(query, ct);
+        return Ok(result);
+    }
 }
 
 
@@ -99,3 +165,19 @@ public record UpdateAccountRequest(
     string Name,
     string BankName,
     string? Notes);
+
+public record DepositRequest(
+    decimal Amount,
+    string Description,
+    int Type);
+
+public record WithdrawRequest(
+    decimal Amount,
+    string Description,
+    string? Location);
+
+public record TransferRequest(
+    Guid FromAccountId,
+    Guid ToAccountId,
+    decimal Amount,
+    string? Description);
