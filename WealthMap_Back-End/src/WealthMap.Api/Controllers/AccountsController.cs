@@ -7,6 +7,7 @@ using WealthMap.Application.Features.Accounts.Queries.GetAccounts;
 using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
 using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
+using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
 
 
 
@@ -54,6 +55,23 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
         return Ok(result);
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateAccountRequest request,
+        CancellationToken ct)
+    {
+        var command = new UpdateAccountCommand(
+            id,
+            User.GetUserId(),
+            request.Name,
+            request.BankName,
+            request.Notes);
+
+        var result = await _sender.Send(command, ct);
+        return Ok(result);
+    }
+
     [HttpPost("{id:guid}/block")]
     public async Task<IActionResult> Block(Guid id, CancellationToken ct)
     {
@@ -76,3 +94,8 @@ public record CreateAccountRequest(
     int Type,
     decimal OpeningBalance,
     string Currency);
+
+public record UpdateAccountRequest(
+    string Name,
+    string BankName,
+    string? Notes);
