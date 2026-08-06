@@ -21,6 +21,8 @@
 - Every repository query is user-scoped. "Not yours" returns 404, not 403.
 - Multi-entity writes go through IUnitOfWork.ExecuteInTransactionAsync.
 - snake_case DB naming via UseSnakeCaseNamingConvention().
+- API versioning: every controller route is prefixed /api/v1/{resource}
+  (e.g. [Route("api/v1/accounts")]). All future controllers follow this from the start.
 
 ## Working style
 - Stop after each module. Output a Postman test checklist and wait for confirmation before continuing.

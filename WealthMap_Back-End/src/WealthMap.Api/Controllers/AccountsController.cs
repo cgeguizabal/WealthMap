@@ -14,7 +14,7 @@ using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
 namespace WealthMap.Api.Controllers;
 
 [ApiController]
-[Route("api/accounts")]
+[Route("api/v1/accounts")]
 [Authorize]                                    // ← every action requires a valid token
 public class AccountsController : ControllerBase
 {
