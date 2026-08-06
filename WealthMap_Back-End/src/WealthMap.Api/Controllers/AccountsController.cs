@@ -5,6 +5,8 @@ using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Accounts.Commands.CreateAccount;
 using WealthMap.Application.Features.Accounts.Queries.GetAccounts;
 using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
+using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
+using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
 
 
 
@@ -49,6 +51,20 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _sender.Send(new GetAccountByIdQuery(id, User.GetUserId()), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/block")]
+    public async Task<IActionResult> Block(Guid id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new BlockAccountCommand(id, User.GetUserId()), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/unblock")]
+    public async Task<IActionResult> Unblock(Guid id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new UnblockAccountCommand(id, User.GetUserId()), ct);
         return Ok(result);
     }
 }
