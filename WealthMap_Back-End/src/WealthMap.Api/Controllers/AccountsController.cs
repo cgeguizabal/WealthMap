@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WealthMap.Api.Extensions;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Accounts.Commands.CreateAccount;
 
@@ -6,6 +8,7 @@ namespace WealthMap.Api.Controllers;
 
 [ApiController]
 [Route("api/accounts")]
+[Authorize]                                    // ← every action requires a valid token
 public class AccountsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -17,8 +20,7 @@ public class AccountsController : ControllerBase
         [FromBody] CreateAccountRequest request,
         CancellationToken ct)
     {
-        // TEMPORARY: hardcoded until JWT auth (Phase 6) supplies the real user id
-        var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var userId = User.GetUserId();         // ← from the JWT. Hardcoded GUID: deleted.
 
         var command = new CreateAccountCommand(
             userId,
