@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using WealthMap.Api.Extensions;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Accounts.Commands.CreateAccount;
+using WealthMap.Application.Features.Accounts.Queries.GetAccounts;
+
 
 namespace WealthMap.Api.Controllers;
 
@@ -32,9 +34,16 @@ public class AccountsController : ControllerBase
 
         var result = await _sender.Send(command, ct);
 
-        return CreatedAtAction(nameof(Create), new { id = result.Id }, result);
+        return Ok(result);    }
+
+      [HttpGet]
+    public async Task<IActionResult> GetAll(CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetAccountsQuery(User.GetUserId()), ct);
+        return Ok(result);
     }
 }
+
 
 public record CreateAccountRequest(
     string Name,
