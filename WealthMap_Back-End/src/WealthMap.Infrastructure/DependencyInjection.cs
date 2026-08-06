@@ -28,6 +28,7 @@ public static class DependencyInjection
            services.AddScoped<IUnitOfWork, UnitOfWork>();
            services.AddScoped<IAccountRepository, AccountRepository>();
            services.AddScoped<IAccountMovementRepository, AccountMovementRepository>();
+           services.AddScoped<ICreditCardRepository, CreditCardRepository>();
            services.AddScoped<IUserRepository, UserRepository>();
            services.AddSingleton<IPasswordHasher, PasswordHasher>();
            

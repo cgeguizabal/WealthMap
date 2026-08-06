@@ -3,6 +3,7 @@
 ## Commit rules
 - Never add Co-Authored-By trailers or any AI attribution to commit messages.
 - Author commits as the developer only.
+- Do not use "feat:" style for commints, use regular commits
 - Commit after each coherent step, conventional style (feat:, fix:, refactor:).
 - NEVER run `git push`.
 
