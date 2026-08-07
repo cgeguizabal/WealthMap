@@ -28,5 +28,16 @@ public class WealthMapDbContext : DbContext
 
         // Automatically applies every IEntityTypeConfiguration<T> in this assembly.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(WealthMapDbContext).Assembly);
+
+        // Ids come from BaseEntity (Guid.CreateVersion7()), never from the database.
+        // Without this, EF treats aggregate children discovered via navigations
+        // (e.g. a Deduction added to a tracked Job) as existing rows and issues
+        // an UPDATE instead of an INSERT.
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var id = entityType.FindProperty(nameof(Domain.Common.BaseEntity.Id));
+            if (id is not null)
+                id.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
+        }
     }
 }
