@@ -12,7 +12,9 @@ public class WealthMapDbContext : DbContext
     public DbSet<CreditCard> CreditCards => Set<CreditCard>();
 
     public DbSet<AccountMovement> AccountMovements => Set<AccountMovement>();
-    
+    public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<AdditionalIncome> AdditionalIncomes => Set<AdditionalIncome>();
+
     public WealthMapDbContext(DbContextOptions<WealthMapDbContext> options)
         : base(options)
     {
