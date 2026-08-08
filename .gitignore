@@ -4,6 +4,7 @@
 [Oo]ut/
 
 # User-specific / IDE
+.claude/
 .vs/
 .vscode/
 *.user
