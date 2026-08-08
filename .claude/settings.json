@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 5999 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { Stop-Process -Id $conn[0].OwningProcess -Force -Confirm:$false }; Set-Location \"C:\\\\Users\\\\E120804\\\\OneDrive - RSM\\\\Documents\\\\Personal\\\\Projects\\\\WealthMap\"; dotnet build \"WealthMap_Back-End\\\\src\\\\WealthMap.Api\\\\WealthMap.Api.csproj\" --nologo -v q -p:OutDir=\"C:\\\\Users\\\\E120804\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-E120804-OneDrive---RSM-Documents-Personal-Projects-WealthMap\\\\056d8add-b0f5-4b60-befc-8e15f6935ba7\\\\scratchpad\\\\api-debug\\\\\")",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\E120804\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-E120804-OneDrive---RSM-Documents-Personal-Projects-WealthMap\\\\056d8add-b0f5-4b60-befc-8e15f6935ba7\\\\scratchpad\\\\api-debug\"; $env:ASPNETCORE_URLS = \"http://localhost:5999\"; $env:ASPNETCORE_ENVIRONMENT = \"Development\"; dotnet WealthMap.Api.dll)",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 5999 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { Stop-Process -Id $conn[0].OwningProcess -Force -Confirm:$false; \"stopped\" } else { \"not running\" })"
+    ]
+  }
+}

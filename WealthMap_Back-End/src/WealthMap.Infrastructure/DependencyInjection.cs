@@ -5,6 +5,7 @@ using WealthMap.Infrastructure.Persistence;
 using WealthMap.Application.Common.Interfaces;
 using WealthMap.Infrastructure.Persistence.Repositories;
 using WealthMap.Infrastructure.Auth;
+using WealthMap.Infrastructure.Reports;
 
 
 
@@ -39,6 +40,10 @@ public static class DependencyInjection
            services.AddScoped<IProductGoalRepository, ProductGoalRepository>();
            services.AddScoped<INotificationRepository, NotificationRepository>();
            services.AddScoped<IUserRepository, UserRepository>();
+
+           // QuestPDF's Community licence covers this project; it must be set before any render.
+           QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+           services.AddSingleton<IPdfReportGenerator, MonthlyReportPdfGenerator>();
            services.AddSingleton<IPasswordHasher, PasswordHasher>();
            
            services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));

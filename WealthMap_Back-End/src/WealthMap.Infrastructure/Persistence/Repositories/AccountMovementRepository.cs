@@ -20,4 +20,11 @@ public class AccountMovementRepository : Repository<AccountMovement>, IAccountMo
 
     public async Task<int> CountForAccountAsync(Guid accountId, Guid userId, CancellationToken ct = default) =>
         await Set.CountAsync(m => m.AccountId == accountId && m.UserId == userId, ct);
+
+    public async Task<IReadOnlyList<AccountMovement>> GetForUserFromAsync(
+        Guid userId, DateTime fromInclusive, CancellationToken ct = default) =>
+        await Set.Where(m => m.UserId == userId && m.OccurredAt >= fromInclusive)
+                 .OrderBy(m => m.OccurredAt)
+                 .AsNoTracking()
+                 .ToListAsync(ct);
 }
