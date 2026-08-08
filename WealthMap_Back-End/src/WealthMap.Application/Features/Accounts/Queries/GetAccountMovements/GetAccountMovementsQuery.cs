@@ -8,4 +8,5 @@ public record GetAccountMovementsQuery(
     Guid AccountId,
     Guid UserId,
     int Page = 1,
-    int PageSize = 20) : IQuery<PagedResult<AccountMovementDto>>;
+    int PageSize = PagedQueryRules.DefaultPageSize)
+    : IQuery<PagedResult<AccountMovementDto>>, IPagedQuery;

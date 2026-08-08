@@ -8,4 +8,5 @@ public record GetNotificationsQuery(
     Guid UserId,
     bool UnreadOnly = false,
     int Page = 1,
-    int PageSize = 20) : IQuery<PagedResult<NotificationDto>>;
+    int PageSize = PagedQueryRules.DefaultPageSize)
+    : IQuery<PagedResult<NotificationDto>>, IPagedQuery;

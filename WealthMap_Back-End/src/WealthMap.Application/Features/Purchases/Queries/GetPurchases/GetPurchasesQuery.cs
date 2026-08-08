@@ -10,4 +10,5 @@ public record GetPurchasesQuery(
     int? Month = null,
     string? Category = null,
     int Page = 1,
-    int PageSize = 20) : IQuery<PagedResult<PurchaseDto>>;
+    int PageSize = PagedQueryRules.DefaultPageSize)
+    : IQuery<PagedResult<PurchaseDto>>, IPagedQuery;

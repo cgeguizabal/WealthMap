@@ -1,4 +1,5 @@
 using FluentValidation;
+using WealthMap.Application.Common.Models;
 
 namespace WealthMap.Application.Features.Purchases.Queries.GetPurchases;
 
@@ -6,11 +7,7 @@ public class GetPurchasesValidator : AbstractValidator<GetPurchasesQuery>
 {
     public GetPurchasesValidator()
     {
-        RuleFor(x => x.Page)
-            .GreaterThanOrEqualTo(1).WithMessage("Page must be 1 or greater.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
+        this.ApplyPagingRules();
 
         RuleFor(x => x.Year)
             .InclusiveBetween(2000, 2100).WithMessage("Year must be between 2000 and 2100.")
