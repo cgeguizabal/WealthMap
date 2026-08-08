@@ -26,6 +26,12 @@ public class PurchaseRepository : Repository<Purchase>, IPurchaseRepository
         Guid userId, int? year, int? month, string? category, CancellationToken ct = default) =>
         await Filter(userId, year, month, category).CountAsync(ct);
 
+    public async Task<IReadOnlyList<Purchase>> GetForUserInMonthAsync(
+        Guid userId, int year, int month, CancellationToken ct = default) =>
+        await Filter(userId, year, month, category: null)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
     private IQueryable<Purchase> Filter(Guid userId, int? year, int? month, string? category)
     {
         var query = Set.Where(p => p.UserId == userId);

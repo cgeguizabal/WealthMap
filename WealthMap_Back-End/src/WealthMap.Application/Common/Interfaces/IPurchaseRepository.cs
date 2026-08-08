@@ -13,4 +13,7 @@ public interface IPurchaseRepository : IRepository<Purchase>
     Task<int> CountForUserAsync(
         Guid userId, int? year, int? month, string? category,
         CancellationToken ct = default);
+
+    Task<IReadOnlyList<Purchase>> GetForUserInMonthAsync(
+        Guid userId, int year, int month, CancellationToken ct = default);
 }
