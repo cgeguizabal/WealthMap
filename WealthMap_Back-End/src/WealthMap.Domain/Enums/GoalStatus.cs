@@ -1,8 +1,12 @@
 namespace WealthMap.Domain.Enums;
 
+/// <summary>
+/// Computed on read, never stored: derived from amounts, deadline and elapsed time.
+/// </summary>
 public enum GoalStatus
 {
-    Active = 1,
-    Completed = 2,
-    Cancelled = 3
+    OnTrack = 1,
+    BehindSchedule = 2,
+    DeadlinePassed = 3,
+    Completed = 4
 }
