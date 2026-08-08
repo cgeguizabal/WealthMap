@@ -17,6 +17,7 @@ public class WealthMapDbContext : DbContext
     public DbSet<Store> Stores => Set<Store>();
     public DbSet<Purchase> Purchases => Set<Purchase>();
     public DbSet<InstallmentPurchase> InstallmentPurchases => Set<InstallmentPurchase>();
+    public DbSet<Debt> Debts => Set<Debt>();
 
     public WealthMapDbContext(DbContextOptions<WealthMapDbContext> options)
         : base(options)
