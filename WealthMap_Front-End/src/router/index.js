@@ -90,6 +90,11 @@ const routes = [
     component: () => import('@/features/reports/views/ReportsView.vue')
   },
   {
+    path: '/notifications',
+    name: 'notifications',
+    component: () => import('@/features/notifications/views/NotificationsView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/features/shared/NotFoundView.vue'),
