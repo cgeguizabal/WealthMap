@@ -80,6 +80,11 @@ const routes = [
     component: () => import('@/features/goals/views/GoalsView.vue')
   },
   {
+    path: '/job',
+    name: 'job',
+    component: () => import('@/features/job/views/JobView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/features/shared/NotFoundView.vue'),
