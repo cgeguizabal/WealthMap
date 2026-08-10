@@ -45,6 +45,16 @@ const routes = [
     component: () => import('@/features/payments/views/PaymentsView.vue')
   },
   {
+    path: '/purchases',
+    name: 'purchases',
+    component: () => import('@/features/purchases/views/PurchasesView.vue')
+  },
+  {
+    path: '/stores',
+    name: 'stores',
+    component: () => import('@/features/stores/views/StoresView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/features/shared/NotFoundView.vue'),
