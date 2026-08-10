@@ -20,6 +20,16 @@ const routes = [
     component: () => import('@/features/dashboard/views/DashboardView.vue')
   },
   {
+    path: '/accounts',
+    name: 'accounts',
+    component: () => import('@/features/accounts/views/AccountsView.vue')
+  },
+  {
+    path: '/accounts/:id',
+    name: 'account-detail',
+    component: () => import('@/features/accounts/views/AccountDetailView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/features/shared/NotFoundView.vue'),
