@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useMediaQuery, DESKTOP_QUERY } from '@/composables/useMediaQuery'
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
+import OfflineBanner from './OfflineBanner.vue'
 
 const STORAGE_KEY = 'wm_sidebar_collapsed'
 
@@ -58,6 +59,8 @@ watch(drawerOpen, (open) => {
     <div class="shell__main">
       <!-- Only needed on mobile, where the drawer really does leave the screen. -->
       <AppHeader :show-toggle="sidebarHidden" @toggle-drawer="toggleSidebar" />
+
+      <OfflineBanner />
 
       <main id="main-content" class="shell__content" tabindex="-1">
         <slot />

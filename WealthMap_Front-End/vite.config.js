@@ -1,14 +1,74 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'icon.svg', 'icon-maskable.svg'],
+
+      manifest: {
+        name: 'WealthMap',
+        short_name: 'WealthMap',
+        description: 'What you have, what you owe, and what is safe to spend.',
+        theme_color: '#201F1D',
+        background_color: '#F3F2EE',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        start_url: '/',
+        scope: '/',
+        categories: ['finance', 'productivity'],
+        icons: [
+          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: '/icon-maskable.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' }
+        ]
+      },
+
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+
+        // The shell is served from cache so the app opens offline; any deep link
+        // falls back to index.html and the router takes it from there.
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+
+        runtimeCaching: [
+          {
+            // Financial figures are never served from cache. A stale balance is
+            // worse than no balance, so offline requests fail and the UI says so.
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly'
+          },
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-stylesheets' }
+          },
+          {
+            urlPattern: ({ url }) => url.origin === 'https://fonts.gstatic.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-files',
+              expiration: { maxEntries: 12, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          }
+        ]
+      },
+
+      devOptions: { enabled: false }
+    })
+  ],
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+
   css: {
     preprocessorOptions: {
       scss: {
@@ -20,6 +80,7 @@ export default defineConfig({
       }
     }
   },
+
   server: {
     port: 5173,
     proxy: {
