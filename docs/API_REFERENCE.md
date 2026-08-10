@@ -1,0 +1,681 @@
+# WealthMap — API Reference
+
+Complete endpoint reference. For *why* the API behaves this way, see
+[PROJECT_GUIDE.md](PROJECT_GUIDE.md); for setup, see [README.md](../README.md).
+
+Base URL in development: `http://localhost:5015`. Every route is prefixed **`/api/v1/`**.
+
+---
+
+## Conventions
+
+**Authentication.** Everything except `/auth/register` and `/auth/login` requires:
+
+```
+Authorization: Bearer <token>
+```
+
+The caller's identity always comes from the token. **No endpoint accepts a user id in its body or
+query string** — sending one has no effect.
+
+**Currency is usually implicit.** Amounts are denominated in the currency of the account or card
+involved, so most request bodies omit it. The exceptions, where there is no instrument to inherit
+from, are: account creation, card creation, job creation, additional income, debts, goals, and
+**cash** purchases.
+
+**Dates.** `DateOnly` fields use `yyyy-MM-dd`. Timestamps are UTC ISO-8601. Day-of-month fields
+(`paymentDueDay`, `monthlyDueDay`, job payment days) are integers 1–31 and clamp to short months —
+the "31st" resolves to the 30th in November and the 28th/29th in February.
+
+**Paging.** Paged endpoints take `?page=1&pageSize=20`. `pageSize` max is **100**. The envelope:
+
+```json
+{ "items": [ ... ], "page": 1, "pageSize": 20, "totalCount": 57,
+  "totalPages": 3, "hasNextPage": true, "hasPreviousPage": false }
+```
+
+**Status codes.**
+
+| Code | When |
+|---|---|
+| `200` | Success |
+| `201` | Created — includes a `Location` header |
+| `204` | Deleted |
+| `400` | Validation failure or a broken business rule |
+| `401` | Missing, malformed or expired token |
+| `404` | Not found **or not yours** — the two are deliberately indistinguishable |
+
+**Two shapes of 400.** Validation errors are field-keyed:
+
+```json
+{ "title": "Validation failed", "status": 400,
+  "errors": { "Amount": ["Deposit amount must be greater than zero."] } }
+```
+
+Business-rule violations carry a single message:
+
+```json
+{ "title": "Business rule violation", "status": 400,
+  "detail": "Insufficient funds in 'Checking'. Available: 120.00 USD, requested: 500.00 USD." }
+```
+
+**Enums in requests are integers; in responses they are strings.** A request sends
+`"type": 2`; the response returns `"type": "Savings"`. The exception is payment `sourceType`, which
+is a string both ways (`"Account"` / `"External"`, case-insensitive on input).
+
+### Enum values
+
+| Enum | Values |
+|---|---|
+| Account `type` | `1` Checking · `2` Savings |
+| Movement `type` | `1` SalaryDeposit · `2` Deposit · `3` Bonus · `4` TransferIn · `5` TransferOut · `6` Purchase · `7` Payment · `8` AtmWithdrawal |
+| Deduction `type` | `1` Fixed · `2` Percentage |
+| Income `frequency` | `1` Weekly · `2` Biweekly · `3` Monthly · `4` Yearly |
+| Purchase `paymentMethod` | `1` DebitAccount · `2` CreditCard · `3` Cash |
+| Debt `status` (response) | `Active` · `PaidOff` · `Defaulted` |
+| Goal `status` (response) | `OnTrack` · `BehindSchedule` · `DeadlinePassed` · `Completed` |
+| Payment `targetType` | `CreditCard` · `Debt` · `Installment` |
+| Payment `sourceType` | `Account` · `External` |
+
+---
+
+## Authentication
+
+### `POST /api/v1/auth/register`
+
+```json
+{ "email": "you@example.com", "password": "at-least-8-chars",
+  "fullName": "Your Name", "country": "US", "currency": "USD" }
+```
+
+**200** → `{ "userId", "email", "fullName", "token" }`
+
+`currency` becomes your reporting currency: the dashboard and monthly report aggregate in it, and
+holdings in other currencies are excluded from totals rather than converted.
+
+### `POST /api/v1/auth/login`
+
+```json
+{ "email": "you@example.com", "password": "..." }
+```
+
+**200** → same shape as register. **400** if either field is empty or the credentials are wrong —
+the message does not distinguish the two, so it cannot be used to discover which emails exist.
+
+---
+
+## Accounts
+
+### `POST /api/v1/accounts` → **201**
+
+```json
+{ "name": "Checking", "bankName": "BBVA", "type": 1,
+  "openingBalance": 1000, "currency": "USD" }
+```
+
+### `GET /api/v1/accounts` · `GET /api/v1/accounts/{id}`
+
+```json
+{ "id": "...", "name": "Checking", "bankName": "BBVA", "type": "Checking",
+  "balance": 1000.00, "currency": "USD", "isBlockedForSaving": false,
+  "notes": null, "createdAt": "2026-08-01T12:00:00Z" }
+```
+
+### `PUT /api/v1/accounts/{id}`
+
+```json
+{ "name": "Checking", "bankName": "BBVA", "notes": "main account" }
+```
+
+Only these three fields are editable. Balance changes only through movements; type and currency are
+immutable because changing them would invalidate the movement history.
+
+### `POST /api/v1/accounts/{id}/block` · `POST /api/v1/accounts/{id}/unblock`
+
+No body. A blocked account still accepts deposits but refuses withdrawals. Blocking an
+already-blocked account → **400**.
+
+### `POST /api/v1/accounts/{id}/deposit`
+
+```json
+{ "amount": 500, "description": "cash deposit", "type": 2 }
+```
+
+`type` accepts only **2** (Deposit) or **3** (Bonus). SalaryDeposit and TransferIn are
+system-generated. Returns the movement.
+
+### `POST /api/v1/accounts/{id}/withdraw`
+
+```json
+{ "amount": 100, "description": "groceries", "location": "ATM Reforma 222" }
+```
+
+`location` is optional. Always recorded as `AtmWithdrawal` — the only manual outbound type.
+**400** on insufficient funds or a blocked account.
+
+### `POST /api/v1/accounts/transfer`
+
+```json
+{ "fromAccountId": "...", "toAccountId": "...", "amount": 250, "description": null }
+```
+
+**200** → `{ "fromAccount": {...}, "toAccount": {...}, "amount", "currency", "occurredAt" }`
+
+Atomic: both balances and both movements commit together or not at all. Same account for both
+sides → **400**.
+
+### `GET /api/v1/accounts/{id}/movements?page=1&pageSize=20`
+
+Paged, newest first. Each item:
+
+```json
+{ "id": "...", "accountId": "...", "type": "Purchase", "amount": 85.50,
+  "currency": "USD", "balanceAfter": 914.50, "description": "Purchase: Groceries",
+  "location": null, "relatedEntityId": "...", "isInbound": false,
+  "occurredAt": "2026-08-08T14:22:01Z" }
+```
+
+---
+
+## Credit cards
+
+### `POST /api/v1/credit-cards` → **201**
+
+```json
+{ "cardName": "Gold", "bankName": "BBVA", "creditLimit": 5000, "currency": "USD",
+  "annualInterestRate": 45.9, "paymentDueDay": 15, "statementCutoffDay": 28 }
+```
+
+### `GET /api/v1/credit-cards` · `GET /api/v1/credit-cards/{id}`
+
+```json
+{ "id": "...", "cardName": "Gold", "bankName": "BBVA", "creditLimit": 5000.00,
+  "usedCredit": 1800.00, "availableCredit": 3200.00, "currency": "USD",
+  "annualInterestRate": 45.900, "paymentDueDay": 15, "statementCutoffDay": 28,
+  "notes": null, "createdAt": "..." }
+```
+
+`availableCredit` is computed, never stored.
+
+### `PUT /api/v1/credit-cards/{id}`
+
+```json
+{ "cardName": "Gold", "bankName": "BBVA", "annualInterestRate": 39.9,
+  "paymentDueDay": 10, "statementCutoffDay": 25, "notes": "main card" }
+```
+
+### `PUT /api/v1/credit-cards/{id}/limit`
+
+```json
+{ "newLimit": 8000 }
+```
+
+**400** if the new limit is below current `usedCredit`.
+
+### `POST /api/v1/credit-cards/{id}/payments`
+
+```json
+{ "amount": 200, "sourceType": "Account", "sourceAccountId": "...", "notes": null }
+```
+
+```json
+{ "amount": 200, "sourceType": "External", "sourceAccountId": null, "notes": "paid in cash" }
+```
+
+**200** → `{ "card": {...}, "accountMovement": {...} | null }`
+
+`Account` withdraws from the named account and writes a `Payment` movement; `External` (cash or a
+third party paid) touches no account and returns `accountMovement: null`. **Both** write a row to
+the payments ledger. `sourceAccountId` is required for `Account` and must be absent for `External`.
+Paying more than is owed → **400**.
+
+There is **no charge endpoint** — cards are charged by purchases and installment plans.
+
+### `GET /api/v1/credit-cards/{id}/payments`
+
+Every payment against this card, newest first, from any source. See [Payments](#payments).
+
+---
+
+## Jobs & income
+
+### `POST /api/v1/jobs` → **201**
+
+```json
+{ "title": "Full-stack Dev", "employer": "Acme", "grossMonthlySalary": 4000,
+  "currency": "USD", "depositAccountId": "...", "paymentDays": [15, 30] }
+```
+
+One job per user — a second create → **400**. `paymentDays` must hold 1–3 distinct days.
+
+### `GET /api/v1/jobs` · `GET /api/v1/jobs/{id}`
+
+```json
+{ "id": "...", "title": "Full-stack Dev", "employer": "Acme",
+  "grossMonthlySalary": 4000.00, "currency": "USD",
+  "netMonthly": 3000.00, "netPerDeposit": 1500.00,
+  "depositAccountId": "...", "paymentDays": [15, 30],
+  "deductions": [ { "id": "...", "name": "Income tax", "type": "Percentage", "value": 20.00 } ],
+  "nextPaymentDates": ["2026-08-15", "2026-08-30", "2026-09-15"], "createdAt": "..." }
+```
+
+`netMonthly = gross − Σfixed − gross × Σpercentage / 100`, computed. `nextPaymentDates` shows the
+next three, month-end clamped.
+
+### `PUT /api/v1/jobs/{id}` · `DELETE /api/v1/jobs/{id}` → **204**
+
+```json
+{ "title": "...", "employer": "...", "grossMonthlySalary": 4500,
+  "depositAccountId": "...", "paymentDays": [15, 30] }
+```
+
+Currency cannot change. `paymentDays` replaces the existing set. Deleting a job deletes its
+deductions and payment days.
+
+### Deductions (nested)
+
+`POST /api/v1/jobs/{jobId}/deductions` · `PUT .../deductions/{deductionId}` ·
+`DELETE .../deductions/{deductionId}`
+
+```json
+{ "name": "Income tax", "type": 2, "value": 20 }
+```
+
+`type` **1** = Fixed (an amount in the salary's currency), **2** = Percentage (of gross, max 100).
+All three return the **full updated job**, so you always see the recomputed net. Deductions that
+would push net below zero → **400**.
+
+### Additional incomes
+
+`POST|GET /api/v1/additional-incomes` · `GET|PUT|DELETE /{id}`
+
+```json
+{ "name": "Freelance", "amount": 500, "currency": "USD",
+  "frequency": 3, "depositAccountId": "..." }
+```
+
+Recurring extras only; one-off money is a `Bonus` deposit. Frequencies are normalized to a monthly
+figure for the dashboard (weekly × 52/12, biweekly × 26/12, yearly ÷ 12).
+
+---
+
+## Stores
+
+A **shared catalog** — the one non-user-scoped resource. Everyone reads every store; only the
+creator may edit theirs. Editing someone else's → **404**.
+
+### `POST /api/v1/stores` → **201** · `GET /api/v1/stores` · `GET /{id}` · `PUT /{id}`
+
+```json
+{ "name": "Walmart", "category": "Groceries",
+  "logoUrl": "https://logo.clearbit.com/walmart.com", "description": "Supermarket" }
+```
+
+Response adds `"isMine": true|false`. The creator's user id is never exposed. `logoUrl` must be a
+valid absolute URL when present. There is no delete — purchases reference stores.
+
+---
+
+## Purchases
+
+### `POST /api/v1/purchases` → **201**
+
+The `paymentMethod` decides which fields are required:
+
+```json
+{ "productName": "Groceries", "amount": 85.50, "currency": null, "occurredAt": null,
+  "storeId": "...", "category": "Food", "paymentMethod": 1,
+  "accountId": "...", "creditCardId": null, "notes": null }
+```
+
+| `paymentMethod` | Requires | Must be null | Effect |
+|---|---|---|---|
+| `1` DebitAccount | `accountId` | `creditCardId` | withdraws + writes a `Purchase` movement |
+| `2` CreditCard | `creditCardId` | `accountId` | charges the card |
+| `3` Cash | `currency` | both ids | records the purchase only |
+
+`occurredAt` defaults to now and cannot be in the future. Currency comes from the account or card;
+only cash needs it explicitly. A debit purchase exceeding the balance, or a credit purchase
+exceeding available credit → **400**, with nothing written.
+
+### `GET /api/v1/purchases?year=2026&month=8&category=food&page=1&pageSize=20`
+
+Paged, newest first. `category` is case-insensitive. `month` requires `year` → **400** otherwise.
+
+```json
+{ "id": "...", "productName": "Groceries", "amount": 85.50, "currency": "USD",
+  "occurredAt": "...", "storeId": "...", "category": "Food",
+  "paymentMethod": "DebitAccount", "accountId": "...", "creditCardId": null,
+  "notes": null, "createdAt": "..." }
+```
+
+### `GET /api/v1/purchases/{id}`
+
+---
+
+## Installment purchases (tasa 0)
+
+### `POST /api/v1/installment-purchases` → **201**
+
+```json
+{ "productName": "TV", "totalPrice": 1200, "storeId": null,
+  "creditCardId": "...", "monthsCount": 12, "purchasedAt": null }
+```
+
+Creating a plan **charges the card the full price immediately** — that is how an interest-free plan
+consumes a credit line — so a plan exceeding available credit → **400**. `monthsCount` is 1–120;
+`purchasedAt` defaults to today and cannot be in the future.
+
+### `GET /api/v1/installment-purchases` · `GET /{id}`
+
+```json
+{ "id": "...", "productName": "TV", "totalPrice": 1200.00, "currency": "USD",
+  "monthlyPayment": 100.00, "monthsCount": 12, "purchasedAt": "2026-08-10",
+  "storeId": null, "creditCardId": "...",
+  "remainingBalance": 1100.00, "remainingMonths": 11, "endDate": "2027-08-10",
+  "isCompleted": false,
+  "payments": [ { "id": "...", "number": 1, "amount": 100.00, "currency": "USD",
+                  "dueDate": "2026-09-10", "isPaid": true, "paidAt": "..." } ],
+  "createdAt": "..." }
+```
+
+The schedule is generated at creation. The **last installment absorbs the rounding remainder**, so
+the rows sum to exactly the total (1000 ÷ 12 → 11 × 83.33 + 83.37).
+
+### `POST /api/v1/installment-purchases/{id}/pay`
+
+```json
+{ "sourceType": "Account", "sourceAccountId": "...", "notes": null }
+```
+
+Takes **no installment id** — always pays the oldest unpaid row. Same source rules as card payments.
+Paying a completed plan → **400**. Returns `{ "purchase": {...}, "accountMovement": {...} | null }`.
+
+---
+
+## Debts
+
+### `POST /api/v1/debts` → **201**
+
+```json
+{ "name": "Car loan", "originalAmount": 5000, "remainingAmount": null,
+  "currency": "USD", "monthlyPayment": 250, "monthlyDueDay": 5 }
+```
+
+`remainingAmount` defaults to `originalAmount`; pass a lower value to register a debt already
+partly paid. It may not exceed the original → **400**.
+
+### `GET /api/v1/debts` · `GET /{id}`
+
+```json
+{ "id": "...", "name": "Car loan", "originalAmount": 5000.00, "remainingAmount": 4750.00,
+  "currency": "USD", "monthlyPayment": 250.00, "monthlyDueDay": 5,
+  "nextDueDate": "2026-09-05", "status": "Active", "createdAt": "..." }
+```
+
+`nextDueDate` is computed and clamped; it is `null` once the debt is paid off.
+
+### `PUT /api/v1/debts/{id}` · `DELETE /{id}` → **204**
+
+```json
+{ "name": "Car loan (refi)", "monthlyPayment": 200, "monthlyDueDay": 10 }
+```
+
+Amounts are not editable here — they change through payments.
+
+### `POST /api/v1/debts/{id}/payments`
+
+```json
+{ "amount": 250, "sourceType": "Account", "sourceAccountId": "...", "notes": null }
+```
+
+Same source rules as cards. Overpaying the remaining balance → **400**. Returns
+`{ "debt": {...}, "accountMovement": {...} | null }`.
+
+**Paying a defaulted debt reactivates it** (`Defaulted` → `Active`).
+
+### `POST /api/v1/debts/{id}/default`
+
+No body. Marks the debt `Defaulted`; only an `Active` debt can default → **400** otherwise.
+
+### `GET /api/v1/debts/{id}/payments`
+
+Every payment against this debt, any source.
+
+---
+
+## Payments
+
+A ledger of every payment against a card, debt or installment plan — **including external ones**,
+which touch no account and therefore leave no movement.
+
+### `GET /api/v1/payments`
+
+Query: `?from=2026-08-01&to=2026-08-31&targetType=CreditCard&page=1&pageSize=20`
+
+All filters optional. `to` **includes its whole day**. `targetType` is `CreditCard`, `Debt` or
+`Installment` (case-insensitive); anything else → **400**, as does `to` earlier than `from`.
+
+```json
+{ "id": "...", "targetType": "CreditCard", "targetId": "...",
+  "amount": 150.00, "currency": "USD", "sourceType": "External",
+  "sourceAccountId": null, "occurredAt": "...", "notes": "paid in cash at branch" }
+```
+
+`targetId` is polymorphic — it names a card, debt or plan according to `targetType`.
+`sourceAccountId` is set for `Account` payments and null for `External` ones.
+
+### `GET /api/v1/credit-cards/{id}/payments` · `GET /api/v1/debts/{id}/payments`
+
+Unpaged, newest first. A target that is not yours → **404**, not an empty array.
+
+Installment payments are reachable through `GET /api/v1/payments?targetType=Installment`; they carry
+an auto-note like `"Installment 3/12"` when you do not supply one.
+
+> Payments recorded before this ledger existed were backfilled from movement history. External
+> payments from that era left no trace and could not be recovered.
+
+---
+
+## Goals
+
+### Savings goals — `/api/v1/savings-goals`
+
+`POST` → **201** · `GET` · `GET /{id}` · `PUT /{id}` · `DELETE /{id}` → **204**
+
+```json
+{ "name": "Emergency fund", "targetAmount": 6000, "currency": "USD",
+  "currentAmount": 0, "deadline": "2027-08-01", "linkedAccountId": null }
+```
+
+`linkedAccountId` must name a **savings** account in the goal's currency, or → **400**. Deadlines
+cannot be in the past.
+
+```json
+{ "id": "...", "name": "Emergency fund", "targetAmount": 6000.00, "currentAmount": 500.00,
+  "currency": "USD", "deadline": "2027-08-01", "linkedAccountId": null,
+  "progressPercentage": 8.33, "monthsRemaining": 13,
+  "requiredMonthlyContribution": 423.08, "status": "OnTrack", "createdAt": "..." }
+```
+
+All four derived fields are computed on read. `requiredMonthlyContribution` is `null` with no
+deadline or once the deadline has passed, and `0` once the target is reached.
+
+### `POST /api/v1/savings-goals/{id}/contribute`
+
+```json
+{ "amount": 500, "sourceAccountId": null }
+```
+
+**Unlinked goal** — tracking only; passing a `sourceAccountId` → **400**.
+**Linked goal** — `sourceAccountId` is required and performs a real transfer into the linked
+account (paired TransferOut/TransferIn movements, atomic). It may not be the linked account itself.
+
+**200** → `{ "goal": {...}, "sourceMovement": {...} | null }`
+
+### Product goals — `/api/v1/product-goals`
+
+Same verbs. Deadline is **optional**; without one there is no required-monthly figure and no
+schedule to fall behind.
+
+```json
+{ "name": "PlayStation 6", "targetAmount": 700, "currency": "USD",
+  "currentAmount": 0, "deadline": "2027-02-28" }
+```
+
+`POST /{id}/contribute` takes `{ "amount": 200 }` only — product goals never touch real accounts.
+Contributing past the target caps `progressPercentage` at 100 and sets `status: "Completed"`.
+
+---
+
+## Dashboard & alerts
+
+### `GET /api/v1/dashboard`
+
+```json
+{ "currency": "USD",
+  "totalAvailable": 4800.00, "totalInChecking": 2800.00, "totalInSavings": 2000.00,
+  "totalCreditLimit": 5000.00, "totalUsedCredit": 1800.00, "totalAvailableCredit": 3200.00,
+  "totalLoanDebt": 4000.00, "installmentRemaining": 1200.00, "totalDebt": 5800.00,
+  "netWorth": -1000.00,
+  "monthlyNetIncome": 5000.00, "monthlyObligations": 350.00, "safeToSpend": 4650.00,
+  "monthSpending": 800.00, "debtRatioPercentage": 7.00,
+  "upcomingDueDates": [
+    { "kind": "Debt", "entityId": "...", "name": "Car loan",
+      "dueDate": "2026-08-10", "daysUntil": 2, "amount": 250.00 } ],
+  "goals": { "total": 1, "completed": 0, "behindSchedule": 0,
+             "totalTargeted": 6000.00, "totalSaved": 100.00 },
+  "excludedCurrencies": ["MXN"] }
+```
+
+Reading these correctly:
+
+- **`installmentRemaining` is already inside `totalUsedCredit`** (plans charge the card). It is
+  informational; `totalDebt` = `totalUsedCredit` + `totalLoanDebt` only.
+- **`monthlyObligations` excludes revolving card balances** — you choose how much of those to pay.
+  It is loan payments + the next installment of each active plan.
+- **`excludedCurrencies`** lists holdings left out of every total. There are no FX rates; a card in
+  another currency is reported here rather than silently mixed in.
+- `upcomingDueDates` covers the next 30 days across cards, debts and installments.
+
+### `GET /api/v1/alerts`
+
+Computed live, ordered Critical → Warning → Info. Nothing is stored by this call.
+
+```json
+[ { "type": "InsufficientBalanceForCardPayment", "severity": "Critical",
+    "title": "Checking balance will not cover upcoming card payments",
+    "message": "1,800.00 USD is due within 7 days but checking holds 1,200.00 USD. You could move 600.00 USD from savings to cover it.",
+    "relatedEntityId": null } ]
+```
+
+| `type` | Fires when |
+|---|---|
+| `CardPaymentDueSoon` | a card with a balance is due within 7 days (Critical within 2) |
+| `DebtPaymentDueSoon` · `InstallmentDueSoon` | same window, Info |
+| `InsufficientBalanceForCardPayment` | checking will not cover cards due within 7 days |
+| `HighDebtRatio` | obligations above 40% of net income (Critical above 60%) |
+| `OverspendingVsIncome` | this month's purchases exceed net monthly income |
+| `GoalBehindSchedule` | a goal trails its pace, or missed its deadline (Critical) |
+| `GoalReached` | a goal is fully funded |
+
+### Notifications
+
+`GET /api/v1/notifications?unreadOnly=true&page=1&pageSize=20` — paged, newest first.
+
+`POST /api/v1/notifications/sync` — persists currently-true alerts, **skipping any already unread**,
+and returns only what it created. Calling it twice in a row returns `[]`.
+
+`POST /api/v1/notifications/{id}/read` — marks one read; calling it twice is harmless. Marking read
+is an acknowledgement, not a mute: if the condition is still true at the next sync, it is raised
+again.
+
+---
+
+## Reports
+
+### `GET /api/v1/reports/monthly/{yyyy-MM}`
+
+e.g. `/api/v1/reports/monthly/2026-08`. Malformed months → **400**.
+
+```json
+{ "month": "2026-08", "currency": "USD",
+  "periodStart": "2026-08-01", "periodEnd": "2026-08-31", "userFullName": "...",
+  "income": { "total": 4000.00,
+              "lines": [ { "type": "SalaryDeposit", "total": 3000.00, "count": 2 } ],
+              "expectedSalaryNet": 3000.00 },
+  "spending": { "totalPurchases": 800.00, "totalCashWithdrawn": 1600.00,
+                "byCategory": [ { "category": "Electronics", "total": 600.00,
+                                  "count": 1, "sharePercentage": 75.00 } ],
+                "topExpenses": [ { "productName": "Monitor", "category": "Electronics",
+                                   "amount": 600.00, "occurredOn": "2026-08-08",
+                                   "paymentMethod": "CreditCard" } ] },
+  "accounts": [ { "accountId": "...", "name": "Checking", "type": "Checking",
+                  "openingBalance": 3000.00, "closingBalance": 1200.00,
+                  "totalIn": 0, "totalOut": 1800.00, "movementCount": 2 } ],
+  "cards": [ { "cardId": "...", "cardName": "Gold", "creditLimit": 5000.00,
+               "usedCredit": 1450.00, "availableCredit": 3550.00,
+               "chargedThisMonth": 1800.00, "paidThisMonth": 350.00, "paymentDueDay": 15 } ],
+  "goals": [ { "kind": "Savings", "name": "Emergency fund", "targetAmount": 6000.00,
+               "currentAmount": 500.00, "progressPercentage": 8.33, "status": "OnTrack" } ],
+  "netResult": 3200.00, "generatedAt": "..." }
+```
+
+Reading these correctly:
+
+- **`netResult` = income − purchases.** `totalCashWithdrawn` is reported but deliberately excluded:
+  whatever that cash buys is already a Cash purchase, so counting both would double-count it.
+- **Internal transfers are not income.** `TransferIn` is filtered out of the income section.
+- **Opening/closing balances are derived** by rewinding today's balance through movements, so
+  `opening + totalIn − totalOut = closing`.
+- **`paidThisMonth` counts payments from any source**, including external ones, plus installment
+  payments on plans belonging to that card.
+- Accounts and cards created after the period ended are omitted — they did not exist during it.
+- Only holdings in your profile currency appear.
+
+### `GET /api/v1/reports/monthly/{yyyy-MM}/pdf`
+
+Same data rendered as a PDF: `Content-Type: application/pdf`, filename `wealthmap-2026-08.pdf`.
+In Postman use **Send and Download**. A month with no activity renders successfully with empty
+sections.
+
+---
+
+## Quick reference
+
+| Method | Route |
+|---|---|
+| POST | `/api/v1/auth/register` · `/api/v1/auth/login` |
+| GET POST | `/api/v1/accounts` |
+| GET PUT | `/api/v1/accounts/{id}` |
+| POST | `/api/v1/accounts/{id}/deposit` · `/withdraw` · `/block` · `/unblock` · `/api/v1/accounts/transfer` |
+| GET | `/api/v1/accounts/{id}/movements` |
+| GET POST | `/api/v1/credit-cards` |
+| GET PUT | `/api/v1/credit-cards/{id}` |
+| PUT | `/api/v1/credit-cards/{id}/limit` |
+| GET POST | `/api/v1/credit-cards/{id}/payments` |
+| GET POST | `/api/v1/jobs` |
+| GET PUT DELETE | `/api/v1/jobs/{id}` |
+| POST | `/api/v1/jobs/{jobId}/deductions` |
+| PUT DELETE | `/api/v1/jobs/{jobId}/deductions/{deductionId}` |
+| GET POST | `/api/v1/additional-incomes` |
+| GET PUT DELETE | `/api/v1/additional-incomes/{id}` |
+| GET POST | `/api/v1/stores` |
+| GET PUT | `/api/v1/stores/{id}` |
+| GET POST | `/api/v1/purchases` |
+| GET | `/api/v1/purchases/{id}` |
+| GET POST | `/api/v1/installment-purchases` |
+| GET | `/api/v1/installment-purchases/{id}` |
+| POST | `/api/v1/installment-purchases/{id}/pay` |
+| GET POST | `/api/v1/debts` |
+| GET PUT DELETE | `/api/v1/debts/{id}` |
+| GET POST | `/api/v1/debts/{id}/payments` |
+| POST | `/api/v1/debts/{id}/default` |
+| GET | `/api/v1/payments` |
+| GET POST | `/api/v1/savings-goals` · `/api/v1/product-goals` |
+| GET PUT DELETE | `/api/v1/savings-goals/{id}` · `/api/v1/product-goals/{id}` |
+| POST | `/api/v1/savings-goals/{id}/contribute` · `/api/v1/product-goals/{id}/contribute` |
+| GET | `/api/v1/dashboard` · `/api/v1/alerts` |
+| GET | `/api/v1/notifications` |
+| POST | `/api/v1/notifications/sync` · `/api/v1/notifications/{id}/read` |
+| GET | `/api/v1/reports/monthly/{yyyy-MM}` · `/api/v1/reports/monthly/{yyyy-MM}/pdf` |
