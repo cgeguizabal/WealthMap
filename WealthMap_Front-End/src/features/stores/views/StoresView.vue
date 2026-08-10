@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { storesApi } from '@/api/stores.api'
 import { useAsync } from '@/composables/useAsync'
 
@@ -9,8 +10,8 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
-import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 
 import StoreFormModal from '../components/StoreFormModal.vue'
 
@@ -62,7 +63,7 @@ onMounted(loadStores)
       </BaseInput>
     </div>
 
-    <div v-if="loading && !stores?.length" class="state"><BaseSpinner :size="22" /></div>
+    <CardGridSkeleton v-if="loading && !stores?.length" />
 
     <BaseEmptyState
       v-else-if="error"
@@ -93,9 +94,7 @@ onMounted(loadStores)
     <motion.div
       v-else
       class="grid"
-      :initial="{ opacity: 0, y: 8 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.25, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
     >
       <article v-for="store in filtered" :key="store.id" class="store">
         <div class="store__head">
@@ -210,14 +209,6 @@ onMounted(loadStores)
   color: var(--text-subtle);
 }
 
-.state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
-
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
 
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }

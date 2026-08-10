@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { debtsApi } from '@/api/debts.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
@@ -11,8 +12,8 @@ import { useDashboardStore } from '@/stores/dashboard.store'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
-import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 
 import DebtCard from '../components/DebtCard.vue'
 import DebtFormModal from '../components/DebtFormModal.vue'
@@ -120,7 +121,7 @@ onMounted(loadDebts)
       </div>
     </div>
 
-    <div v-if="loading && !debts?.length" class="state"><BaseSpinner :size="22" /></div>
+    <CardGridSkeleton v-if="loading && !debts?.length" />
 
     <BaseEmptyState
       v-else-if="error"
@@ -143,9 +144,7 @@ onMounted(loadDebts)
     <motion.div
       v-else
       class="grid"
-      :initial="{ opacity: 0, y: 8 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.25, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
     >
       <DebtCard
         v-for="debt in debts"
@@ -196,7 +195,6 @@ onMounted(loadDebts)
   gap: var(--sp-4);
 }
 
-.state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
 
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }

@@ -59,7 +59,7 @@ watch(drawerOpen, (open) => {
       <!-- Only needed on mobile, where the drawer really does leave the screen. -->
       <AppHeader :show-toggle="sidebarHidden" @toggle-drawer="toggleSidebar" />
 
-      <main class="shell__content">
+      <main id="main-content" class="shell__content" tabindex="-1">
         <slot />
       </main>
     </div>

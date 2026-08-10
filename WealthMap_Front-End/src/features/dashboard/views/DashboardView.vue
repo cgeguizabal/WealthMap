@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { useDashboardStore } from '@/stores/dashboard.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useMoney } from '@/composables/useMoney'
@@ -79,9 +80,7 @@ onMounted(() => {
 
       <motion.section
         class="stats"
-        :initial="{ opacity: 0, y: 8 }"
-        :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.3, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
       >
         <StatTile
           label="Available"

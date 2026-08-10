@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { motion } from 'motion-v'
+import { fadeInRow } from '@/composables/useMotionSafe'
 import { useNotificationsStore } from '@/stores/notifications.store'
 import { useToast } from '@/composables/useToast'
 
@@ -132,9 +133,7 @@ onMounted(() => {
           v-for="(item, index) in items"
           :key="item.id"
           :class="['note', `note--${item.severity.toLowerCase()}`, { 'note--read': item.isRead }]"
-          :initial="{ opacity: 0, y: 4 }"
-          :animate="{ opacity: 1, y: 0 }"
-          :transition="{ duration: 0.2, delay: Math.min(index * 0.03, 0.2), ease: [0.2, 0, 0, 1] }"
+          v-bind="fadeInRow(index)"
         >
           <BaseIcon
             :name="ICON_BY_SEVERITY[item.severity] ?? 'info'"

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { jobsApi } from '@/api/jobs.api'
 import { incomesApi, toMonthly } from '@/api/incomes.api'
 import { useMoney } from '@/composables/useMoney'
@@ -181,9 +182,7 @@ onMounted(load)
       <motion.div
         v-else
         class="job"
-        :initial="{ opacity: 0, y: 8 }"
-        :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.25, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
       >
         <div class="job__summary">
           <header class="job__head">
@@ -453,13 +452,6 @@ onMounted(load)
 
 .empty { margin-bottom: var(--sp-5); }
 .state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
-
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
 
 @media (max-width: 900px) {
   .job__figures { grid-template-columns: repeat(2, 1fr); }

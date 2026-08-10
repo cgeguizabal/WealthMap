@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { savingsGoalsApi, productGoalsApi } from '@/api/goals.api'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
@@ -11,8 +12,8 @@ import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseTabs from '@/components/base/BaseTabs.vue'
-import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 
 import GoalCard from '../components/GoalCard.vue'
 import GoalFormModal from '../components/GoalFormModal.vue'
@@ -139,7 +140,7 @@ onMounted(load)
 
     <BaseTabs v-model="tab" :tabs="tabs" class="tabs" />
 
-    <div v-if="loading && !visible.length" class="state"><BaseSpinner :size="22" /></div>
+    <CardGridSkeleton v-if="loading && !visible.length" />
 
     <BaseEmptyState
       v-else-if="!visible.length"
@@ -159,9 +160,7 @@ onMounted(load)
     <motion.div
       v-else
       class="grid"
-      :initial="{ opacity: 0, y: 8 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.25, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
     >
       <GoalCard
         v-for="goal in visible"
@@ -221,7 +220,6 @@ onMounted(load)
   gap: var(--sp-4);
 }
 
-.state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
 
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }

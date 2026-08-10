@@ -1,5 +1,6 @@
 <script setup>
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 
 defineProps({
   title: { type: String, required: true },
@@ -11,9 +12,7 @@ defineProps({
   <main class="auth">
     <motion.div
       class="auth__panel"
-      :initial="{ opacity: 0, y: 12 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.28, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
     >
       <header class="auth__brand">
         <span class="auth__mark">WM</span>

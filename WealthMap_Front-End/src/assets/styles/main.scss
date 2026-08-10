@@ -34,3 +34,48 @@ table { border-collapse: collapse; width: 100%; }
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
 }
+
+/* Visible to screen readers only — icon-only buttons carry their name this way */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Lets keyboard users jump past the sidebar straight to the page */
+.skip-link {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: 300;
+
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-weight: var(--fw-medium);
+
+  transform: translateY(-200%);
+
+  &:focus {
+    transform: translateY(0);
+    text-decoration: none;
+  }
+}
+
+/* Anything time-based stops when the reader has asked for stillness */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

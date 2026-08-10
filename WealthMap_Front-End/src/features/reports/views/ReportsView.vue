@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { reportsApi, currentMonth, downloadBlob } from '@/api/reports.api'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
@@ -110,9 +111,7 @@ onMounted(load)
     <motion.div
       v-else-if="report"
       class="report"
-      :initial="{ opacity: 0, y: 8 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.28, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
     >
       <header class="masthead">
         <div>

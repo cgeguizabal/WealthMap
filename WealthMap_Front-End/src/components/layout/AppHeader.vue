@@ -270,13 +270,6 @@ function logout() {
 .menu-enter-active, .menu-leave-active { transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .menu-enter-from, .menu-leave-to { opacity: 0; transform: translateY(-4px); }
 
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
 @media (max-width: 1023px) {
   .header { padding: 0 var(--sp-4); }
   .header__brand { display: flex; }

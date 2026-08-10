@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, useId } from 'vue'
 import { motion } from 'motion-v'
+import { fadeInRow } from '@/composables/useMotionSafe'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 
@@ -50,9 +51,7 @@ const overflow = computed(() => Math.max(0, props.alerts.length - visible.value.
             v-for="(alert, index) in visible"
             :key="`${alert.type}-${alert.relatedEntityId ?? index}`"
             :class="['alert', `alert--${alert.severity.toLowerCase()}`]"
-            :initial="{ opacity: 0, x: -6 }"
-            :animate="{ opacity: 1, x: 0 }"
-            :transition="{ duration: 0.22, delay: index * 0.04, ease: [0.2, 0, 0, 1] }"
+            v-bind="fadeInRow(index)"
           >
             <BaseIcon :name="ICON_BY_SEVERITY[alert.severity] ?? 'info'" :size="17" class="alert__icon" />
 

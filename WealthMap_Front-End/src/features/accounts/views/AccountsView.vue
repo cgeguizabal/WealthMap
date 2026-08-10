@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { accountsApi } from '@/api/accounts.api'
 import { useAsync } from '@/composables/useAsync'
 import { useToast } from '@/composables/useToast'
@@ -10,8 +11,8 @@ import { useDashboardStore } from '@/stores/dashboard.store'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
-import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 
 import AccountCard from '../components/AccountCard.vue'
 import AccountFormModal from '../components/AccountFormModal.vue'
@@ -110,7 +111,7 @@ onMounted(loadAccounts)
       </div>
     </div>
 
-    <div v-if="loading && !accounts?.length" class="state"><BaseSpinner :size="22" /></div>
+    <CardGridSkeleton v-if="loading && !accounts?.length" />
 
     <BaseEmptyState
       v-else-if="error"
@@ -133,9 +134,7 @@ onMounted(loadAccounts)
     <motion.div
       v-else
       class="grid"
-      :initial="{ opacity: 0, y: 8 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :transition="{ duration: 0.28, ease: [0.2, 0, 0, 1] }"
+      v-bind="fadeUp()"
     >
       <AccountCard
         v-for="account in accounts"
@@ -194,7 +193,6 @@ onMounted(loadAccounts)
   gap: var(--sp-4);
 }
 
-.state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
 
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }

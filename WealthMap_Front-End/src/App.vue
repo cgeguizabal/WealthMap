@@ -4,6 +4,7 @@ import { RouterView, useRoute } from 'vue-router'
 import AppShell from '@/components/layout/AppShell.vue'
 import BaseToast from '@/components/base/BaseToast.vue'
 import BaseConfirmDialog from '@/components/base/BaseConfirmDialog.vue'
+import BaseErrorBoundary from '@/components/base/BaseErrorBoundary.vue'
 
 const route = useRoute()
 
@@ -16,12 +17,16 @@ const useShell = computed(() => route.meta.layout !== 'blank')
 </script>
 
 <template>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
   <AppShell v-if="useShell">
-    <RouterView v-slot="{ Component }">
-      <Transition name="page" mode="out-in">
-        <component :is="Component" />
-      </Transition>
-    </RouterView>
+    <BaseErrorBoundary>
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
+    </BaseErrorBoundary>
   </AppShell>
 
   <RouterView v-else />
