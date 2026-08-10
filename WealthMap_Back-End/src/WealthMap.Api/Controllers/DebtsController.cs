@@ -9,6 +9,8 @@ using WealthMap.Application.Features.Debts.Commands.PayDebt;
 using WealthMap.Application.Features.Debts.Commands.UpdateDebt;
 using WealthMap.Application.Features.Debts.Queries.GetDebtById;
 using WealthMap.Application.Features.Debts.Queries.GetDebts;
+using WealthMap.Application.Features.Payments.Queries.GetPaymentsForTarget;
+using WealthMap.Domain.Enums;
 
 namespace WealthMap.Api.Controllers;
 
@@ -88,9 +90,18 @@ public class DebtsController : ControllerBase
             User.GetUserId(),
             request.Amount,
             request.SourceType,
-            request.SourceAccountId);
+            request.SourceAccountId,
+            request.Notes);
 
         var result = await _sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/payments")]
+    public async Task<IActionResult> GetPayments(Guid id, CancellationToken ct)
+    {
+        var query = new GetPaymentsForTargetQuery(User.GetUserId(), PaymentTargetType.Debt, id);
+        var result = await _sender.Send(query, ct);
         return Ok(result);
     }
 
@@ -118,4 +129,5 @@ public record UpdateDebtRequest(
 public record PayDebtRequest(
     decimal Amount,
     string SourceType,
-    Guid? SourceAccountId);
+    Guid? SourceAccountId,
+    string? Notes);

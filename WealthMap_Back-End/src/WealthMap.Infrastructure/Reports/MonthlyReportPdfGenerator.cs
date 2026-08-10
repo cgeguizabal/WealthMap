@@ -326,7 +326,8 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
             });
 
             column.Item().PaddingTop(4).Text(
-                "Card balances are current, not month-end. Payments made from outside your accounts are not listed.")
+                "Card balances are current, not month-end. Paid includes payments from any source, "
+                + "including cash and third parties.")
                 .FontSize(8).FontColor(Muted);
         });
     }

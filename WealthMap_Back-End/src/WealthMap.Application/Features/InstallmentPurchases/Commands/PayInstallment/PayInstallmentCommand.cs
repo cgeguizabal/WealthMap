@@ -7,4 +7,5 @@ public record PayInstallmentCommand(
     Guid InstallmentPurchaseId,
     Guid UserId,
     string SourceType,
-    Guid? SourceAccountId) : ICommand<InstallmentPaymentResultDto>;
+    Guid? SourceAccountId,
+    string? Notes = null) : ICommand<InstallmentPaymentResultDto>;

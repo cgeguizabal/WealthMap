@@ -13,7 +13,7 @@ Read it top to bottom once. After that it works as a reference.
 1. [What WealthMap is](#1-what-wealthmap-is)
 2. [The architecture, and why layers exist at all](#2-the-architecture-and-why-layers-exist-at-all)
 3. [The patterns, one at a time](#3-the-patterns-one-at-a-time)
-4. [The modules](#4-the-modules)
+4. [The modules](#4-the-modules) — including the [payments ledger](#413-payments-ledger)
 5. [The database schema](#5-the-database-schema)
 6. [Decisions and their reasoning](#6-decisions-and-their-reasoning)
 7. [Running, testing, migrating](#7-running-testing-migrating)
@@ -479,6 +479,35 @@ double-count it. Cash withdrawn is shown separately as "left your accounts".
 Internal transfers are not income — `TransferIn` is filtered out, so moving money to savings does
 not inflate earnings.
 
+### 4.13 Payments ledger
+`GET /api/v1/payments` (paged, `?from=&to=&targetType=`), `GET /api/v1/credit-cards/{id}/payments`,
+`GET /api/v1/debts/{id}/payments`.
+
+Every payment against a card, debt or installment plan writes an immutable `Payment` row —
+**whatever its source**. This closes a real gap: before it, an `External` payment reduced a balance
+and left nothing behind. The balance was right, but *why* it changed was unknowable, and the
+monthly report could not count the payment at all.
+
+The row is written **inside the same transaction** as the balance change, on both paths. An
+account-sourced payment therefore produces two records — an `AccountMovement` (money left this
+account) and a `Payment` (this debt was reduced) — which are different facts, not duplicates. An
+external payment produces only the second.
+
+`TargetId` is **polymorphic**: it points at a card, a debt or a plan depending on `TargetType`, so
+it carries no foreign key. That is a deliberate trade — one ledger for all three payment kinds, at
+the cost of referential integrity on that column. The alternative (three near-identical tables, or a
+nullable FK per target type) buys FK enforcement and pays for it in triplicated queries and a table
+that grows a column every time a new payable thing appears. `SourceAccountId` *does* carry an FK
+with `RESTRICT`, and a check constraint enforces that `Account` payments name an account while
+`External` ones do not.
+
+Per-target endpoints verify ownership before answering, so another user's card id returns 404 rather
+than an empty list — an empty list would confirm the id exists.
+
+**Installment payments count toward their card.** Paying an installment calls `RegisterPayment` on
+the plan's card, so the report's per-card "Paid" figure includes payments whose target is a plan on
+that card.
+
 ---
 
 ## 5. The database schema
@@ -504,8 +533,16 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `savings_goals` | targets | nullable `linked_account_id`, `ON DELETE SET NULL` |
 | `product_goals` | product targets | nullable `deadline` |
 | `notifications` | persisted alerts | `type`, `severity`, `is_read`; index `(user_id, is_read)` |
+| `payments` | every payment, any source | `target_type` + `target_id` (polymorphic, no FK), `source_type`, nullable `source_account_id` (FK `RESTRICT`); CHECK source and account agree; indexes `(user_id, occurred_at)`, `(target_type, target_id)` |
 
-Eleven migrations, `InitialCreate` through `AddNotifications`.
+Twelve migrations, `InitialCreate` through `AddPayments`.
+
+`AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
+new table would have silently zeroed the report's historical figures — a regression introduced by an
+improvement. The migration therefore replays account-sourced payments out of the movement history
+(`type = 7`, `related_entity_id` naming the target) into the new table. External payments made
+before the table existed left no trace anywhere and are unrecoverable, which is the very gap being
+closed.
 
 **Delete behaviors are chosen, not defaulted.** `Cascade` from `users` (deleting a user removes
 their data). `Restrict` on job/income deposit accounts (an account referenced by a salary cannot
@@ -580,6 +617,11 @@ Without `External`, a user paying their card in cash would have to invent a fake
 corrupting the audit trail to record something true. The pattern is identical across all three
 payment types, so learning it once is enough.
 
+Both sources write a row to the `payments` ledger (§4.13). The distinction that matters is
+**movement vs. payment**: a movement says *money left this account*, a payment says *this balance
+was reduced*. An account-sourced payment is both facts at once; an external one is only the second.
+Conflating them is what made external payments invisible before the ledger existed.
+
 ### 6.6 Option B — user-declared tax
 The app does arithmetic; it does not know tax law. Deductions are rows the user copies from their
 payslip, as a fixed amount or a percentage.
@@ -640,8 +682,9 @@ is running. Stop it, or build to a different output directory with `-p:OutDir=..
 
 Stated plainly, because knowing the edges is part of knowing the system.
 
-- **External card/debt payments leave no movement.** They reduce debt correctly, but the monthly
-  report's "Paid" column counts only account-sourced payments. The PDF says so on its face.
+- **Payments made before the `payments` table existed are partly unrecoverable.** The `AddPayments`
+  migration backfills account-sourced history from movements, but external payments from that era
+  left no trace and cannot be reconstructed. Everything from this module onward is complete.
 - **No FX.** Multi-currency holdings are excluded from totals rather than converted (§6.9).
 - **Card balances in the report are current, not month-end.** Reconstructing a historical card
   balance would need charge/payment events on the card itself, which are not recorded as such.
@@ -667,6 +710,9 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Movement** | An immutable record of one balance change. The audit trail. |
 | **BalanceAfter** | The account's balance immediately after a movement. A stored fact, which is what makes historical reconstruction possible. |
 | **Source selection** | Choosing `Account` or `External` when paying something (§6.5). |
+| **Payment (ledger row)** | A record that a balance was reduced, whatever the money's source. Distinct from a movement, which records money leaving an account. An account-sourced payment produces both; an external one only the payment. |
+| **Polymorphic target** | `payments.target_id` points at a card, debt or plan depending on `target_type`. One ledger for all three, at the cost of a foreign key on that column (§4.13). |
+| **Backfill** | A data migration that reconstructs history for a newly added table, so an improvement does not silently erase past figures. |
 | **Tasa 0** | Interest-free installments. The card is charged the full price up front; installments repay it. |
 | **Contribution opportunity** | A calendar month from now through the deadline month inclusive; the denominator of a goal's required monthly contribution. |
 | **Safe to spend** | Net monthly income minus committed obligations (loan payments + next installments). |

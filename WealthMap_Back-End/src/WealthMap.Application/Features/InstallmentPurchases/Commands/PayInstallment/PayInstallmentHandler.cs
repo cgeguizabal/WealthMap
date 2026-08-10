@@ -14,6 +14,7 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
     private readonly ICreditCardRepository _cards;
     private readonly IAccountRepository _accounts;
     private readonly IAccountMovementRepository _movements;
+    private readonly IPaymentRepository _payments;
     private readonly IUnitOfWork _unitOfWork;
 
     public PayInstallmentHandler(
@@ -21,12 +22,14 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
         ICreditCardRepository cards,
         IAccountRepository accounts,
         IAccountMovementRepository movements,
+        IPaymentRepository payments,
         IUnitOfWork unitOfWork)
     {
         _installments = installments;
         _cards = cards;
         _accounts = accounts;
         _movements = movements;
+        _payments = payments;
         _unitOfWork = unitOfWork;
     }
 
@@ -38,13 +41,25 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
         var card = await _cards.GetByIdForUserAsync(purchase.CreditCardId, request.UserId, ct)
             ?? throw new NotFoundException("CreditCard", purchase.CreditCardId);
 
-        var amount = purchase.NextUnpaid().Amount;
+        var occurredAt = DateTime.UtcNow;
 
         if (request.SourceType.Equals("External", StringComparison.OrdinalIgnoreCase))
         {
-            var paid = purchase.PayNextInstallment();
-            card.RegisterPayment(paid.Amount);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                var paid = purchase.PayNextInstallment();
+                card.RegisterPayment(paid.Amount);
+
+                await _payments.AddAsync(new Payment(
+                    request.UserId,
+                    PaymentTargetType.Installment,
+                    purchase.Id,
+                    paid.Amount,
+                    PaymentSourceType.External,
+                    null,
+                    occurredAt,
+                    request.Notes ?? $"Installment {paid.Number}/{purchase.MonthsCount}"), ct);
+            }, ct);
 
             return new InstallmentPaymentResultDto(
                 InstallmentPurchaseDto.FromEntity(purchase), null);
@@ -69,10 +84,20 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
                 paid.Amount,
                 account.Balance,
                 $"Installment {paid.Number}/{purchase.MonthsCount}: {purchase.ProductName}",
-                DateTime.UtcNow,
+                occurredAt,
                 relatedEntityId: purchase.Id);
 
             await _movements.AddAsync(movement, ct);
+
+            await _payments.AddAsync(new Payment(
+                request.UserId,
+                PaymentTargetType.Installment,
+                purchase.Id,
+                paid.Amount,
+                PaymentSourceType.Account,
+                account.Id,
+                occurredAt,
+                request.Notes ?? $"Installment {paid.Number}/{purchase.MonthsCount}"), ct);
         }, ct);
 
         return new InstallmentPaymentResultDto(

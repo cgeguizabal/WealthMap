@@ -60,7 +60,8 @@ public class InstallmentPurchasesController : ControllerBase
             id,
             User.GetUserId(),
             request.SourceType,
-            request.SourceAccountId);
+            request.SourceAccountId,
+            request.Notes);
 
         var result = await _sender.Send(command, ct);
         return Ok(result);
@@ -77,4 +78,5 @@ public record CreateInstallmentPurchaseRequest(
 
 public record PayInstallmentRequest(
     string SourceType,
-    Guid? SourceAccountId);
+    Guid? SourceAccountId,
+    string? Notes);

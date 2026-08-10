@@ -14,17 +14,20 @@ public class PayDebtHandler : ICommandHandler<PayDebtCommand, DebtPaymentResultD
     private readonly IDebtRepository _debts;
     private readonly IAccountRepository _accounts;
     private readonly IAccountMovementRepository _movements;
+    private readonly IPaymentRepository _payments;
     private readonly IUnitOfWork _unitOfWork;
 
     public PayDebtHandler(
         IDebtRepository debts,
         IAccountRepository accounts,
         IAccountMovementRepository movements,
+        IPaymentRepository payments,
         IUnitOfWork unitOfWork)
     {
         _debts = debts;
         _accounts = accounts;
         _movements = movements;
+        _payments = payments;
         _unitOfWork = unitOfWork;
     }
 
@@ -34,11 +37,24 @@ public class PayDebtHandler : ICommandHandler<PayDebtCommand, DebtPaymentResultD
             ?? throw new NotFoundException("Debt", request.DebtId);
 
         var amount = new Money(request.Amount, debt.OriginalAmount.Currency);
+        var occurredAt = DateTime.UtcNow;
 
         if (request.SourceType.Equals("External", StringComparison.OrdinalIgnoreCase))
         {
-            debt.RegisterPayment(amount);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                debt.RegisterPayment(amount);
+
+                await _payments.AddAsync(new Payment(
+                    request.UserId,
+                    PaymentTargetType.Debt,
+                    debt.Id,
+                    amount,
+                    PaymentSourceType.External,
+                    null,
+                    occurredAt,
+                    request.Notes), ct);
+            }, ct);
 
             return new DebtPaymentResultDto(DebtDto.FromEntity(debt), null);
         }
@@ -60,10 +76,20 @@ public class PayDebtHandler : ICommandHandler<PayDebtCommand, DebtPaymentResultD
                 amount,
                 account.Balance,
                 $"Payment on debt '{debt.Name}'",
-                DateTime.UtcNow,
+                occurredAt,
                 relatedEntityId: debt.Id);
 
             await _movements.AddAsync(movement, ct);
+
+            await _payments.AddAsync(new Payment(
+                request.UserId,
+                PaymentTargetType.Debt,
+                debt.Id,
+                amount,
+                PaymentSourceType.Account,
+                account.Id,
+                occurredAt,
+                request.Notes), ct);
         }, ct);
 
         return new DebtPaymentResultDto(

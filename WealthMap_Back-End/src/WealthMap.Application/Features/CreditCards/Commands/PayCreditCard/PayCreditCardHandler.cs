@@ -14,17 +14,20 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
     private readonly ICreditCardRepository _cards;
     private readonly IAccountRepository _accounts;
     private readonly IAccountMovementRepository _movements;
+    private readonly IPaymentRepository _payments;
     private readonly IUnitOfWork _unitOfWork;
 
     public PayCreditCardHandler(
         ICreditCardRepository cards,
         IAccountRepository accounts,
         IAccountMovementRepository movements,
+        IPaymentRepository payments,
         IUnitOfWork unitOfWork)
     {
         _cards = cards;
         _accounts = accounts;
         _movements = movements;
+        _payments = payments;
         _unitOfWork = unitOfWork;
     }
 
@@ -34,13 +37,27 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
             ?? throw new NotFoundException("CreditCard", request.CardId);
 
         var amount = new Money(request.Amount, card.CreditLimit.Currency);
+        var occurredAt = DateTime.UtcNow;
 
-        // External source: cash or someone else paid — the debt shrinks
-        // without touching any tracked account, so no movement is written.
+        // External source: cash or someone else paid — the debt shrinks without
+        // touching any tracked account, so no movement is written. The payment row
+        // is what keeps the payment on the record at all.
         if (request.SourceType.Equals("External", StringComparison.OrdinalIgnoreCase))
         {
-            card.RegisterPayment(amount);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
+            {
+                card.RegisterPayment(amount);
+
+                await _payments.AddAsync(new Payment(
+                    request.UserId,
+                    PaymentTargetType.CreditCard,
+                    card.Id,
+                    amount,
+                    PaymentSourceType.External,
+                    null,
+                    occurredAt,
+                    request.Notes), ct);
+            }, ct);
 
             return new CardPaymentResultDto(CreditCardDto.FromEntity(card), null);
         }
@@ -62,10 +79,20 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
                 amount,
                 account.Balance,
                 $"Payment to card '{card.CardName}'",
-                DateTime.UtcNow,
+                occurredAt,
                 relatedEntityId: card.Id);
 
             await _movements.AddAsync(movement, ct);
+
+            await _payments.AddAsync(new Payment(
+                request.UserId,
+                PaymentTargetType.CreditCard,
+                card.Id,
+                amount,
+                PaymentSourceType.Account,
+                account.Id,
+                occurredAt,
+                request.Notes), ct);
         }, ct);
 
         return new CardPaymentResultDto(

@@ -8,4 +8,5 @@ public record PayDebtCommand(
     Guid UserId,
     decimal Amount,
     string SourceType,
-    Guid? SourceAccountId) : ICommand<DebtPaymentResultDto>;
+    Guid? SourceAccountId,
+    string? Notes = null) : ICommand<DebtPaymentResultDto>;

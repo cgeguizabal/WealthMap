@@ -56,6 +56,7 @@ POST /api/v1/auth/login      { "email", "password" }
 | Purchases | `/api/v1/purchases` (debit / credit / cash) |
 | Installments | `/api/v1/installment-purchases` · `{id}/pay` |
 | Debts | `/api/v1/debts` · `{id}/payments` · `{id}/default` |
+| Payments | `/api/v1/payments` (history, any source) · `credit-cards/{id}/payments` · `debts/{id}/payments` |
 | Goals | `/api/v1/savings-goals` · `/api/v1/product-goals` · `{id}/contribute` |
 | Intelligence | `/api/v1/dashboard` · `/api/v1/alerts` · `/api/v1/notifications` |
 | Reports | `/api/v1/reports/monthly/{yyyy-MM}` · `.../pdf` |

@@ -21,6 +21,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
     private readonly ISavingsGoalRepository _savingsGoals;
     private readonly IProductGoalRepository _productGoals;
     private readonly IJobRepository _jobs;
+    private readonly IPaymentRepository _paymentsRepo;
 
     public GetMonthlyReportHandler(
         IUserRepository users,
@@ -31,8 +32,10 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         IInstallmentPurchaseRepository installments,
         ISavingsGoalRepository savingsGoals,
         IProductGoalRepository productGoals,
-        IJobRepository jobs)
+        IJobRepository jobs,
+        IPaymentRepository paymentsRepo)
     {
+        _paymentsRepo = paymentsRepo;
         _users = users;
         _accounts = accounts;
         _movements = movements;
@@ -84,10 +87,14 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         var jobs = await _jobs.GetAllForUserAsync(request.UserId, ct);
         var job = jobs.FirstOrDefault(j => j.GrossMonthlySalary.Currency == currency);
 
+        var monthPayments = (await _paymentsRepo.GetForUserInPeriodAsync(request.UserId, monthStart, monthEnd, ct))
+            .Where(p => p.Amount.Currency == currency)
+            .ToList();
+
         var income = BuildIncome(monthMovements, job);
         var spending = BuildSpending(purchases, monthMovements);
         var accountSummaries = BuildAccounts(accounts, movementsFromStart, monthEnd);
-        var cardSummaries = BuildCards(cards, purchases, installments, monthMovements, monthStart, monthEnd);
+        var cardSummaries = BuildCards(cards, purchases, installments, monthPayments, monthStart, monthEnd);
         var goals = await BuildGoals(request.UserId, currency, ct);
 
         return new MonthlyReportDto(
@@ -202,7 +209,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         IReadOnlyList<CreditCard> cards,
         IReadOnlyList<Purchase> purchases,
         IReadOnlyList<InstallmentPurchase> installments,
-        IReadOnlyList<AccountMovement> monthMovements,
+        IReadOnlyList<Payment> monthPayments,
         DateTime monthStart,
         DateTime monthEnd)
     {
@@ -222,10 +229,19 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
                             && i.PurchasedAt < monthEndDate)
                 .Sum(i => i.TotalPrice.Amount);
 
-            // Only account-sourced payments leave a movement; external ones are invisible here.
-            var paid = monthMovements
-                .Where(m => m.Type == MovementType.Payment && m.RelatedEntityId == card.Id)
-                .Sum(m => m.Amount.Amount);
+            // The payments ledger records every source, so external payments now count too.
+            var planIdsOnCard = installments
+                .Where(i => i.CreditCardId == card.Id)
+                .Select(i => i.Id)
+                .ToHashSet();
+
+            // Paying an installment calls RegisterPayment on its card, so those
+            // payments reduce this card's balance and belong in its total.
+            var paid = monthPayments
+                .Where(p => (p.TargetType == PaymentTargetType.CreditCard && p.TargetId == card.Id)
+                            || (p.TargetType == PaymentTargetType.Installment
+                                && planIdsOnCard.Contains(p.TargetId)))
+                .Sum(p => p.Amount.Amount);
 
             return new CardSummaryDto(
                 card.Id,

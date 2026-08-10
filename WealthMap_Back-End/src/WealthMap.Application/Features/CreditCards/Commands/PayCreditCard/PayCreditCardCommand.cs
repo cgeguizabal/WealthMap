@@ -8,4 +8,5 @@ public record PayCreditCardCommand(
     Guid UserId,
     decimal Amount,
     string SourceType,
-    Guid? SourceAccountId) : ICommand<CardPaymentResultDto>;
+    Guid? SourceAccountId,
+    string? Notes = null) : ICommand<CardPaymentResultDto>;

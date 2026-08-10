@@ -8,6 +8,8 @@ using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCardLimit;
 using WealthMap.Application.Features.CreditCards.Queries.GetCreditCardById;
 using WealthMap.Application.Features.CreditCards.Queries.GetCreditCards;
+using WealthMap.Application.Features.Payments.Queries.GetPaymentsForTarget;
+using WealthMap.Domain.Enums;
 
 namespace WealthMap.Api.Controllers;
 
@@ -95,9 +97,18 @@ public class CreditCardsController : ControllerBase
             User.GetUserId(),
             request.Amount,
             request.SourceType,
-            request.SourceAccountId);
+            request.SourceAccountId,
+            request.Notes);
 
         var result = await _sender.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/payments")]
+    public async Task<IActionResult> GetPayments(Guid id, CancellationToken ct)
+    {
+        var query = new GetPaymentsForTargetQuery(User.GetUserId(), PaymentTargetType.CreditCard, id);
+        var result = await _sender.Send(query, ct);
         return Ok(result);
     }
 }
@@ -124,4 +135,5 @@ public record UpdateCreditCardLimitRequest(decimal NewLimit);
 public record PayCreditCardRequest(
     decimal Amount,
     string SourceType,
-    Guid? SourceAccountId);
+    Guid? SourceAccountId,
+    string? Notes);
