@@ -1,0 +1,36 @@
+@use 'tokens';
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #app { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p, figure { margin: 0; }
+
+h1 { font-size: var(--fs-2xl); font-weight: var(--fw-bold);     letter-spacing: -0.02em; }
+h2 { font-size: var(--fs-xl);  font-weight: var(--fw-semibold); letter-spacing: -0.01em; }
+h3 { font-size: var(--fs-lg);  font-weight: var(--fw-semibold); }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+table { border-collapse: collapse; width: 100%; }
+
+/* Money and other tabular figures line up column-wise */
+.numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
