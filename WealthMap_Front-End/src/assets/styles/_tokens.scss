@@ -1,0 +1,57 @@
+:root {
+  /* ── Surfaces ─────────────────────────────── */
+  --canvas:        #F3F2EE;
+  --canvas-alt:    #ECE9E2;
+  --surface:       #FFFFFF;
+  --line:          #E9E9E7;
+
+  /* ── Ink & text ───────────────────────────── */
+  --ink:           #201F1D;
+  --text:          #201F1D;
+  --text-muted:    #6B6A65;
+  --text-subtle:   #C0BFB7;
+
+  /* ── Brand ────────────────────────────────── */
+  --accent:        #212F46;
+  --accent-hover:  #2C3D5A;
+  --gold:          #CBB697;
+
+  /* ── Semantics (money) ────────────────────── */
+  --positive:      #3F5D45;
+  --positive-soft: #E4EBE4;
+  --negative:      #8C3B32;
+  --negative-soft: #F3E3E1;
+  --warning:       #8A6A2F;
+  --warning-soft:  #F5EDDD;
+
+  /* ── Shape ────────────────────────────────── */
+  --radius:        6px;
+  --radius-sm:     4px;
+  --border:        1px solid var(--ink);
+  --border-subtle: 1px solid var(--line);
+
+  /* ── Flat shadows (hard offset, zero blur) ── */
+  --shadow-sm:     2px 2px 0 var(--ink);
+  --shadow:        4px 4px 0 var(--ink);
+  --shadow-lg:     6px 6px 0 var(--ink);
+  --shadow-accent: 4px 4px 0 var(--accent);
+
+  /* ── Spacing (4px scale) ──────────────────── */
+  --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;  --sp-4: 16px;
+  --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px;  --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px;
+
+  /* ── Type ─────────────────────────────────── */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  --fs-xs: 12px;  --fs-sm: 13px;  --fs-base: 14px;
+  --fs-md: 16px;  --fs-lg: 20px;  --fs-xl: 26px;  --fs-2xl: 34px;
+
+  --fw-normal: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+
+  /* ── Motion ───────────────────────────────── */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+}
