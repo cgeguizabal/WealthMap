@@ -1,14 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationsStore } from '@/stores/notifications.store'
-import { useMediaQuery, DESKTOP_QUERY } from '@/composables/useMediaQuery'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 
 defineProps({
-  collapsed: { type: Boolean, default: false },
   /** Only shown when the sidebar is off-screen — otherwise its own toggle is visible. */
   showToggle: { type: Boolean, default: false }
 })
@@ -23,9 +21,6 @@ const { unreadCount } = storeToRefs(notifications)
 const menuOpen = ref(false)
 const menuRoot = ref(null)
 
-const isDesktop = useMediaQuery(DESKTOP_QUERY)
-
-const burgerLabel = computed(() => (isDesktop.value ? 'Show navigation' : 'Open navigation'))
 
 function onDocumentClick(event) {
   if (menuOpen.value && menuRoot.value && !menuRoot.value.contains(event.target)) {
@@ -64,14 +59,14 @@ function logout() {
       class="header__burger"
       type="button"
       :aria-expanded="false"
-      :aria-label="burgerLabel"
-      :title="burgerLabel"
+      aria-label="Open navigation"
+      title="Open navigation"
       @click="emit('toggle-drawer')"
     >
       <BaseIcon name="menu" :size="20" />
     </button>
 
-    <RouterLink to="/" class="header__brand" :class="{ 'header__brand--pinned': collapsed }">
+    <RouterLink to="/" class="header__brand">
       <span class="header__mark">WM</span>
       <span class="header__wordmark">WealthMap</span>
     </RouterLink>
@@ -146,12 +141,8 @@ function logout() {
   &:hover { background: var(--canvas-alt); }
 }
 
-/* The sidebar carries the brand at desktop widths — unless it is collapsed away */
+/* The sidebar carries the brand at desktop widths, collapsed or not */
 .header__brand { display: none; align-items: center; gap: var(--sp-2); text-decoration: none; color: inherit; }
-
-@media (min-width: 1024px) {
-  .header__brand--pinned { display: flex; }
-}
 
 .header__mark {
   display: grid;

@@ -14,8 +14,11 @@ const isDesktop = useMediaQuery(DESKTOP_QUERY)
 const drawerOpen = ref(false)
 const collapsed = ref(localStorage.getItem(STORAGE_KEY) === 'true')
 
-/** Off-screen either way: collapsed at desktop widths, closed drawer below them. */
-const sidebarHidden = computed(() => (isDesktop.value ? collapsed.value : !drawerOpen.value))
+/**
+ * Only ever off-screen on mobile. Collapsing at desktop widths narrows the
+ * sidebar to an icon rail, so it stays visible and reachable.
+ */
+const sidebarHidden = computed(() => !isDesktop.value && !drawerOpen.value)
 
 /** One button, two meanings — whichever the current viewport actually has. */
 function toggleSidebar() {
@@ -53,12 +56,8 @@ watch(drawerOpen, (open) => {
     </Transition>
 
     <div class="shell__main">
-      <!-- The header button is the way back: the sidebar's own toggle goes with it. -->
-      <AppHeader
-        :collapsed="collapsed"
-        :show-toggle="sidebarHidden"
-        @toggle-drawer="toggleSidebar"
-      />
+      <!-- Only needed on mobile, where the drawer really does leave the screen. -->
+      <AppHeader :show-toggle="sidebarHidden" @toggle-drawer="toggleSidebar" />
 
       <main class="shell__content">
         <slot />

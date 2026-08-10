@@ -37,8 +37,9 @@ function isActive(item) {
       <button
         class="sidebar__toggle"
         type="button"
-        aria-label="Hide navigation"
-        title="Hide navigation"
+        :aria-label="collapsed ? 'Expand navigation' : 'Collapse navigation'"
+        :title="collapsed ? 'Expand navigation' : 'Collapse navigation'"
+        :aria-expanded="!collapsed"
         @click="emit('toggle')"
       >
         <BaseIcon name="menu" :size="18" />
@@ -56,10 +57,12 @@ function isActive(item) {
           class="sidebar__link"
           :class="{ 'sidebar__link--active': isActive(item) }"
           :aria-current="isActive(item) ? 'page' : undefined"
+          :title="collapsed ? item.label : undefined"
           @click="emit('navigate')"
         >
           <BaseIcon :name="item.icon" :size="17" />
-          <span>{{ item.label }}</span>
+          <!-- Hidden rather than removed when collapsed, so the accessible name survives -->
+          <span class="sidebar__link-label">{{ item.label }}</span>
         </RouterLink>
       </div>
     </nav>
@@ -181,15 +184,34 @@ function isActive(item) {
   }
 }
 
-/* ── Desktop: collapsible column ───────────── */
+/* ── Desktop: collapses to an icon rail ─────
+   Narrowed rather than hidden: navigation stays one click away, and the icons
+   keep their position so muscle memory survives the collapse. */
 @media (min-width: 1024px) {
-  .sidebar {
-    /* Sliding by margin keeps the width fixed, so nav labels never reflow
-       mid-animation the way a width transition makes them do. */
-    transition: margin-left var(--dur) var(--ease);
-  }
+  .sidebar { transition: width var(--dur) var(--ease); }
 
-  .sidebar--collapsed { margin-left: -232px; }
+  .sidebar--collapsed {
+    width: 64px;
+
+    .sidebar__brand {
+      flex-direction: column;
+      gap: var(--sp-2);
+      padding: var(--sp-4) var(--sp-2);
+    }
+
+    .sidebar__wordmark,
+    .sidebar__group-label,
+    .sidebar__link-label { display: none; }
+
+    .sidebar__nav { padding: 0 var(--sp-2) var(--sp-6); }
+
+    .sidebar__group { gap: var(--sp-1); }
+
+    .sidebar__link {
+      justify-content: center;
+      padding: var(--sp-3) 0;
+    }
+  }
 }
 
 /* ── Mobile: off-canvas drawer ─────────────── */
