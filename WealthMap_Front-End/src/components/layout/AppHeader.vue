@@ -7,9 +7,10 @@ import { useNotificationsStore } from '@/stores/notifications.store'
 import { useMediaQuery, DESKTOP_QUERY } from '@/composables/useMediaQuery'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 
-const props = defineProps({
-  drawerOpen: { type: Boolean, default: false },
-  collapsed: { type: Boolean, default: false }
+defineProps({
+  collapsed: { type: Boolean, default: false },
+  /** Only shown when the sidebar is off-screen — otherwise its own toggle is visible. */
+  showToggle: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['toggle-drawer'])
@@ -24,13 +25,7 @@ const menuRoot = ref(null)
 
 const isDesktop = useMediaQuery(DESKTOP_QUERY)
 
-/** Only the mobile drawer becomes a dismissable overlay, so only it turns into an X. */
-const burgerIcon = computed(() => (!isDesktop.value && props.drawerOpen ? 'x' : 'menu'))
-
-const burgerLabel = computed(() => {
-  if (isDesktop.value) return props.collapsed ? 'Show navigation' : 'Hide navigation'
-  return props.drawerOpen ? 'Close navigation' : 'Open navigation'
-})
+const burgerLabel = computed(() => (isDesktop.value ? 'Show navigation' : 'Open navigation'))
 
 function onDocumentClick(event) {
   if (menuOpen.value && menuRoot.value && !menuRoot.value.contains(event.target)) {
@@ -65,14 +60,15 @@ function logout() {
 <template>
   <header class="header">
     <button
+      v-if="showToggle"
       class="header__burger"
       type="button"
-      :aria-expanded="isDesktop ? !collapsed : drawerOpen"
+      :aria-expanded="false"
       :aria-label="burgerLabel"
       :title="burgerLabel"
       @click="emit('toggle-drawer')"
     >
-      <BaseIcon :name="burgerIcon" :size="20" />
+      <BaseIcon name="menu" :size="20" />
     </button>
 
     <RouterLink to="/" class="header__brand" :class="{ 'header__brand--pinned': collapsed }">
@@ -292,7 +288,6 @@ function logout() {
 
 @media (max-width: 1023px) {
   .header { padding: 0 var(--sp-4); }
-  .header__burger { display: grid; }
   .header__brand { display: flex; }
 }
 

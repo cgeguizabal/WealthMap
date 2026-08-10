@@ -45,6 +45,7 @@ watch(drawerOpen, (open) => {
       :collapsed="collapsed"
       :hidden="sidebarHidden"
       @navigate="drawerOpen = false"
+      @toggle="toggleSidebar"
     />
 
     <Transition name="scrim">
@@ -52,9 +53,10 @@ watch(drawerOpen, (open) => {
     </Transition>
 
     <div class="shell__main">
+      <!-- The header button is the way back: the sidebar's own toggle goes with it. -->
       <AppHeader
-        :drawer-open="drawerOpen"
         :collapsed="collapsed"
+        :show-toggle="sidebarHidden"
         @toggle-drawer="toggleSidebar"
       />
 

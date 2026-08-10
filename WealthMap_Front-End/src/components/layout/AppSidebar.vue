@@ -12,7 +12,7 @@ defineProps({
   hidden: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'toggle'])
 const route = useRoute()
 
 /** Exact for the dashboard, prefix elsewhere so detail routes keep the parent lit. */
@@ -33,6 +33,16 @@ function isActive(item) {
     <div class="sidebar__brand">
       <span class="sidebar__mark">WM</span>
       <span class="sidebar__wordmark">WealthMap</span>
+
+      <button
+        class="sidebar__toggle"
+        type="button"
+        aria-label="Hide navigation"
+        title="Hide navigation"
+        @click="emit('toggle')"
+      >
+        <BaseIcon name="menu" :size="18" />
+      </button>
     </div>
 
     <nav class="sidebar__nav" aria-label="Main">
@@ -95,6 +105,29 @@ function isActive(item) {
   font-size: var(--fs-md);
   font-weight: var(--fw-semibold);
   letter-spacing: -0.01em;
+  flex: 1;
+}
+
+.sidebar__toggle {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  @include focus-ring;
+
+  &:hover {
+    background: var(--surface);
+    border-color: var(--border-color);
+    color: var(--ink);
+  }
 }
 
 .sidebar__nav {
