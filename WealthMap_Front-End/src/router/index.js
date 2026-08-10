@@ -30,6 +30,21 @@ const routes = [
     component: () => import('@/features/accounts/views/AccountDetailView.vue')
   },
   {
+    path: '/credit-cards',
+    name: 'credit-cards',
+    component: () => import('@/features/creditCards/views/CreditCardsView.vue')
+  },
+  {
+    path: '/credit-cards/:id',
+    name: 'credit-card-detail',
+    component: () => import('@/features/creditCards/views/CreditCardDetailView.vue')
+  },
+  {
+    path: '/payments',
+    name: 'payments',
+    component: () => import('@/features/payments/views/PaymentsView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/features/shared/NotFoundView.vue'),
