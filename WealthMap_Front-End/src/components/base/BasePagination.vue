@@ -121,7 +121,7 @@ function go(page) {
 
   &.is-active {
     background: var(--ink);
-    border-color: var(--ink);
+    border-color: var(--border-color);
     color: #fff;
     font-weight: var(--fw-semibold);
   }
