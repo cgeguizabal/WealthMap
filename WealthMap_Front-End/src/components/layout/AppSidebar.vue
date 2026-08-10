@@ -5,7 +5,11 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 
 defineProps({
   /** Drives the mobile drawer; ignored at desktop widths. */
-  open: { type: Boolean, default: false }
+  open: { type: Boolean, default: false },
+  /** Drives the desktop collapse; ignored at mobile widths. */
+  collapsed: { type: Boolean, default: false },
+  /** True when the sidebar is off-screen at the current width. */
+  hidden: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['navigate'])
@@ -19,7 +23,13 @@ function isActive(item) {
 </script>
 
 <template>
-  <aside :class="['sidebar', { 'sidebar--open': open }]">
+  <!-- `hidden` is decided by the shell because it depends on the viewport:
+       collapsed at desktop widths, closed drawer at mobile ones. Without inert,
+       links inside an off-screen sidebar stay in the tab order. -->
+  <aside
+    :class="['sidebar', { 'sidebar--open': open, 'sidebar--collapsed': collapsed }]"
+    :inert="hidden || undefined"
+  >
     <div class="sidebar__brand">
       <span class="sidebar__mark">WM</span>
       <span class="sidebar__wordmark">WealthMap</span>
@@ -136,6 +146,17 @@ function isActive(item) {
     font-weight: var(--fw-semibold);
     box-shadow: var(--shadow-sm);
   }
+}
+
+/* ── Desktop: collapsible column ───────────── */
+@media (min-width: 1024px) {
+  .sidebar {
+    /* Sliding by margin keeps the width fixed, so nav labels never reflow
+       mid-animation the way a width transition makes them do. */
+    transition: margin-left var(--dur) var(--ease);
+  }
+
+  .sidebar--collapsed { margin-left: -232px; }
 }
 
 /* ── Mobile: off-canvas drawer ─────────────── */
