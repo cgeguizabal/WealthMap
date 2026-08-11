@@ -204,9 +204,24 @@ onMounted(() => {
             <span class="numeric muted">{{ formatDate(value) }}</span>
           </template>
 
+          <!--
+            Only plans have somewhere to go: a purchase has no detail screen, so
+            making the whole row clickable would promise navigation that half the
+            rows cannot deliver.
+          -->
           <template #cell-name="{ row }">
             <div class="cell-stack">
-              <span class="cell-stack__title">{{ row.name }}</span>
+              <RouterLink
+                v-if="row.kind === 'Installment plan'"
+                :to="`/installments/${row.id}`"
+                class="cell-stack__link"
+              >
+                {{ row.name }}
+                <BaseIcon name="arrow-up-right" :size="13" />
+              </RouterLink>
+
+              <span v-else class="cell-stack__title">{{ row.name }}</span>
+
               <span class="cell-stack__sub">{{ row.meta }}</span>
             </div>
           </template>
@@ -311,9 +326,22 @@ onMounted(() => {
 .muted { color: var(--text-muted); font-size: var(--fs-sm); }
 .charge { font-weight: var(--fw-semibold); color: var(--negative); }
 
-.cell-stack { display: flex; flex-direction: column; }
+.cell-stack { display: flex; flex-direction: column; align-items: flex-start; }
 .cell-stack__title { font-weight: var(--fw-medium); }
 .cell-stack__sub { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.cell-stack__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+
+  font-weight: var(--fw-medium);
+  color: var(--accent);
+
+  @include focus-ring;
+
+  &:hover { text-decoration: underline; }
+}
 
 .footnote { font-size: var(--fs-xs); color: var(--text-muted); }
 
