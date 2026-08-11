@@ -1,6 +1,7 @@
 using WealthMap.Domain.Common;
 using WealthMap.Domain.Enums;
 using WealthMap.Domain.Exceptions;
+using WealthMap.Domain.Services;
 using WealthMap.Domain.ValueObjects;
 
 namespace WealthMap.Domain.Entities;
@@ -19,6 +20,13 @@ public class Job : BaseEntity
     public string Employer { get; private set; }
     public Money GrossMonthlySalary { get; private set; }
     public Guid DepositAccountId { get; private set; }
+
+    /// <summary>
+    /// The first date salary may be posted automatically. Payment days that fell
+    /// before it are never posted, so adding a job today cannot backfill months of
+    /// deposits into the account and invent a balance that never existed.
+    /// </summary>
+    public DateOnly SalaryPostingStartsOn { get; private set; }
 
     public IReadOnlyCollection<JobPaymentDay> PaymentDays => _paymentDays.AsReadOnly();
     public IReadOnlyCollection<Deduction> Deductions => _deductions.AsReadOnly();
@@ -62,7 +70,47 @@ public class Job : BaseEntity
         Employer = ValidateText(employer, "Employer");
         GrossMonthlySalary = ValidateGross(grossMonthlySalary);
         DepositAccountId = ValidateAccount(depositAccountId);
+        SalaryPostingStartsOn = DateOnly.FromDateTime(DateTime.UtcNow);
         SetPaymentDays(paymentDays);
+    }
+
+    /// <summary>
+    /// Every date salary is due within the inclusive range, oldest first.
+    /// </summary>
+    /// <remarks>
+    /// A payment day of 31 is clamped to the last day of shorter months, so a
+    /// month-end salary lands on 30 June and 28 February rather than being skipped.
+    /// Dates before <see cref="SalaryPostingStartsOn"/> are excluded.
+    /// </remarks>
+    public IReadOnlyList<DateOnly> ScheduledDatesBetween(DateOnly from, DateOnly to)
+    {
+        if (to < from || _paymentDays.Count == 0)
+            return [];
+
+        var effectiveFrom = from < SalaryPostingStartsOn ? SalaryPostingStartsOn : from;
+        if (to < effectiveFrom)
+            return [];
+
+        var dates = new List<DateOnly>();
+        var month = new DateOnly(effectiveFrom.Year, effectiveFrom.Month, 1);
+        var lastMonth = new DateOnly(to.Year, to.Month, 1);
+
+        while (month <= lastMonth)
+        {
+            foreach (var paymentDay in _paymentDays)
+            {
+                var date = PaymentSchedule.ClampToMonth(month.Year, month.Month, paymentDay.DayOfMonth);
+
+                if (date >= effectiveFrom && date <= to)
+                    dates.Add(date);
+            }
+
+            month = month.AddMonths(1);
+        }
+
+        // Two payment days can clamp onto the same date in a short month (30 and 31
+        // in June, say). That is one payday, not two.
+        return dates.Distinct().Order().ToList();
     }
 
     public void UpdateDetails(string title, string employer, Money grossMonthlySalary, Guid depositAccountId)

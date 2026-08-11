@@ -5,11 +5,13 @@ using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Jobs.Commands.AddDeduction;
 using WealthMap.Application.Features.Jobs.Commands.CreateJob;
 using WealthMap.Application.Features.Jobs.Commands.DeleteJob;
+using WealthMap.Application.Features.Jobs.Commands.PostDueSalary;
 using WealthMap.Application.Features.Jobs.Commands.RemoveDeduction;
 using WealthMap.Application.Features.Jobs.Commands.UpdateDeduction;
 using WealthMap.Application.Features.Jobs.Commands.UpdateJob;
 using WealthMap.Application.Features.Jobs.Queries.GetJobById;
 using WealthMap.Application.Features.Jobs.Queries.GetJobs;
+using WealthMap.Application.Features.Jobs.Queries.GetSalaryDeposits;
 
 namespace WealthMap.Api.Controllers;
 
@@ -78,6 +80,25 @@ public class JobsController : ControllerBase
     {
         await _sender.Send(new DeleteJobCommand(id, User.GetUserId()), ct);
         return NoContent();
+    }
+
+    /// <summary>The salary deposits already paid for this job, newest payday first.</summary>
+    [HttpGet("{jobId:guid}/salary-deposits")]
+    public async Task<IActionResult> GetSalaryDeposits(Guid jobId, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetSalaryDepositsQuery(jobId, User.GetUserId()), ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Settles any payday that is due but unpaid, without waiting for the daily run.
+    /// Safe to call repeatedly: paydays already settled are skipped.
+    /// </summary>
+    [HttpPost("{jobId:guid}/salary-deposits/run")]
+    public async Task<IActionResult> RunSalaryPosting(Guid jobId, CancellationToken ct)
+    {
+        var posted = await _sender.Send(new PostDueSalaryCommand(jobId, User.GetUserId()), ct);
+        return Ok(new { posted });
     }
 
     [HttpPost("{jobId:guid}/deductions")]

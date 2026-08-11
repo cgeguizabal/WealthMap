@@ -29,7 +29,11 @@ public static class PaymentSchedule
 
         while (result.Count < count)
         {
-            foreach (var date in days.Select(d => ClampToMonth(year, month, d)).Order())
+            // Distinct after clamping, not just on the raw days: payment days of 30
+            // and 31 are two dates in July but the same date in June, and that is one
+            // payday. Without this the projection would show a duplicate and disagree
+            // with the single deposit that actually gets paid.
+            foreach (var date in days.Select(d => ClampToMonth(year, month, d)).Distinct().Order())
             {
                 if (date >= from && result.Count < count)
                     result.Add(date);

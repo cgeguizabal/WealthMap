@@ -20,6 +20,9 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .IsRequired()
             .HasMaxLength(120);
 
+        builder.Property(j => j.SalaryPostingStartsOn)
+            .IsRequired();
+
         builder.ComplexProperty(j => j.GrossMonthlySalary, money =>
         {
             money.Property(m => m.Amount)

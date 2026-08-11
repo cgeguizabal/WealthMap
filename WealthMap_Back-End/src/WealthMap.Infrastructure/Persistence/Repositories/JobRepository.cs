@@ -23,4 +23,10 @@ public class JobRepository : Repository<Job>, IJobRepository
 
     public async Task<bool> AnyForUserAsync(Guid userId, CancellationToken ct = default) =>
         await Set.AnyAsync(j => j.UserId == userId, ct);
+
+    /// <summary>Tracked, not AsNoTracking: the poster mutates the account behind these jobs.</summary>
+    public async Task<IReadOnlyList<Job>> GetAllForPostingAsync(CancellationToken ct = default) =>
+        await Set.Include(j => j.PaymentDays)
+                 .Include(j => j.Deductions)
+                 .ToListAsync(ct);
 }

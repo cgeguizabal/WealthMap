@@ -15,6 +15,10 @@ builder.Services.AddControllers();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Pays salary into deposit accounts on each job's payment days. Catches up on
+// startup, so paydays that passed while the app was stopped are not skipped.
+builder.Services.AddHostedService<WealthMap.Api.BackgroundServices.SalaryPostingRunner>();
+
 
 
 

@@ -295,6 +295,46 @@ next three, month-end clamped.
 Currency cannot change. `paymentDays` replaces the existing set. Deleting a job deletes its
 deductions and payment days.
 
+### Automatic salary deposits
+
+Salary is paid into `depositAccountId` on each of the job's `paymentDays`, with no request needed.
+Each payday produces one `SalaryDeposit` movement of `netPerDeposit`, described as `Salary — {employer}`.
+
+The runner works by catch-up, not by clock tick: every run asks which paydays are *due and unpaid*
+and settles all of them. So the app being off on payday delays the deposit rather than losing it —
+it posts on the next startup. It runs on startup and every 24 hours after.
+
+A payday is paid exactly once. A `salary_deposits` row records each settled payday, and a unique
+index on `(job_id, scheduled_date)` enforces it even if two instances run at the same moment.
+Restarting the app, or calling the run endpoint repeatedly, posts nothing extra.
+
+Posting never reaches back before the job's creation date, so adding a job cannot backfill months
+of salary and invent a balance that never existed. Jobs that existed before this feature start from
+the date it was deployed.
+
+Salary is held, not dropped, when it cannot be paid — the deposit account is archived or missing, or
+the job's currency differs from the account's (never converted). Fixing the cause pays the held
+paydays on the next run.
+
+### `GET /api/v1/jobs/{jobId}/salary-deposits`
+
+```json
+[ { "id": "...", "jobId": "...", "accountId": "...", "scheduledDate": "2026-08-15",
+    "amount": 1500.00, "currency": "USD", "postedAt": "...", "accountMovementId": "..." } ]
+```
+
+Newest payday first. `scheduledDate` is the payday settled; `postedAt` is when it was written — they
+differ when a deposit was caught up late.
+
+### `POST /api/v1/jobs/{jobId}/salary-deposits/run` → **200**
+
+```json
+{ "posted": 1 }
+```
+
+Settles any due-but-unpaid payday now instead of waiting for the daily run. Safe to call repeatedly:
+`posted` is `0` once everything due is settled.
+
 ### Deductions (nested)
 
 `POST /api/v1/jobs/{jobId}/deductions` · `PUT .../deductions/{deductionId}` ·
