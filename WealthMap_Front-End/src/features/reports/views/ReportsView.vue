@@ -21,6 +21,7 @@ import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
 
 const { format } = useMoney()
 const toast = useToast()
@@ -96,7 +97,7 @@ onMounted(load)
 
         <BaseButton variant="primary" :loading="downloading" :disabled="!report" @click="downloadPdf">
           <template #icon><BaseIcon name="download" :size="15" /></template>
-          PDF
+          {{ t('reports.pdf') }}
         </BaseButton>
       </template>
     </PageHeader>

@@ -23,6 +23,30 @@ import { useServerText } from '@/composables/useServerText'
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
 
+/**
+ * The api module keeps the option list because it owns the enum values; only
+ * the wording is rebuilt here, where the locale is reactive.
+ */
+const methodOptions = computed(() =>
+  PAYMENT_METHOD_OPTIONS.map((option) => ({
+    ...option,
+    label: serverLabel('paymentMethod', METHOD_ENUM_NAME[option.value]),
+    note: t(METHOD_NOTE_KEY[option.value])
+  }))
+)
+
+const METHOD_ENUM_NAME = {
+  [PAYMENT_METHOD.DEBIT]: 'DebitAccount',
+  [PAYMENT_METHOD.CREDIT]: 'CreditCard',
+  [PAYMENT_METHOD.CASH]: 'Cash'
+}
+
+const METHOD_NOTE_KEY = {
+  [PAYMENT_METHOD.DEBIT]: 'purchases.debitNote',
+  [PAYMENT_METHOD.CREDIT]: 'purchases.creditNote',
+  [PAYMENT_METHOD.CASH]: 'purchases.cashNote'
+}
+
 const props = defineProps({
   modelValue: { type: Boolean, default: false }
 })
@@ -176,7 +200,7 @@ async function onSubmit() {
 
         <div class="method__options" role="radiogroup" :aria-label="t('purchases.paymentMethod')">
           <button
-            v-for="option in PAYMENT_METHOD_OPTIONS"
+            v-for="option in methodOptions"
             :key="option.value"
             type="button"
             role="radio"

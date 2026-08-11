@@ -22,6 +22,7 @@ import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
 
 const route = useRoute()
 const { format } = useMoney()

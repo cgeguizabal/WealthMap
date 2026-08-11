@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { accountsApi, ACCOUNT_TYPE_OPTIONS } from '@/api/accounts.api'
+import { accountsApi, ACCOUNT_TYPE, ACCOUNT_TYPE_OPTIONS } from '@/api/accounts.api'
+import { useServerText } from '@/composables/useServerText'
 import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth.store'
@@ -11,6 +12,15 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
+
+/** Values stay the API's integers; only the wording follows the locale. */
+const typeOptions = computed(() =>
+  ACCOUNT_TYPE_OPTIONS.map((o) => ({
+    ...o,
+    label: serverLabel('accountType', o.value === ACCOUNT_TYPE.SAVINGS ? 'Savings' : 'Checking')
+  }))
+)
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -111,7 +121,7 @@ async function onSubmit() {
           <BaseSelect
             v-model="values.type"
             :label="t('common.type')"
-            :options="ACCOUNT_TYPE_OPTIONS"
+            :options="typeOptions"
             required
             :hint="t('accounts.typeHint')"
             :error="fieldError('type')"

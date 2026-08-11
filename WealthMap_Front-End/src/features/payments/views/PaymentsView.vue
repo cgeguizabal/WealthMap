@@ -1,7 +1,8 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { paymentsApi, PAYMENT_TARGET_OPTIONS } from '@/api/payments.api'
 import { usePagination } from '@/composables/usePagination'
+import { useServerText } from '@/composables/useServerText'
 import { useToast } from '@/composables/useToast'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -14,6 +15,12 @@ import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
 import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
+
+/** Values stay the API's target names; only the wording follows the locale. */
+const targetOptions = computed(() =>
+  PAYMENT_TARGET_OPTIONS.map((o) => ({ ...o, label: serverLabel('paymentTarget', o.value) }))
+)
 
 const toast = useToast()
 const pagination = usePagination({ pageSize: 20 })
@@ -70,7 +77,7 @@ onMounted(load)
         <div class="filters">
           <BaseSelect
             v-model="filters.targetType"
-            :options="PAYMENT_TARGET_OPTIONS"
+            :options="targetOptions"
             :placeholder="t('payments.allTypes')"
             :label="t('common.type')"
           />

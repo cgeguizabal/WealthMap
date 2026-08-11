@@ -13,6 +13,14 @@ import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
 
+/** Values stay the API's integers; only the wording follows the locale. */
+const typeOptions = computed(() =>
+  DEDUCTION_TYPE_OPTIONS.map((o) => ({
+    ...o,
+    label: t(o.value === DEDUCTION_TYPE.PERCENTAGE ? 'job.percentageOfGross' : 'job.fixedAmount')
+  }))
+)
+
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   job: { type: Object, required: true },
@@ -98,7 +106,7 @@ async function onSubmit() {
       <BaseSelect
         v-model="values.type"
         :label="t('common.type')"
-        :options="DEDUCTION_TYPE_OPTIONS"
+        :options="typeOptions"
         required
         :error="fieldError('type')"
       />

@@ -12,6 +12,17 @@ import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
 
+/**
+ * Only Deposit and Bonus can be created by hand; the values are the API's
+ * integers and stay as they are, so only the wording follows the locale.
+ */
+const kindOptions = computed(() =>
+  DEPOSIT_TYPE_OPTIONS.map((o) => ({
+    ...o,
+    label: t(o.value === 3 ? 'accounts.bonus' : 'accounts.deposit')
+  }))
+)
+
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   account: { type: Object, default: null },
@@ -91,7 +102,7 @@ async function onSubmit() {
         v-if="isDeposit"
         v-model="values.type"
         :label="t('common.kind')"
-        :options="DEPOSIT_TYPE_OPTIONS"
+        :options="kindOptions"
         required
         :hint="t('accounts.depositKindHint')"
         :error="fieldError('type')"
