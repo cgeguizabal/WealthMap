@@ -2,12 +2,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { creditCardsApi } from '@/api/creditCards.api'
+import { purchasesApi } from '@/api/purchases.api'
+import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
+import BaseTable from '@/components/base/BaseTable.vue'
+import BaseTabs from '@/components/base/BaseTabs.vue'
+import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
@@ -29,9 +34,62 @@ const { data: card, loading, error, run: loadCard } = useAsync(() => creditCards
 const { data: payments, loading: loadingPayments, run: loadPayments } =
   useAsync(() => creditCardsApi.payments(cardId), { initialData: [] })
 
+/**
+ * There is no way to ask the API for one card's purchases (see
+ * docs/BACKEND_REQUESTS.md #5), so the most recent page is fetched and filtered
+ * here. Installment plans carry their card id, so those are exact.
+ */
+const { data: purchasePage, loading: loadingCharges, run: loadPurchases } =
+  useAsync(() => purchasesApi.list({ page: 1, pageSize: 100 }))
+const { data: plans, run: loadPlans } = useAsync(installmentsApi.list, { initialData: [] })
+
 const payOpen = ref(false)
 const editOpen = ref(false)
 const limitOpen = ref(false)
+const tab = ref('charges')
+
+const CHARGE_COLUMNS = [
+  { key: 'occurredAt', label: 'Date', width: '130px' },
+  { key: 'name', label: 'Item' },
+  { key: 'kind', label: 'Type', width: '160px' },
+  { key: 'amount', label: 'Charged', align: 'right', width: '130px' }
+]
+
+/** Purchases and installment plans both put debt on the card, so both belong here. */
+const charges = computed(() => {
+  const fromPurchases = (purchasePage.value?.items ?? [])
+    .filter((purchase) => purchase.creditCardId === cardId)
+    .map((purchase) => ({
+      id: purchase.id,
+      kind: 'Purchase',
+      meta: purchase.category,
+      name: purchase.productName,
+      amount: purchase.amount,
+      currency: purchase.currency,
+      occurredAt: purchase.occurredAt
+    }))
+
+  const fromPlans = (plans.value ?? [])
+    .filter((plan) => plan.creditCardId === cardId)
+    .map((plan) => ({
+      id: plan.id,
+      kind: 'Installment plan',
+      meta: `${plan.monthsCount} months · ${plan.remainingMonths} left`,
+      name: plan.productName,
+      // The full price hits the card on day one, which is what created the debt.
+      amount: plan.totalPrice,
+      currency: plan.currency,
+      occurredAt: plan.purchasedAt
+    }))
+
+  return [...fromPurchases, ...fromPlans]
+    .sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt))
+})
+
+const tabs = computed(() => [
+  { value: 'charges', label: 'Charges', count: charges.value.length },
+  { value: 'payments', label: 'Payments', count: payments.value?.length ?? 0 }
+])
 
 const utilisation = computed(() => {
   if (!card.value?.creditLimit) return 0
@@ -44,15 +102,25 @@ const variant = computed(() => {
   return 'accent'
 })
 
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    year: 'numeric', month: 'short', day: '2-digit'
+  })
+}
+
 function refresh() {
   loadCard()
   loadPayments()
+  loadPurchases()
+  loadPlans()
   dashboard.invalidate()
 }
 
 onMounted(() => {
   loadCard()
   loadPayments()
+  loadPurchases()
+  loadPlans()
 })
 </script>
 
@@ -127,11 +195,47 @@ onMounted(() => {
         <p v-if="card.notes" class="summary__notes">{{ card.notes }}</p>
       </div>
 
-      <BaseCard
-        title="Payments"
-        subtitle="Every payment against this card, from any source"
-        :padded="false"
-      >
+      <BaseTabs v-model="tab" :tabs="tabs" class="tabs" />
+
+      <BaseCard v-if="tab === 'charges'" :padded="false">
+        <BaseTable
+          :columns="CHARGE_COLUMNS"
+          :rows="charges"
+          :loading="loadingCharges"
+          empty-title="Nothing charged to this card"
+          empty-message="Purchases paid with this card, and installment plans on it, appear here."
+        >
+          <template #cell-occurredAt="{ value }">
+            <span class="numeric muted">{{ formatDate(value) }}</span>
+          </template>
+
+          <template #cell-name="{ row }">
+            <div class="cell-stack">
+              <span class="cell-stack__title">{{ row.name }}</span>
+              <span class="cell-stack__sub">{{ row.meta }}</span>
+            </div>
+          </template>
+
+          <template #cell-kind="{ value }">
+            <BaseBadge :variant="value === 'Purchase' ? 'neutral' : 'accent'" size="sm">
+              {{ value }}
+            </BaseBadge>
+          </template>
+
+          <template #cell-amount="{ row }">
+            <span class="numeric charge">{{ format(row.amount, { currency: row.currency }) }}</span>
+          </template>
+        </BaseTable>
+
+        <template #footer>
+          <span class="footnote">
+            Recent charges only — the API cannot filter purchases by card, so this covers the
+            latest 100 purchases. Installment plans are complete.
+          </span>
+        </template>
+      </BaseCard>
+
+      <BaseCard v-else :padded="false">
         <PaymentsTable
           :payments="payments ?? []"
           :loading="loadingPayments"
@@ -206,6 +310,17 @@ onMounted(() => {
 }
 
 .summary__notes { font-size: var(--fs-sm); color: var(--text-muted); }
+
+.tabs { margin-bottom: var(--sp-4); }
+
+.muted { color: var(--text-muted); font-size: var(--fs-sm); }
+.charge { font-weight: var(--fw-semibold); color: var(--negative); }
+
+.cell-stack { display: flex; flex-direction: column; }
+.cell-stack__title { font-weight: var(--fw-medium); }
+.cell-stack__sub { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.footnote { font-size: var(--fs-xs); color: var(--text-muted); }
 
 .state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
 

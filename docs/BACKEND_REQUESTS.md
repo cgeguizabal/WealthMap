@@ -76,6 +76,29 @@ history, so archiving is the safer shape).
 
 ---
 
+## 5. Purchases cannot be filtered by the card or account that paid
+
+**Found:** showing, on a credit card's detail screen, the purchases that created its balance.
+
+`GET /api/v1/purchases` filters by `year`, `month` and `category` only. There is no
+`creditCardId` or `accountId` parameter, and no `GET /credit-cards/{id}/purchases`.
+
+**Impact:** a card's page can show what has been *paid off* (there is an endpoint for that) but not
+what was *charged to it*, which is the more useful half.
+
+**Workaround in place:** the card detail fetches the most recent 100 purchases and filters them
+client-side by `creditCardId`. Installment plans are handled properly, because
+`GET /installment-purchases` returns every plan with its `creditCardId`.
+
+**The limitation this leaves:** if a user has more than 100 purchases since a card was charged, older
+charges on that card will not appear. The screen says "recent charges" rather than implying it is
+complete.
+
+**Ideal fix:** add `creditCardId` and `accountId` as optional filters on `GET /api/v1/purchases` —
+both columns are already indexed by user, and the repository already composes optional filters.
+
+---
+
 ## 4. Dashboard and alerts are separate round trips
 
 **Found:** building the dashboard, which renders both.
