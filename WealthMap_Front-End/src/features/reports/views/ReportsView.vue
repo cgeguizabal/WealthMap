@@ -32,21 +32,22 @@ const loading = ref(false)
 const downloading = ref(false)
 const error = ref(null)
 
-const ACCOUNT_COLUMNS = [
-  { key: 'name', label: 'Account' },
-  { key: 'openingBalance', label: 'Opening', align: 'right' },
-  { key: 'totalIn', label: 'In', align: 'right' },
-  { key: 'totalOut', label: 'Out', align: 'right' },
-  { key: 'closingBalance', label: 'Closing', align: 'right' }
-]
+/** Computed so the headers follow the language selector rather than freezing. */
+const ACCOUNT_COLUMNS = computed(() => [
+  { key: 'name', label: t('reports.colAccount') },
+  { key: 'openingBalance', label: t('reports.colOpening'), align: 'right' },
+  { key: 'totalIn', label: t('reports.colIn'), align: 'right' },
+  { key: 'totalOut', label: t('reports.colOut'), align: 'right' },
+  { key: 'closingBalance', label: t('reports.colClosing'), align: 'right' }
+])
 
-const CARD_COLUMNS = [
-  { key: 'cardName', label: 'Card' },
-  { key: 'chargedThisMonth', label: 'Charged', align: 'right' },
-  { key: 'paidThisMonth', label: 'Paid', align: 'right' },
-  { key: 'usedCredit', label: 'Owed', align: 'right' },
-  { key: 'availableCredit', label: 'Available', align: 'right', hideOnMobile: true }
-]
+const CARD_COLUMNS = computed(() => [
+  { key: 'cardName', label: t('reports.colCard') },
+  { key: 'chargedThisMonth', label: t('reports.colCharged'), align: 'right' },
+  { key: 'paidThisMonth', label: t('reports.colPaid'), align: 'right' },
+  { key: 'usedCredit', label: t('reports.colOwed'), align: 'right' },
+  { key: 'availableCredit', label: t('reports.colAvailable'), align: 'right', hideOnMobile: true }
+])
 
 const monthLabel = computed(() => {
   if (!report.value) return ''

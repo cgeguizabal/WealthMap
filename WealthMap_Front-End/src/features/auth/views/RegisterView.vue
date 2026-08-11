@@ -8,22 +8,34 @@ import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const CURRENCIES = [
-  { value: 'USD', label: 'USD — US Dollar' },
-  { value: 'MXN', label: 'MXN — Mexican Peso' },
-  { value: 'EUR', label: 'EUR — Euro' },
-  { value: 'GBP', label: 'GBP — British Pound' },
-  { value: 'CAD', label: 'CAD — Canadian Dollar' },
-  { value: 'BRL', label: 'BRL — Brazilian Real' },
-  { value: 'COP', label: 'COP — Colombian Peso' },
-  { value: 'ARS', label: 'ARS — Argentine Peso' }
-]
+const CURRENCY_CODES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
+
+/**
+ * Currency names come from the browser's own locale data rather than a list
+ * kept by hand in each language — "US Dollar" against "dólar estadounidense".
+ * The code is kept in front of the name because that is what the rest of the
+ * app displays, and Intl is skipped entirely if the runtime lacks DisplayNames.
+ */
+const CURRENCIES = computed(() => {
+  let names = null
+
+  try {
+    names = new Intl.DisplayNames([locale.value], { type: 'currency' })
+  } catch {
+    names = null
+  }
+
+  return CURRENCY_CODES.map((code) => {
+    const name = names?.of(code)
+    return { value: code, label: name && name !== code ? `${code} — ${name}` : code }
+  })
+})
 
 const values = reactive({
   fullName: '',

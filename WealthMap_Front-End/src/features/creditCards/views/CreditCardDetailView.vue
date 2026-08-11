@@ -49,12 +49,13 @@ const editOpen = ref(false)
 const limitOpen = ref(false)
 const tab = ref('charges')
 
-const CHARGE_COLUMNS = [
-  { key: 'occurredAt', label: 'Date', width: '130px' },
-  { key: 'name', label: 'Item' },
-  { key: 'kind', label: 'Type', width: '160px' },
-  { key: 'amount', label: 'Charged', align: 'right', width: '130px' }
-]
+/** Computed so the headers follow the language selector rather than freezing. */
+const CHARGE_COLUMNS = computed(() => [
+  { key: 'occurredAt', label: t('common.date'), width: '130px' },
+  { key: 'name', label: t('purchases.item') },
+  { key: 'kind', label: t('common.type'), width: '160px' },
+  { key: 'amount', label: t('cards.charged'), align: 'right', width: '130px' }
+])
 
 /** Purchases and installment plans both put debt on the card, so both belong here. */
 const charges = computed(() => {
@@ -87,8 +88,8 @@ const charges = computed(() => {
 })
 
 const tabs = computed(() => [
-  { value: 'charges', label: 'Charges', count: charges.value.length },
-  { value: 'payments', label: 'Payments', count: payments.value?.length ?? 0 }
+  { value: 'charges', label: t('cards.charges'), count: charges.value.length },
+  { value: 'payments', label: t('cards.payments'), count: payments.value?.length ?? 0 }
 ])
 
 const utilisation = computed(() => {

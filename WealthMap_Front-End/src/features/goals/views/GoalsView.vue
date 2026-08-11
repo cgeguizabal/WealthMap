@@ -41,8 +41,8 @@ const isSavingsTab = computed(() => tab.value === 'savings')
 const visible = computed(() => (isSavingsTab.value ? savings.value : products.value))
 
 const tabs = computed(() => [
-  { value: 'savings', label: 'Savings', count: savings.value.length },
-  { value: 'product', label: 'Products', count: products.value.length }
+  { value: 'savings', label: t('goals.savings'), count: savings.value.length },
+  { value: 'product', label: t('goals.products'), count: products.value.length }
 ])
 
 const summary = computed(() => {

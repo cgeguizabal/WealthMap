@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { incomesApi, INCOME_FREQUENCY_OPTIONS, toMonthly } from '@/api/incomes.api'
+import { useServerText } from '@/composables/useServerText'
 import { accountsApi } from '@/api/accounts.api'
 import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
@@ -14,6 +15,15 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
+
+/** Values and names stay as the API knows them; only the wording is localised. */
+const frequencyOptions = computed(() =>
+  INCOME_FREQUENCY_OPTIONS.map((o) => ({
+    ...o,
+    label: serverLabel('incomeFrequency', o.name)
+  }))
+)
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -59,8 +69,9 @@ const accountOptions = computed(() =>
 const monthlyEquivalent = computed(() => {
   if (!values.amount) return null
 
-  const label = INCOME_FREQUENCY_OPTIONS.find((o) => o.value === values.frequency)?.label
-  return toMonthly(values.amount, label)
+  // The enum name, not the label: toMonthly switches on 'Weekly'/'Biweekly'.
+  const name = INCOME_FREQUENCY_OPTIONS.find((o) => o.value === values.frequency)?.name
+  return toMonthly(values.amount, name)
 })
 
 const open = ref(props.modelValue)
@@ -73,7 +84,7 @@ watch(() => props.modelValue, async (value) => {
           name: props.income.name,
           amount: props.income.amount,
           currency: props.income.currency,
-          frequency: INCOME_FREQUENCY_OPTIONS.find((o) => o.label === props.income.frequency)?.value ?? 3,
+          frequency: INCOME_FREQUENCY_OPTIONS.find((o) => o.name === props.income.frequency)?.value ?? 3,
           depositAccountId: props.income.depositAccountId
         }
       : blank())
@@ -134,7 +145,7 @@ async function onSubmit() {
       <BaseSelect
         v-model="values.frequency"
         :label="t('job.frequency')"
-        :options="INCOME_FREQUENCY_OPTIONS"
+        :options="frequencyOptions"
         required
         :error="fieldError('frequency')"
       />

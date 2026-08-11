@@ -9,11 +9,16 @@ export const incomesApi = {
   remove: (id) => client.delete(`/additional-incomes/${id}`)
 }
 
+/**
+ * `name` is the enum name the API sends back, and is what lookups match on.
+ * `label` is display text, replaced per locale in the component — matching on it
+ * would break the moment the interface is not in English.
+ */
 export const INCOME_FREQUENCY_OPTIONS = [
-  { value: 1, label: 'Weekly' },
-  { value: 2, label: 'Biweekly' },
-  { value: 3, label: 'Monthly' },
-  { value: 4, label: 'Yearly' }
+  { value: 1, name: 'Weekly', label: 'Weekly' },
+  { value: 2, name: 'Biweekly', label: 'Biweekly' },
+  { value: 3, name: 'Monthly', label: 'Monthly' },
+  { value: 4, name: 'Yearly', label: 'Yearly' }
 ]
 
 /** The same normalisation the dashboard applies, for showing a monthly equivalent. */

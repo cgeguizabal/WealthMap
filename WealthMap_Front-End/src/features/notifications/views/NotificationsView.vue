@@ -33,8 +33,8 @@ const ICON_BY_SEVERITY = { Critical: 'alert', Warning: 'alert', Info: 'info' }
 const VARIANT_BY_SEVERITY = { Critical: 'negative', Warning: 'warning', Info: 'neutral' }
 
 const tabs = computed(() => [
-  { value: 'all', label: 'All' },
-  { value: 'unread', label: 'Unread', count: unreadCount.value }
+  { value: 'all', label: t('common.all') },
+  { value: 'unread', label: t('notifications.unreadTab'), count: unreadCount.value }
 ])
 
 function load() {

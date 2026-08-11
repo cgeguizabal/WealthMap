@@ -35,8 +35,8 @@ const activePlans = computed(() => (plans.value ?? []).filter((p) => !p.isComple
 const completedPlans = computed(() => (plans.value ?? []).filter((p) => p.isCompleted))
 
 const tabs = computed(() => [
-  { value: 'active', label: 'Active', count: activePlans.value.length },
-  { value: 'completed', label: 'Completed', count: completedPlans.value.length }
+  { value: 'active', label: t('common.active'), count: activePlans.value.length },
+  { value: 'completed', label: t('common.completed'), count: completedPlans.value.length }
 ])
 
 const visible = computed(() => (tab.value === 'active' ? activePlans.value : completedPlans.value))
