@@ -107,28 +107,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss">
-.filters {
-  display: grid;
-  grid-template-columns: 180px 160px 160px auto;
-  align-items: end;
-  gap: var(--sp-3);
-  width: 100%;
-}
-
-.filters__actions {
-  display: flex;
-  gap: var(--sp-2);
-  justify-content: flex-end;
-}
-
-@media (max-width: 900px) {
-  .filters { grid-template-columns: 1fr 1fr; }
-  .filters__actions { grid-column: span 2; justify-content: flex-start; }
-}
-
-@media (max-width: 480px) {
-  .filters { grid-template-columns: 1fr; }
-  .filters__actions { grid-column: span 1; }
-}
-</style>
+<style scoped lang="scss" src="./PaymentsView.scss"></style>

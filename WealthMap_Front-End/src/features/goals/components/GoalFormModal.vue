@@ -202,25 +202,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss">
-.form { display: flex; flex-direction: column; gap: var(--sp-4); }
-
-.form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-4);
-}
-
-.form__error {
-  padding: var(--sp-3);
-  border: 1px solid var(--negative);
-  border-radius: var(--radius);
-  background: var(--negative-soft);
-  color: var(--negative);
-  font-size: var(--fs-sm);
-}
-
-@media (max-width: 480px) {
-  .form__row { grid-template-columns: 1fr; }
-}
-</style>
+<style scoped lang="scss" src="./GoalFormModal.scss"></style>

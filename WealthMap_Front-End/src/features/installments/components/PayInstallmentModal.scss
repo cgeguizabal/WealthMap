@@ -1,0 +1,36 @@
+.form { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.next {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  padding: var(--sp-4);
+  background: var(--canvas-alt);
+  border: var(--border-subtle);
+  border-radius: var(--radius);
+}
+
+.next__label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.next__amount {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.02em;
+}
+
+.next__due { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.form__error {
+  padding: var(--sp-3);
+  border: 1px solid var(--negative);
+  border-radius: var(--radius);
+  background: var(--negative-soft);
+  color: var(--negative);
+  font-size: var(--fs-sm);
+}

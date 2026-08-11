@@ -165,41 +165,4 @@ onMounted(loadDebts)
   </div>
 </template>
 
-<style scoped lang="scss">
-.totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-5);
-}
-
-.totals__item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--canvas-alt);
-  border: var(--border-subtle);
-  border-radius: var(--radius);
-}
-
-.totals__label {
-  font-size: var(--fs-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.totals__value { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: var(--sp-4);
-}
-
-
-@media (max-width: 640px) {
-  .grid { grid-template-columns: 1fr; }
-}
-</style>
+<style scoped lang="scss" src="./DebtsView.scss"></style>

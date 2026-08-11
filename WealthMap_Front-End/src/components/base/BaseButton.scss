@@ -1,0 +1,69 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+  color: var(--ink);
+
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+
+  @include pressable;
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  &:hover:not(:disabled) { background: var(--canvas-alt); }
+}
+
+/* ── Sizes ─────────────────────────────────── */
+.btn--sm { padding: 0 var(--sp-3); height: 30px; font-size: var(--fs-sm); }
+.btn--md { padding: 0 var(--sp-4); height: 36px; font-size: var(--fs-base); }
+.btn--lg { padding: 0 var(--sp-5); height: 44px; font-size: var(--fs-md); }
+
+/* ── Variants ──────────────────────────────── */
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--border-color);
+
+  &:hover:not(:disabled) { background: var(--accent-hover); }
+}
+
+.btn--danger {
+  background: var(--negative);
+  color: #fff;
+
+  &:hover:not(:disabled) { background: #7a332b; }
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+
+  &:hover:not(:disabled) { background: var(--canvas-alt); }
+  &:active:not(:disabled) { transform: none; box-shadow: none; }
+}
+
+.btn--block { width: 100%; }
+
+.btn__icon { display: inline-flex; }
+.btn__label { display: inline-flex; align-items: center; }
+
+/* An icon-only button still renders the label wrapper, and an empty flex item
+   silently claims the container's `gap`. Removing it keeps icon buttons the
+   width of their icon — which is what makes them fit in tight card footers. */
+.btn__label:empty { display: none; }
+.btn--loading .btn__label { opacity: 0.85; }

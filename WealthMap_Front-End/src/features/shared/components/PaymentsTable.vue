@@ -73,7 +73,4 @@ const { label: serverLabel } = useServerText()
   </BaseTable>
 </template>
 
-<style scoped lang="scss">
-.muted { color: var(--text-muted); font-size: var(--fs-sm); }
-.amount { font-weight: var(--fw-semibold); }
-</style>
+<style scoped lang="scss" src="./PaymentsTable.scss"></style>

@@ -24,38 +24,4 @@ defineProps({
   </div>
 </template>
 
-<style scoped lang="scss">
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--sp-12) var(--sp-6);
-  gap: var(--sp-2);
-}
-
-.empty--compact { padding: var(--sp-8) var(--sp-4); }
-
-.empty__icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin-bottom: var(--sp-2);
-
-  border: var(--border);
-  border-radius: var(--radius);
-  background: var(--canvas-alt);
-  color: var(--text-muted);
-}
-
-.empty__title { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
-
-.empty__message {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-  max-width: 42ch;
-}
-
-.empty__action { margin-top: var(--sp-3); }
-</style>
+<style scoped lang="scss" src="./BaseEmptyState.scss"></style>

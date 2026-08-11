@@ -28,25 +28,4 @@ defineProps({
   </aside>
 </template>
 
-<style scoped lang="scss">
-.notice {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--sp-3);
-
-  padding: var(--sp-3) var(--sp-4);
-  background: var(--warning-soft);
-  border: 1px solid var(--warning);
-  border-radius: var(--radius);
-}
-
-.notice__icon { color: var(--warning); margin-top: 1px; flex: none; }
-
-.notice__text {
-  font-size: var(--fs-sm);
-  color: var(--text);
-  line-height: 1.5;
-
-  strong { font-weight: var(--fw-semibold); }
-}
-</style>
+<style scoped lang="scss" src="./ExcludedCurrenciesNotice.scss"></style>

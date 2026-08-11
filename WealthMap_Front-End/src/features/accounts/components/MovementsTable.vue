@@ -98,22 +98,4 @@ const { label: serverLabel } = useServerText()
   </div>
 </template>
 
-<style scoped lang="scss">
-.muted { color: var(--text-muted); font-size: var(--fs-sm); }
-
-.desc { display: flex; flex-direction: column; }
-.desc__text { font-weight: var(--fw-medium); }
-.desc__location { font-size: var(--fs-xs); color: var(--text-muted); }
-
-.type {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
-.amount { font-weight: var(--fw-semibold); }
-.amount.is-in { color: var(--positive); }
-.amount.is-out { color: var(--negative); }
-</style>
+<style scoped lang="scss" src="./MovementsTable.scss"></style>

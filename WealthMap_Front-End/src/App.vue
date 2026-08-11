@@ -39,15 +39,4 @@ const useShell = computed(() => route.meta.layout !== 'blank')
   <BaseConfirmDialog />
 </template>
 
-<style lang="scss">
-.page-enter-active, .page-leave-active {
-  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
-}
-
-.page-enter-from { opacity: 0; transform: translateY(6px); }
-.page-leave-to { opacity: 0; }
-
-@media (prefers-reduced-motion: reduce) {
-  .page-enter-active, .page-leave-active { transition: none; }
-}
-</style>
+<style lang="scss" src="./App.scss"></style>

@@ -13,12 +13,4 @@ const { t } = useI18n()
   </div>
 </template>
 
-<style scoped>
-.notfound {
-  min-height: 100vh;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  gap: var(--sp-4);
-}
-</style>
+<style scoped src="./NotFoundView.scss"></style>

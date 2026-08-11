@@ -77,35 +77,4 @@ const percent = computed(() => {
   </BaseCard>
 </template>
 
-<style scoped lang="scss">
-.goals__saved { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
-.goals__of { font-size: var(--fs-sm); color: var(--text-muted); margin-left: var(--sp-1); }
-
-.goals__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-3);
-  margin-top: var(--sp-5);
-}
-
-.goals__stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--sp-3);
-  background: var(--canvas-alt);
-  border-radius: var(--radius-sm);
-  text-align: center;
-}
-
-.goals__stat-value { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
-
-.goals__stat-label {
-  font-size: var(--fs-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.goals__link { font-size: var(--fs-sm); font-weight: var(--fw-medium); }
-</style>
+<style scoped lang="scss" src="./GoalsSummaryCard.scss"></style>

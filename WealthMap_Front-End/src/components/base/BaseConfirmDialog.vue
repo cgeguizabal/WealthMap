@@ -68,10 +68,4 @@ onBeforeUnmount(() => clearTimeout(armTimer))
   </BaseModal>
 </template>
 
-<style scoped lang="scss">
-.confirm__message {
-  font-size: var(--fs-base);
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-</style>
+<style scoped lang="scss" src="./BaseConfirmDialog.scss"></style>

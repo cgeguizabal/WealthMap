@@ -1,0 +1,97 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  color: inherit;
+  text-decoration: none;
+
+  &:hover { background: var(--canvas-alt); text-decoration: none; }
+}
+
+.card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.card__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.card__name {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+  @include truncate;
+}
+
+.card__bank { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.card__due {
+  flex: none;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  padding: 2px var(--sp-2);
+  background: var(--canvas-alt);
+  border-radius: var(--radius-sm);
+}
+
+.card__figures {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.card__figure-label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.card__available {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.02em;
+  color: var(--positive);
+}
+
+.card__owed {
+  text-align: right;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+}
+
+.card__limit { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: var(--border-subtle);
+  background: var(--canvas-alt);
+}
+
+.card__spacer { flex: 1; }
+
+.card__delete:hover { color: var(--negative); }

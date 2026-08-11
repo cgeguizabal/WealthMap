@@ -39,40 +39,4 @@ const percent = computed(() => {
   </div>
 </template>
 
-<style scoped lang="scss">
-.progress { display: flex; flex-direction: column; gap: var(--sp-2); }
-
-.progress__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-2);
-}
-
-.progress__label { font-size: var(--fs-sm); color: var(--text-muted); }
-.progress__value { font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
-
-.progress__track {
-  background: var(--canvas-alt);
-  border: var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.progress__track--sm { height: 8px; }
-.progress__track--md { height: 12px; }
-
-.progress__bar {
-  height: 100%;
-  transition: width var(--dur) var(--ease);
-}
-
-.progress__bar--accent   { background: var(--accent); }
-.progress__bar--positive { background: var(--positive); }
-.progress__bar--negative { background: var(--negative); }
-.progress__bar--warning  { background: var(--warning); }
-
-@media (prefers-reduced-motion: reduce) {
-  .progress__bar { transition: none; }
-}
-</style>
+<style scoped lang="scss" src="./BaseProgress.scss"></style>

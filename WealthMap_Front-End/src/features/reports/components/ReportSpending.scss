@@ -1,0 +1,112 @@
+.spending { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.categories { display: flex; flex-direction: column; }
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: var(--border-subtle);
+
+  &:last-child { border-bottom: none; }
+}
+
+.category__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.category__name { font-weight: var(--fw-medium); }
+.category__total { font-weight: var(--fw-semibold); }
+
+.category__bar {
+  height: 6px;
+  background: var(--canvas-alt);
+  border: var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.category__fill { height: 100%; background: var(--accent); }
+
+.category__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.spending__footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+
+  .numeric { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text); }
+}
+
+.top { display: flex; flex-direction: column; }
+
+.top__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: var(--border-subtle);
+
+  &:last-child { border-bottom: none; }
+
+  /* The biggest expense is the one worth noticing */
+  &--first {
+    background: var(--canvas-alt);
+    border-left: 3px solid var(--gold);
+  }
+}
+
+.top__rank {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+
+  border: var(--border-subtle);
+  border-radius: 50%;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.top__item--first .top__rank {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: var(--fw-semibold);
+}
+
+.top__body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.top__name { font-weight: var(--fw-medium); @include truncate; }
+.top__meta { font-size: var(--fs-xs); color: var(--text-muted); }
+.top__amount { font-weight: var(--fw-semibold); }
+
+.cash {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--canvas-alt);
+  border: var(--border-subtle);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+  .category, .top__item { padding-left: var(--sp-4); padding-right: var(--sp-4); }
+}

@@ -50,6 +50,4 @@ function retry() {
   <slot v-else />
 </template>
 
-<style scoped lang="scss">
-.actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; justify-content: center; }
-</style>
+<style scoped lang="scss" src="./BaseErrorBoundary.scss"></style>

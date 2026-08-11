@@ -26,21 +26,4 @@ const time = computed(() => formatTime(props.value))
   </span>
 </template>
 
-<style scoped lang="scss">
-.ts {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.35;
-}
-
-.ts__date {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
-.ts__time {
-  font-size: var(--fs-xs);
-  color: var(--text-subtle, var(--text-muted));
-  opacity: 0.85;
-}
-</style>
+<style scoped lang="scss" src="./BaseTimestamp.scss"></style>

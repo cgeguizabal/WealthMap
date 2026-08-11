@@ -116,9 +116,4 @@ const paths = computed(() => ICONS[props.name] ?? [])
   </svg>
 </template>
 
-<style scoped lang="scss">
-.icon {
-  display: block;
-  flex: none;
-}
-</style>
+<style scoped lang="scss" src="./BaseIcon.scss"></style>

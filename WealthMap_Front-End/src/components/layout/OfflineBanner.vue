@@ -17,23 +17,4 @@ const { isOnline } = useOnlineStatus()
   </Transition>
 </template>
 
-<style scoped lang="scss">
-.offline {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-
-  padding: var(--sp-2) var(--sp-5);
-  background: var(--warning-soft);
-  border-bottom: 1px solid var(--warning);
-  color: var(--text);
-  font-size: var(--fs-sm);
-}
-
-.offline-enter-active, .offline-leave-active { transition: opacity var(--dur) var(--ease); }
-.offline-enter-from, .offline-leave-to { opacity: 0; }
-
-@media (max-width: 767px) {
-  .offline { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-xs); }
-}
-</style>
+<style scoped lang="scss" src="./OfflineBanner.scss"></style>

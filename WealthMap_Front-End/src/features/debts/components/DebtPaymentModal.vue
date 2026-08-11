@@ -133,39 +133,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss">
-.form { display: flex; flex-direction: column; gap: var(--sp-4); }
-
-.form__context {
-  padding: var(--sp-3);
-  background: var(--canvas-alt);
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-
-  strong { color: var(--text); font-weight: var(--fw-semibold); }
-}
-
-.form__max {
-  border: none;
-  background: transparent;
-  color: var(--accent);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  cursor: pointer;
-  padding: 0;
-
-  &:hover { text-decoration: underline; }
-}
-
-.form__hint { font-size: var(--fs-xs); color: var(--text-muted); }
-
-.form__error {
-  padding: var(--sp-3);
-  border: 1px solid var(--negative);
-  border-radius: var(--radius);
-  background: var(--negative-soft);
-  color: var(--negative);
-  font-size: var(--fs-sm);
-}
-</style>
+<style scoped lang="scss" src="./DebtPaymentModal.scss"></style>

@@ -32,40 +32,4 @@ defineProps({
   </div>
 </template>
 
-<style scoped lang="scss">
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: var(--sp-4);
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-
-  padding: var(--sp-4) var(--sp-5);
-  background: var(--surface);
-  border: var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-}
-
-.card__foot {
-  display: flex;
-  gap: var(--sp-2);
-  padding-top: var(--sp-3);
-  border-top: var(--border-subtle);
-}
-
-@media (max-width: 640px) {
-  .grid { grid-template-columns: 1fr; }
-}
-</style>
+<style scoped lang="scss" src="./CardGridSkeleton.scss"></style>

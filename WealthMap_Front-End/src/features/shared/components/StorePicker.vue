@@ -70,13 +70,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss">
-.picker {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--sp-2);
-}
-
-.picker__field { flex: 1; min-width: 0; }
-.picker__add { flex: none; height: 38px; }
-</style>
+<style scoped lang="scss" src="./StorePicker.scss"></style>
