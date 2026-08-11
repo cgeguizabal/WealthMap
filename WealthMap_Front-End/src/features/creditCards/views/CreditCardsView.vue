@@ -7,6 +7,7 @@ import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
 import { useDoubleConfirm } from '@/composables/useDoubleConfirm'
+import { useI18n } from '@/composables/useI18n'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -20,6 +21,7 @@ import CardFormModal from '../components/CardFormModal.vue'
 import CardPaymentModal from '../components/CardPaymentModal.vue'
 import LimitModal from '../components/LimitModal.vue'
 
+const { t } = useI18n()
 const { format } = useMoney()
 const toast = useToast()
 const confirmTwice = useDoubleConfirm()
@@ -79,7 +81,7 @@ async function remove(card) {
     : ''
 
   const confirmed = await confirmTwice({
-    title: `Delete ${card.cardName}?`,
+    title: t('cards.deleteTitle', { name: card.cardName }),
     message:
       `${card.cardName} will be removed from your cards and your available ` +
       `credit.${owedNote} Its purchases, installment plans and payments are kept.`,
@@ -92,7 +94,7 @@ async function remove(card) {
 
   try {
     await creditCardsApi.remove(card.id)
-    toast.success(`${card.cardName} deleted. Its history was kept.`)
+    toast.success(t('cards.deleted', { name: card.cardName }))
     refresh()
   } catch (err) {
     toast.error(err.message)
@@ -109,11 +111,11 @@ onMounted(loadCards)
 
 <template>
   <div>
-    <PageHeader title="Credit cards" subtitle="Available credit is limit minus what you owe — always computed.">
+    <PageHeader :title="t('cards.title')" :subtitle="t('cards.subtitle')">
       <template #actions>
         <BaseButton variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          New card
+          {{ t('cards.newCard') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -121,7 +123,7 @@ onMounted(loadCards)
     <div v-if="totals.length" class="totals">
       <div v-for="entry in totals" :key="entry.currency" class="totals__item">
         <div>
-          <span class="totals__label">Available credit</span>
+          <span class="totals__label">{{ t('cards.availableCredit') }}</span>
           <p class="totals__value numeric">{{ format(entry.available, { currency: entry.currency }) }}</p>
         </div>
         <p class="totals__sub numeric">
@@ -136,19 +138,19 @@ onMounted(loadCards)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Could not load your cards"
+      :title="t('cards.loadFailed')"
       :message="error.message"
     >
-      <template #action><BaseButton variant="primary" @click="loadCards">Try again</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="loadCards">{{ t('common.tryAgain') }}</BaseButton></template>
     </BaseEmptyState>
 
     <BaseEmptyState
       v-else-if="!cards?.length"
       icon="card"
-      title="No credit cards yet"
-      message="Add a card to track its balance, available credit and due date."
+      :title="t('cards.noCardsTitle')"
+      :message="t('cards.noCardsMessage')"
     >
-      <template #action><BaseButton variant="primary" @click="openCreate">Add a card</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="openCreate">{{ t('cards.addFirst') }}</BaseButton></template>
     </BaseEmptyState>
 
     <motion.div

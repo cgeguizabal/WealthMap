@@ -5,6 +5,7 @@ import { usePagination } from '@/composables/usePagination'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
 import { useDashboardStore } from '@/stores/dashboard.store'
+import { useI18n } from '@/composables/useI18n'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -18,6 +19,7 @@ import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
 
 import PurchaseFormModal from '../components/PurchaseFormModal.vue'
 
+const { t, locale } = useI18n()
 const { format } = useMoney()
 const toast = useToast()
 const dashboard = useDashboardStore()
@@ -35,23 +37,39 @@ const YEARS = Array.from({ length: 6 }, (_, i) => {
   return { value: year, label: String(year) }
 })
 
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-].map((label, index) => ({ value: index + 1, label }))
+/**
+ * Month names come from the browser's own calendar data for the active locale,
+ * rather than a hand-kept list in every language.
+ */
+const MONTHS = computed(() =>
+  Array.from({ length: 12 }, (_, index) => ({
+    value: index + 1,
+    label: new Date(2000, index, 1).toLocaleDateString(locale.value, { month: 'long' })
+  }))
+)
 
 const categoryOptions = PURCHASE_CATEGORIES.map((name) => ({ value: name, label: name }))
 
-const COLUMNS = [
-  { key: 'occurredAt', label: 'Date', width: '130px' },
-  { key: 'productName', label: 'Item' },
-  { key: 'storeName', label: 'Store', width: '160px' },
-  { key: 'category', label: 'Category', width: '150px' },
-  { key: 'paymentMethod', label: 'Method', width: '150px' },
-  { key: 'amount', label: 'Amount', align: 'right', width: '130px' }
-]
+/**
+ * Computed, not a plain const: a const would call t() once during setup and
+ * freeze the headers in whichever language was active at that moment, so
+ * switching would leave the table in the old one.
+ */
+const COLUMNS = computed(() => [
+  { key: 'occurredAt', label: t('common.date'), width: '130px' },
+  { key: 'productName', label: t('purchases.item') },
+  { key: 'storeName', label: t('purchases.store'), width: '160px' },
+  { key: 'category', label: t('common.category'), width: '150px' },
+  { key: 'paymentMethod', label: t('purchases.method'), width: '150px' },
+  { key: 'amount', label: t('common.amount'), align: 'right', width: '130px' }
+])
 
-const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: 'Cash' }
+const METHOD_LABEL = computed(() => ({
+  DebitAccount: t('purchases.debit'),
+  CreditCard: t('purchases.creditCard'),
+  Cash: t('purchases.cash')
+}))
+
 const METHOD_ICON = { DebitAccount: 'wallet', CreditCard: 'card', Cash: 'receipt' }
 
 /** Only meaningful when the page shows a single month's worth of one currency. */
@@ -101,11 +119,11 @@ onMounted(load)
 
 <template>
   <div>
-    <PageHeader title="Purchases" subtitle="Everything you have bought, however you paid for it.">
+    <PageHeader :title="t('purchases.title')" :subtitle="t('purchases.subtitle')">
       <template #actions>
         <BaseButton variant="primary" @click="formOpen = true">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          Record purchase
+          {{ t('purchases.newPurchase') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -113,27 +131,32 @@ onMounted(load)
     <BaseCard :padded="false">
       <template #header>
         <div class="filters">
-          <BaseSelect v-model="filters.year" label="Year" :options="YEARS" placeholder="All years" />
+          <BaseSelect
+            v-model="filters.year"
+            :label="t('purchases.year')"
+            :options="YEARS"
+            :placeholder="t('purchases.allYears')"
+          />
 
           <BaseSelect
             v-model="filters.month"
-            label="Month"
+            :label="t('purchases.month')"
             :options="MONTHS"
-            placeholder="All months"
+            :placeholder="t('purchases.allMonths')"
             :disabled="!filters.year"
-            :hint="!filters.year ? 'Pick a year first' : ''"
+            :hint="!filters.year ? t('purchases.pickYearFirst') : ''"
           />
 
           <BaseSelect
             v-model="filters.category"
-            label="Category"
+            :label="t('common.category')"
             :options="categoryOptions"
-            placeholder="All categories"
+            :placeholder="t('purchases.allCategories')"
           />
 
           <div class="filters__actions">
-            <BaseButton variant="secondary" @click="applyFilters">Apply</BaseButton>
-            <BaseButton variant="ghost" @click="clearFilters">Clear</BaseButton>
+            <BaseButton variant="secondary" @click="applyFilters">{{ t('purchases.apply') }}</BaseButton>
+            <BaseButton variant="ghost" @click="clearFilters">{{ t('purchases.clear') }}</BaseButton>
           </div>
         </div>
       </template>
@@ -142,8 +165,8 @@ onMounted(load)
         :columns="COLUMNS"
         :rows="purchases"
         :loading="loading"
-        empty-title="No purchases found"
-        empty-message="Nothing matches these filters — or nothing has been recorded yet."
+        :empty-title="t('purchases.emptyTitle')"
+        :empty-message="t('purchases.emptyMessage')"
       >
         <template #cell-occurredAt="{ value }">
           <BaseTimestamp :value="value" :with-year="false" />
@@ -184,7 +207,7 @@ onMounted(load)
 
       <template v-if="purchases.length" #footer>
         <div class="footer">
-          <span class="footer__label">This page</span>
+          <span class="footer__label">{{ t('purchases.thisPage') }}</span>
           <span class="numeric footer__total">{{ format(pageTotal) }}</span>
         </div>
       </template>

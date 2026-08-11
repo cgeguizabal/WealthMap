@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { reportMissingKeys } from './i18n'
 import './assets/styles/main.scss'
 
 const app = createApp(App)
@@ -18,5 +19,8 @@ app.config.errorHandler = (error, _instance, info) => {
 // Pinia before the router: the navigation guard calls useAuthStore.
 app.use(createPinia())
 app.use(router)
+
+// Dev-only: warns if the two locale files have drifted apart.
+reportMissingKeys()
 
 app.mount('#app')

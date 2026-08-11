@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
 import { NAV_GROUPS } from './navigation.js'
+import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 
 defineProps({
@@ -14,6 +15,7 @@ defineProps({
 
 const emit = defineEmits(['navigate', 'toggle'])
 const route = useRoute()
+const { t } = useI18n()
 
 /** Exact for the dashboard, prefix elsewhere so detail routes keep the parent lit. */
 function isActive(item) {
@@ -37,8 +39,8 @@ function isActive(item) {
       <button
         class="sidebar__toggle"
         type="button"
-        :aria-label="collapsed ? 'Expand navigation' : 'Collapse navigation'"
-        :title="collapsed ? 'Expand navigation' : 'Collapse navigation'"
+        :aria-label="collapsed ? t('nav.expand') : t('nav.collapse')"
+        :title="collapsed ? t('nav.expand') : t('nav.collapse')"
         :aria-expanded="!collapsed"
         @click="emit('toggle')"
       >
@@ -46,9 +48,9 @@ function isActive(item) {
       </button>
     </div>
 
-    <nav class="sidebar__nav" aria-label="Main">
+    <nav class="sidebar__nav" :aria-label="t('nav.main')">
       <div v-for="(group, index) in NAV_GROUPS" :key="index" class="sidebar__group">
-        <p v-if="group.label" class="sidebar__group-label">{{ group.label }}</p>
+        <p v-if="group.labelKey" class="sidebar__group-label">{{ t(group.labelKey) }}</p>
 
         <RouterLink
           v-for="item in group.items"
@@ -57,12 +59,12 @@ function isActive(item) {
           class="sidebar__link"
           :class="{ 'sidebar__link--active': isActive(item) }"
           :aria-current="isActive(item) ? 'page' : undefined"
-          :title="collapsed ? item.label : undefined"
+          :title="collapsed ? t(item.labelKey) : undefined"
           @click="emit('navigate')"
         >
           <BaseIcon :name="item.icon" :size="17" />
           <!-- Hidden rather than removed when collapsed, so the accessible name survives -->
-          <span class="sidebar__link-label">{{ item.label }}</span>
+          <span class="sidebar__link-label">{{ t(item.labelKey) }}</span>
         </RouterLink>
       </div>
     </nav>

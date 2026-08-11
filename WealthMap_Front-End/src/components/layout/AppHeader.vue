@@ -5,7 +5,9 @@ import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationsStore } from '@/stores/notifications.store'
 import { useDashboardStore } from '@/stores/dashboard.store'
+import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
+import LanguageSelector from './LanguageSelector.vue'
 
 defineProps({
   /** Only shown when the sidebar is off-screen — otherwise its own toggle is visible. */
@@ -14,6 +16,7 @@ defineProps({
 
 const emit = defineEmits(['toggle-drawer'])
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const notifications = useNotificationsStore()
 const dashboard = useDashboardStore()
@@ -70,8 +73,8 @@ function logout() {
       class="header__burger"
       type="button"
       :aria-expanded="false"
-      aria-label="Open navigation"
-      title="Open navigation"
+      :aria-label="t('nav.openMenu')"
+      :title="t('nav.openMenu')"
       @click="emit('toggle-drawer')"
     >
       <BaseIcon name="menu" :size="20" />
@@ -84,12 +87,12 @@ function logout() {
 
     <div class="header__spacer" />
 
-    <RouterLink to="/notifications" class="header__icon-btn" aria-label="Notifications">
+    <RouterLink to="/notifications" class="header__icon-btn" :aria-label="t('nav.notifications')">
       <BaseIcon name="bell" :size="18" />
       <span v-if="unreadCount > 0" class="header__badge numeric" aria-hidden="true">
         {{ unreadCount > 99 ? '99+' : unreadCount }}
       </span>
-      <span v-if="unreadCount > 0" class="sr-only">{{ unreadCount }} unread</span>
+      <span v-if="unreadCount > 0" class="sr-only">{{ t('notifications.unread', { count: unreadCount }) }}</span>
     </RouterLink>
 
     <div ref="menuRoot" class="header__user">
@@ -109,12 +112,14 @@ function logout() {
           <div class="menu__identity">
             <p class="menu__name">{{ auth.user?.fullName }}</p>
             <p class="menu__email">{{ auth.user?.email }}</p>
-            <p class="menu__currency">Totals shown in {{ auth.currency }}</p>
+            <p class="menu__currency">{{ t('common.totalsShownIn', { currency: auth.currency }) }}</p>
           </div>
+
+          <LanguageSelector />
 
           <button class="menu__item" type="button" role="menuitem" @click="logout">
             <BaseIcon name="logout" :size="16" />
-            Sign out
+            {{ t('common.logout') }}
           </button>
         </div>
       </Transition>

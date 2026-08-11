@@ -7,6 +7,7 @@ import { useAsync } from '@/composables/useAsync'
 import { useToast } from '@/composables/useToast'
 import { useMoney } from '@/composables/useMoney'
 import { useDoubleConfirm } from '@/composables/useDoubleConfirm'
+import { useI18n } from '@/composables/useI18n'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -20,6 +21,7 @@ import AccountFormModal from '../components/AccountFormModal.vue'
 import MovementFormModal from '../components/MovementFormModal.vue'
 import TransferModal from '../components/TransferModal.vue'
 
+const { t } = useI18n()
 const toast = useToast()
 const { format } = useMoney()
 const confirmTwice = useDoubleConfirm()
@@ -65,10 +67,10 @@ async function toggleBlock(account) {
   try {
     if (account.isBlockedForSaving) {
       await accountsApi.unblock(account.id)
-      toast.success(`${account.name} unblocked.`)
+      toast.success(t('accounts.unblockedToast', { name: account.name }))
     } else {
       await accountsApi.block(account.id)
-      toast.success(`${account.name} blocked — deposits still work, withdrawals do not.`)
+      toast.success(t('accounts.blockedToast', { name: account.name }))
     }
     refresh()
   } catch (err) {
@@ -87,7 +89,7 @@ async function remove(account) {
     : ''
 
   const confirmed = await confirmTwice({
-    title: `Delete ${account.name}?`,
+    title: t('accounts.deleteTitle', { name: account.name }),
     message:
       `${account.name} will be removed from your accounts, balances and totals.` +
       `${balanceNote} Its movement history is kept, and past purchases and ` +
@@ -101,7 +103,7 @@ async function remove(account) {
 
   try {
     await accountsApi.remove(account.id)
-    toast.success(`${account.name} deleted. Its history was kept.`)
+    toast.success(t('accounts.deleted', { name: account.name }))
     refresh()
   } catch (err) {
     toast.error(err.message)
@@ -119,28 +121,28 @@ onMounted(loadAccounts)
 
 <template>
   <div>
-    <PageHeader title="Accounts" subtitle="Every balance you hold, and where it sits.">
+    <PageHeader :title="t('accounts.title')" :subtitle="t('accounts.subtitle')">
       <template #actions>
         <BaseButton
           variant="secondary"
           :disabled="(accounts?.length ?? 0) < 2"
-          :title="(accounts?.length ?? 0) < 2 ? 'You need two accounts to transfer' : undefined"
+          :title="(accounts?.length ?? 0) < 2 ? t('accounts.needTwoToTransfer') : undefined"
           @click="transferOpen = true"
         >
           <template #icon><BaseIcon name="transfer" :size="15" /></template>
-          Transfer
+          {{ t('accounts.transfer') }}
         </BaseButton>
 
         <BaseButton variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          New account
+          {{ t('accounts.newAccount') }}
         </BaseButton>
       </template>
     </PageHeader>
 
     <div v-if="totalsByCurrency.length" class="totals">
       <div v-for="entry in totalsByCurrency" :key="entry.currency" class="totals__item">
-        <span class="totals__label">Total held</span>
+        <span class="totals__label">{{ t('accounts.totalHeld') }}</span>
         <span class="totals__value numeric">{{ format(entry.total, { currency: entry.currency }) }}</span>
       </div>
     </div>
@@ -150,19 +152,19 @@ onMounted(loadAccounts)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Could not load your accounts"
+      :title="t('accounts.loadFailed')"
       :message="error.message"
     >
-      <template #action><BaseButton variant="primary" @click="loadAccounts">Try again</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="loadAccounts">{{ t('common.tryAgain') }}</BaseButton></template>
     </BaseEmptyState>
 
     <BaseEmptyState
       v-else-if="!accounts?.length"
       icon="wallet"
-      title="No accounts yet"
-      message="Money always lives in an account. Add your first one to start tracking."
+      :title="t('accounts.noAccountsTitle')"
+      :message="t('accounts.noAccountsMessage')"
     >
-      <template #action><BaseButton variant="primary" @click="openCreate">Add an account</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="openCreate">{{ t('accounts.addFirst') }}</BaseButton></template>
     </BaseEmptyState>
 
     <motion.div
