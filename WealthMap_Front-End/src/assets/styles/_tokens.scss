@@ -36,6 +36,7 @@
      Warm mid-grey rather than ink: keeps the stamped, flat character while
      reading far softer against the canvas. */
   --shadow-color:  #BDBAB2;
+  --shadow-color-modal: #4e4e4e;
   --shadow-sm:     3px 3px 0 var(--shadow-color);
   --shadow:        6px 6px 0 var(--shadow-color);
   --shadow-lg:     6px 6px 0 var(--shadow-color);
@@ -43,7 +44,7 @@
 
   /* Surfaces that float above the dimmed page need a shadow dark enough to read
      against the scrim — the page-level grey disappears on it. */
-  --shadow-raised:  8px 8px 0 var(--ink);
+  --shadow-raised:  7px 7px 0 var(--shadow-color-modal);
 
   /* ── Spacing (4px scale) ──────────────────── */
   --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;  --sp-4: 16px;

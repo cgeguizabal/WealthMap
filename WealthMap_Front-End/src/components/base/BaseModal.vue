@@ -144,6 +144,10 @@ onUnmounted(() => lockScroll(false))
   border-radius: var(--radius);
   box-shadow: var(--shadow-raised);
 
+  /* The footer paints its own background, and a square-cornered child would
+     cover the panel's rounded corners without this. */
+  overflow: hidden;
+
   &:focus { outline: none; }
 }
 
