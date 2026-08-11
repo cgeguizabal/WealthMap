@@ -8,6 +8,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -33,7 +34,7 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
         </div>
 
         <BaseBadge :variant="DEBT_STATUS_VARIANT[debt.status] ?? 'neutral'" size="sm">
-          {{ debt.status === 'PaidOff' ? 'Paid off' : debt.status }}
+          {{ serverLabel('debtStatus', debt.status) }}
         </BaseBadge>
       </header>
 

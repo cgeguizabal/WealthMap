@@ -20,8 +20,10 @@ import MovementsTable from '../components/MovementsTable.vue'
 import MovementFormModal from '../components/MovementFormModal.vue'
 import AccountFormModal from '../components/AccountFormModal.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
 
 const route = useRoute()
 const toast = useToast()
@@ -141,7 +143,7 @@ onMounted(() => {
 
         <div class="summary__meta">
           <BaseBadge :variant="account.type === 'Savings' ? 'accent' : 'neutral'">
-            {{ account.type }}
+            {{ serverLabel('accountType', account.type) }}
           </BaseBadge>
 
           <BaseBadge v-if="account.isBlockedForSaving" variant="warning">

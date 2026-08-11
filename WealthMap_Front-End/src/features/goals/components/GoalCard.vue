@@ -1,12 +1,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useMoney } from '@/composables/useMoney'
-import { GOAL_STATUS_VARIANT, GOAL_STATUS_LABEL } from '@/api/goals.api'
+import { GOAL_STATUS_VARIANT } from '@/api/goals.api'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -45,7 +46,7 @@ const hasRequired = computed(() =>
       </div>
 
       <BaseBadge :variant="GOAL_STATUS_VARIANT[goal.status] ?? 'neutral'" size="sm">
-        {{ GOAL_STATUS_LABEL[goal.status] ?? goal.status }}
+        {{ serverLabel('goalStatus', goal.status) }}
       </BaseBadge>
     </header>
 

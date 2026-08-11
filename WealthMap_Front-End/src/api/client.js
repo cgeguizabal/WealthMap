@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { serverError } from '@/composables/useServerText'
 
 const client = axios.create({
   baseURL: '/api/v1',
@@ -36,6 +37,14 @@ client.interceptors.response.use(
   }
 )
 
+/**
+ * The API answers in English. Translating here rather than at each of the twenty
+ * or so `toast.error(err.message)` sites means none of them has to know, and a
+ * new one cannot forget.
+ *
+ * `serverError` returns the server's own wording for anything it does not
+ * recognise, so an untranslated message still says what went wrong.
+ */
 function normalizeError(status, data) {
   // Field-keyed validation errors → { amount: ['...'], name: ['...'] }
   if (data?.errors) {
@@ -47,14 +56,16 @@ function normalizeError(status, data) {
 
     return {
       status,
-      message: data.title ?? 'Validation failed',
+      message: serverError(data.title ?? 'Validation failed'),
+      // Field messages are left as sent: they name specific rules and lengths
+      // that a pattern match would mangle rather than translate.
       fields
     }
   }
 
   return {
     status,
-    message: data?.detail ?? data?.title ?? 'Something went wrong.',
+    message: serverError(data?.detail ?? data?.title),
     fields: null
   }
 }

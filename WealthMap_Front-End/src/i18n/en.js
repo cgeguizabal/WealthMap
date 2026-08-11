@@ -619,6 +619,81 @@ export default {
     created: '{count} new notifications.'
   },
 
+/**
+   * Values the API sends as-is: enum names and catalogue categories. Keyed by the
+   * exact string the server returns, so a value that has not been mapped yet
+   * falls through to the server's own wording rather than to a blank or a key.
+   *
+   * These are closed sets. Free prose from the server — domain error detail,
+   * alert bodies — is handled in serverMessage, which is pattern-based.
+   */
+  server: {
+    movementType: {
+      SalaryDeposit: 'Salary deposit',
+      Deposit: 'Deposit',
+      Bonus: 'Bonus',
+      TransferIn: 'Transfer in',
+      TransferOut: 'Transfer out',
+      Purchase: 'Purchase',
+      Payment: 'Payment',
+      AtmWithdrawal: 'ATM withdrawal'
+    },
+    paymentMethod: {
+      DebitAccount: 'Debit',
+      CreditCard: 'Credit card',
+      Cash: 'Cash'
+    },
+    accountType: { Checking: 'Checking', Savings: 'Savings' },
+    paymentTarget: { CreditCard: 'Credit card', Debt: 'Debt', Installment: 'Installment' },
+    paymentSource: { Account: 'From account', External: 'Cash / third party' },
+    goalStatus: {
+      OnTrack: 'On track',
+      BehindSchedule: 'Behind schedule',
+      DeadlinePassed: 'Deadline passed',
+      Completed: 'Completed'
+    },
+    goalKind: { Savings: 'Savings', Product: 'Product' },
+    debtStatus: { Active: 'Active', PaidOff: 'Paid off', Defaulted: 'Defaulted' },
+    incomeFrequency: {
+      Weekly: 'Weekly',
+      Biweekly: 'Biweekly',
+      Monthly: 'Monthly',
+      Yearly: 'Yearly'
+    },
+    dueKind: { CreditCard: 'Credit card', Debt: 'Debt', Installment: 'Installment' },
+    severity: { Info: 'Info', Warning: 'Warning', Critical: 'Critical' },
+    deductionType: { Fixed: 'Fixed amount', Percentage: 'Percentage of gross' },
+    category: {
+      Food: 'Food',
+      Groceries: 'Groceries',
+      Restaurants: 'Restaurants',
+      Transport: 'Transport',
+      Electronics: 'Electronics',
+      Clothing: 'Clothing',
+      Health: 'Health',
+      Entertainment: 'Entertainment',
+      Home: 'Home',
+      Services: 'Services',
+      Education: 'Education',
+      Travel: 'Travel',
+      Other: 'Other'
+    }
+  },
+
+  /** Error text from the server, matched by shape. See useServerText. */
+  serverMessage: {
+    validationFailed: 'Validation failed',
+    businessRule: 'Business rule violation',
+    notFound: 'Not found',
+    unauthorized: 'You need to sign in again.',
+    insufficientFunds: "Not enough money in '{name}'. Available {available}, requested {requested}.",
+    exceedsCredit: "That exceeds the available credit on '{name}'.",
+    alreadyArchived: 'That has already been deleted.',
+    blockedAccount: "'{name}' is blocked for saving. Unblock it before taking money out.",
+    futureDate: 'The date cannot be in the future.',
+    currencyMismatch: 'The currencies do not match, and WealthMap does not convert between them.'
+  },
+
   offline: {
     message: 'You are offline. Changes will fail until the connection is back.'
   }

@@ -8,8 +8,10 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -21,7 +23,10 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const toast = useToast()
 const isEdit = computed(() => props.store !== null)
 
-const categoryOptions = STORE_CATEGORIES.map((name) => ({ value: name, label: name }))
+/** Value stays the stored English name; only the label is translated. */
+const categoryOptions = computed(() =>
+  STORE_CATEGORIES.map((name) => ({ value: name, label: serverLabel('category', name) }))
+)
 
 function blank() {
   return { name: '', category: '', logoUrl: '', description: '' }

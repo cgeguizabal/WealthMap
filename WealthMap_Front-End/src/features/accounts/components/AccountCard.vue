@@ -5,6 +5,7 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -30,7 +31,7 @@ const { format } = useMoney()
         </div>
 
         <BaseBadge :variant="account.type === 'Savings' ? 'accent' : 'neutral'" size="sm">
-          {{ account.type === 'Savings' ? t('accounts.savings') : t('accounts.checking') }}
+          {{ serverLabel('accountType', account.type) }}
         </BaseBadge>
       </header>
 

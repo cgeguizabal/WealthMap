@@ -18,8 +18,10 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import StorePicker from '@/features/shared/components/StorePicker.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false }
@@ -38,7 +40,13 @@ const cards = ref([])
 const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
   .map((code) => ({ value: code, label: code }))
 
-const categoryOptions = PURCHASE_CATEGORIES.map((name) => ({ value: name, label: name }))
+/**
+ * The value sent to the API stays the English name it stores; only the label
+ * is translated, so switching language cannot change what gets saved.
+ */
+const categoryOptions = computed(() =>
+  PURCHASE_CATEGORIES.map((name) => ({ value: name, label: serverLabel('category', name) }))
+)
 
 /**
  * Local wall-clock "now" for the datetime-local input. Built from local parts on

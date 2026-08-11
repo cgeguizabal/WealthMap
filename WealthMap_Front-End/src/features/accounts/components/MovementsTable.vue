@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useMoney } from '@/composables/useMoney'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 import BaseTable from '@/components/base/BaseTable.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
@@ -38,10 +39,11 @@ const ICON_BY_TYPE = {
   AtmWithdrawal: 'arrow-up-right'
 }
 
-/** PascalCase enum names read poorly in a table. */
-function humanize(value) {
-  return value.replace(/([A-Z])/g, ' $1').trim()
-}
+/**
+ * Movement types arrive as PascalCase enum names. They are looked up rather
+ * than de-camel-cased, because splitting on capitals only ever produces English.
+ */
+const { label: serverLabel } = useServerText()
 </script>
 
 <template>
@@ -67,7 +69,7 @@ function humanize(value) {
       <template #cell-type="{ row }">
         <span class="type">
           <BaseIcon :name="ICON_BY_TYPE[row.type] ?? 'clock'" :size="14" />
-          {{ humanize(row.type) }}
+          {{ serverLabel('movementType', row.type) }}
         </span>
       </template>
 

@@ -5,6 +5,7 @@ import { fadeInRow } from '@/composables/useMotionSafe'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -64,7 +65,7 @@ const overflow = computed(() => Math.max(0, props.alerts.length - visible.value.
             </div>
 
             <BaseBadge :variant="VARIANT_BY_SEVERITY[alert.severity]" size="sm" class="alert__severity">
-              {{ alert.severity }}
+              {{ serverLabel('severity', alert.severity) }}
             </BaseBadge>
           </motion.li>
         </ul>

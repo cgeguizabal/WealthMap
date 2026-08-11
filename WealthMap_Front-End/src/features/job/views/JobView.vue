@@ -21,6 +21,7 @@ import JobFormModal from '../components/JobFormModal.vue'
 import DeductionFormModal from '../components/DeductionFormModal.vue'
 import IncomeFormModal from '../components/IncomeFormModal.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -281,7 +282,7 @@ onMounted(load)
               <div class="deduction__body">
                 <span class="deduction__name">{{ deduction.name }}</span>
                 <span class="deduction__type">
-                  {{ deduction.type === 'Percentage' ? t('job.percentageOfGross') : t('job.fixedAmount') }}
+                  {{ serverLabel('deductionType', deduction.type) }}
                 </span>
                 <!--
                   Spelling out the monthly total and the per-payday share, because a
@@ -344,7 +345,7 @@ onMounted(load)
             <div class="income__body">
               <span class="income__name">{{ income.name }}</span>
               <span class="income__meta">
-                {{ income.frequency }} ·
+                {{ serverLabel('incomeFrequency', income.frequency) }} ·
                 {{ format(toMonthly(income.amount, income.frequency), { currency: income.currency }) }}/mo
               </span>
             </div>

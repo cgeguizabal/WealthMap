@@ -32,9 +32,3 @@ export const GOAL_STATUS_VARIANT = {
   Completed: 'accent'
 }
 
-export const GOAL_STATUS_LABEL = {
-  OnTrack: 'On track',
-  BehindSchedule: 'Behind schedule',
-  DeadlinePassed: 'Deadline passed',
-  Completed: 'Completed'
-}

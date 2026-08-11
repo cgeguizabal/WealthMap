@@ -19,6 +19,7 @@ import DebtPaymentModal from '../components/DebtPaymentModal.vue'
 import DebtFormModal from '../components/DebtFormModal.vue'
 import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -105,7 +106,7 @@ onMounted(() => {
           </div>
 
           <BaseBadge :variant="DEBT_STATUS_VARIANT[debt.status] ?? 'neutral'">
-            {{ debt.status === 'PaidOff' ? 'Paid off' : debt.status }}
+            {{ serverLabel('debtStatus', debt.status) }}
           </BaseBadge>
         </div>
 

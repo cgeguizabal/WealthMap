@@ -4,6 +4,7 @@ import BaseCard from '@/components/base/BaseCard.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -14,7 +15,6 @@ defineProps({
 const { format } = useMoney()
 
 const ICON_BY_KIND = { CreditCard: 'card', Debt: 'debt', Installment: 'layers' }
-const LABEL_BY_KIND = { CreditCard: 'Card', Debt: 'Debt', Installment: 'Installment' }
 
 /** Urgency is the point of this list, so it drives the colour. */
 function toneFor(daysUntil) {
@@ -50,7 +50,7 @@ function relativeDay(days) {
         <div class="due__body">
           <p class="due__name">{{ item.name }}</p>
           <p class="due__meta">
-            {{ LABEL_BY_KIND[item.kind] ?? item.kind }} · {{ item.dueDate }}
+            {{ serverLabel('dueKind', item.kind) }} · {{ item.dueDate }}
           </p>
         </div>
 

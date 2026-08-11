@@ -5,6 +5,7 @@ import BaseCard from '@/components/base/BaseCard.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -16,7 +17,7 @@ defineProps({
 const { format } = useMoney()
 const { formatDateTime } = useDateTime()
 
-const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: 'Cash' }
+const { label: serverLabel } = useServerText()
 </script>
 
 <template>
@@ -32,7 +33,7 @@ const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: '
       <ul v-else class="categories">
         <li v-for="entry in spending.byCategory" :key="entry.category" class="category">
           <div class="category__head">
-            <span class="category__name">{{ entry.category }}</span>
+            <span class="category__name">{{ serverLabel('category', entry.category) }}</span>
             <span class="category__total numeric">
               {{ format(entry.total, { currency }) }}
             </span>
@@ -73,8 +74,8 @@ const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: '
             <span class="top__name">{{ expense.productName }}</span>
             <span class="top__meta">
               <template v-if="expense.storeName">{{ expense.storeName }} · </template>
-              {{ formatDateTime(expense.occurredAt, { withYear: false }) }} · {{ expense.category }} ·
-              {{ METHOD_LABEL[expense.paymentMethod] ?? expense.paymentMethod }}
+              {{ formatDateTime(expense.occurredAt, { withYear: false }) }} · {{ serverLabel('category', expense.category) }} ·
+              {{ serverLabel('paymentMethod', expense.paymentMethod) }}
             </span>
           </div>
 

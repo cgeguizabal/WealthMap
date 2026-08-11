@@ -16,6 +16,7 @@ import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -148,7 +149,7 @@ onMounted(() => {
             <div class="note__head">
               <span class="note__title">{{ item.title }}</span>
               <BaseBadge :variant="VARIANT_BY_SEVERITY[item.severity]" size="sm">
-                {{ item.severity }}
+                {{ serverLabel('severity', item.severity) }}
               </BaseBadge>
             </div>
 

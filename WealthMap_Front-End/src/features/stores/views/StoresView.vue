@@ -15,8 +15,10 @@ import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 
 import StoreFormModal from '../components/StoreFormModal.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
+const { label: serverLabel } = useServerText()
 
 const { data: stores, loading, error, run: loadStores } = useAsync(storesApi.list, { initialData: [] })
 
@@ -116,7 +118,7 @@ onMounted(loadStores)
 
             <div class="store__text">
               <h3 class="store__name">{{ store.name }}</h3>
-              <BaseBadge size="sm">{{ store.category }}</BaseBadge>
+              <BaseBadge size="sm">{{ serverLabel('category', store.category) }}</BaseBadge>
             </div>
           </div>
 

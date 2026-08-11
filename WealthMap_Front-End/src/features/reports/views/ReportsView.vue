@@ -5,7 +5,7 @@ import { fadeUp } from '@/composables/useMotionSafe'
 import { reportsApi, currentMonth, downloadBlob } from '@/api/reports.api'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
-import { GOAL_STATUS_VARIANT, GOAL_STATUS_LABEL } from '@/api/goals.api'
+import { GOAL_STATUS_VARIANT } from '@/api/goals.api'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -18,6 +18,7 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 
 import ReportSpending from '../components/ReportSpending.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 const { t } = useI18n()
 
@@ -185,7 +186,7 @@ onMounted(load)
           <template #cell-name="{ row }">
             <div class="cell-stack">
               <span class="cell-stack__title">{{ row.name }}</span>
-              <span class="cell-stack__sub">{{ row.type }} · {{ row.movementCount }} movement(s)</span>
+              <span class="cell-stack__sub">{{ serverLabel('accountType', row.type) }} · {{ row.movementCount }}</span>
             </div>
           </template>
 
@@ -246,7 +247,7 @@ onMounted(load)
           <li v-for="goal in report.goals" :key="`${goal.kind}-${goal.name}`" class="goal">
             <div class="goal__body">
               <span class="goal__name">{{ goal.name }}</span>
-              <span class="goal__kind">{{ goal.kind }}</span>
+              <span class="goal__kind">{{ serverLabel('goalKind', goal.kind) }}</span>
             </div>
 
             <span class="goal__amounts numeric">
@@ -257,7 +258,7 @@ onMounted(load)
             <span class="goal__percent numeric">{{ goal.progressPercentage.toFixed(1) }}%</span>
 
             <BaseBadge :variant="GOAL_STATUS_VARIANT[goal.status] ?? 'neutral'" size="sm">
-              {{ GOAL_STATUS_LABEL[goal.status] ?? goal.status }}
+              {{ serverLabel('goalStatus', goal.status) }}
             </BaseBadge>
           </li>
         </ul>

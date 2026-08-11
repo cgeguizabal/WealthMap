@@ -6,6 +6,7 @@ import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
 import { useDashboardStore } from '@/stores/dashboard.store'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -48,7 +49,13 @@ const MONTHS = computed(() =>
   }))
 )
 
-const categoryOptions = PURCHASE_CATEGORIES.map((name) => ({ value: name, label: name }))
+/**
+ * The value stays the English name the API filters on; only the label is
+ * translated, so switching language cannot change the query.
+ */
+const categoryOptions = computed(() =>
+  PURCHASE_CATEGORIES.map((name) => ({ value: name, label: serverLabel('category', name) }))
+)
 
 /**
  * Computed, not a plain const: a const would call t() once during setup and
@@ -64,11 +71,7 @@ const COLUMNS = computed(() => [
   { key: 'amount', label: t('common.amount'), align: 'right', width: '130px' }
 ])
 
-const METHOD_LABEL = computed(() => ({
-  DebitAccount: t('purchases.debit'),
-  CreditCard: t('purchases.creditCard'),
-  Cash: t('purchases.cash')
-}))
+const { label: serverLabel } = useServerText()
 
 const METHOD_ICON = { DebitAccount: 'wallet', CreditCard: 'card', Cash: 'receipt' }
 
@@ -190,13 +193,13 @@ onMounted(load)
         </template>
 
         <template #cell-category="{ value }">
-          <BaseBadge size="sm">{{ value }}</BaseBadge>
+          <BaseBadge size="sm">{{ serverLabel('category', value) }}</BaseBadge>
         </template>
 
         <template #cell-paymentMethod="{ value }">
           <span class="method">
             <BaseIcon :name="METHOD_ICON[value] ?? 'receipt'" :size="14" />
-            {{ METHOD_LABEL[value] ?? value }}
+            {{ serverLabel('paymentMethod', value) }}
           </span>
         </template>
 

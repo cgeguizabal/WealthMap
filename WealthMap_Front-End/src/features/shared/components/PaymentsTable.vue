@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useMoney } from '@/composables/useMoney'
 import { useI18n } from '@/composables/useI18n'
+import { useServerText } from '@/composables/useServerText'
 import BaseTable from '@/components/base/BaseTable.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
@@ -36,11 +37,7 @@ const columns = computed(() => {
 
 const emptyText = computed(() => props.emptyMessage ?? t('payments.emptyMessage'))
 
-const TARGET_LABEL = computed(() => ({
-  CreditCard: t('nav.creditCards'),
-  Debt: t('debts.title'),
-  Installment: t('installments.title')
-}))
+const { label: serverLabel } = useServerText()
 </script>
 
 <template>
@@ -56,13 +53,13 @@ const TARGET_LABEL = computed(() => ({
     </template>
 
     <template #cell-targetType="{ value }">
-      <span class="muted">{{ TARGET_LABEL[value] ?? value }}</span>
+      <span class="muted">{{ serverLabel('paymentTarget', value) }}</span>
     </template>
 
     <!-- External payments have no account, which is exactly why this ledger exists -->
     <template #cell-sourceType="{ value }">
       <BaseBadge :variant="value === 'External' ? 'neutral' : 'accent'" size="sm">
-        {{ value === 'External' ? t('payments.cashOrThirdParty') : t('payments.fromAccount') }}
+        {{ serverLabel('paymentSource', value) }}
       </BaseBadge>
     </template>
 

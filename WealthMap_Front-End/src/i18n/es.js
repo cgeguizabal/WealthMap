@@ -622,6 +622,78 @@ export default {
     created: '{count} notificaciones nuevas.'
   },
 
+/**
+   * Valores que la API envía tal cual: nombres de enums y categorías del
+   * catálogo. La clave es exactamente lo que devuelve el servidor, así que un
+   * valor sin traducir cae en el texto del servidor y no en un vacío.
+   */
+  server: {
+    movementType: {
+      SalaryDeposit: 'Depósito de salario',
+      Deposit: 'Depósito',
+      Bonus: 'Bonificación',
+      TransferIn: 'Transferencia recibida',
+      TransferOut: 'Transferencia enviada',
+      Purchase: 'Compra',
+      Payment: 'Pago',
+      AtmWithdrawal: 'Retiro de cajero'
+    },
+    paymentMethod: {
+      DebitAccount: 'Débito',
+      CreditCard: 'Tarjeta de crédito',
+      Cash: 'Efectivo'
+    },
+    accountType: { Checking: 'Corriente', Savings: 'Ahorro' },
+    paymentTarget: { CreditCard: 'Tarjeta de crédito', Debt: 'Deuda', Installment: 'Cuota' },
+    paymentSource: { Account: 'Desde cuenta', External: 'Efectivo / terceros' },
+    goalStatus: {
+      OnTrack: 'Al día',
+      BehindSchedule: 'Atrasada',
+      DeadlinePassed: 'Fecha vencida',
+      Completed: 'Completada'
+    },
+    goalKind: { Savings: 'Ahorro', Product: 'Producto' },
+    debtStatus: { Active: 'Activa', PaidOff: 'Pagada', Defaulted: 'Incumplida' },
+    incomeFrequency: {
+      Weekly: 'Semanal',
+      Biweekly: 'Quincenal',
+      Monthly: 'Mensual',
+      Yearly: 'Anual'
+    },
+    dueKind: { CreditCard: 'Tarjeta de crédito', Debt: 'Deuda', Installment: 'Cuota' },
+    severity: { Info: 'Información', Warning: 'Advertencia', Critical: 'Crítico' },
+    deductionType: { Fixed: 'Monto fijo', Percentage: 'Porcentaje del bruto' },
+    category: {
+      Food: 'Comida',
+      Groceries: 'Supermercado',
+      Restaurants: 'Restaurantes',
+      Transport: 'Transporte',
+      Electronics: 'Electrónica',
+      Clothing: 'Ropa',
+      Health: 'Salud',
+      Entertainment: 'Entretenimiento',
+      Home: 'Hogar',
+      Services: 'Servicios',
+      Education: 'Educación',
+      Travel: 'Viajes',
+      Other: 'Otro'
+    }
+  },
+
+  /** Texto de error del servidor, reconocido por su forma. Ver useServerText. */
+  serverMessage: {
+    validationFailed: 'Validación fallida',
+    businessRule: 'Regla de negocio no cumplida',
+    notFound: 'No encontrado',
+    unauthorized: 'Necesitas iniciar sesión de nuevo.',
+    insufficientFunds: "Fondos insuficientes en '{name}'. Disponible {available}, solicitado {requested}.",
+    exceedsCredit: "Eso excede el crédito disponible en '{name}'.",
+    alreadyArchived: 'Eso ya fue eliminado.',
+    blockedAccount: "'{name}' está bloqueada para ahorro. Desbloquéala antes de sacar dinero.",
+    futureDate: 'La fecha no puede estar en el futuro.',
+    currencyMismatch: 'Las monedas no coinciden, y WealthMap no convierte entre ellas.'
+  },
+
   offline: {
     message: 'Estás sin conexión. Los cambios fallarán hasta que vuelva.'
   }
