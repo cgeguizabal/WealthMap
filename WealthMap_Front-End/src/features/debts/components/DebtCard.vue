@@ -61,8 +61,10 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
       >
         <template #label>
           <span class="debt__paid numeric">
-            {{ format(paid, { currency: debt.currency }) }} of
-            {{ format(debt.originalAmount, { currency: debt.currency }) }} repaid
+            {{ t('debts.repaidOf', {
+              paid: format(paid, { currency: debt.currency }),
+              total: format(debt.originalAmount, { currency: debt.currency })
+            }) }}
           </span>
         </template>
       </BaseProgress>

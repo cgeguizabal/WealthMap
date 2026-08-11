@@ -115,7 +115,10 @@ onMounted(() => {
           :value="paid"
           :max="debt.originalAmount"
           :variant="debt.status === 'PaidOff' ? 'positive' : 'accent'"
-          :label="`${format(paid, { currency: debt.currency })} of ${format(debt.originalAmount, { currency: debt.currency })} repaid`"
+          :label="t('debts.repaidOf', {
+            paid: format(paid, { currency: debt.currency }),
+            total: format(debt.originalAmount, { currency: debt.currency })
+          })"
         />
 
         <dl class="summary__meta">

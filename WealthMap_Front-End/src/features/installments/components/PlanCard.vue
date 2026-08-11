@@ -57,8 +57,10 @@ const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBa
       >
         <template #label>
           <span class="plan__paid numeric">
-            {{ format(paidAmount, { currency: plan.currency }) }} of
-            {{ format(plan.totalPrice, { currency: plan.currency }) }}
+            {{ t('installments.paidOf', {
+              paid: format(paidAmount, { currency: plan.currency }),
+              total: format(plan.totalPrice, { currency: plan.currency })
+            }) }}
           </span>
         </template>
       </BaseProgress>

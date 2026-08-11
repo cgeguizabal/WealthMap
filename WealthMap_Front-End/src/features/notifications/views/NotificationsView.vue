@@ -188,8 +188,7 @@ onMounted(() => {
     </BaseCard>
 
     <p class="footnote">
-      Marking something read is an acknowledgement, not a mute — if the condition still holds the
-      next check raises it again.
+      {{ t('notifications.footnote') }}
     </p>
   </div>
 </template>

@@ -92,7 +92,7 @@ onMounted(loadStores)
       v-else-if="!filtered.length"
       icon="search"
       :title="t('stores.noMatches')"
-      :message="`Nothing in the catalogue matches “${search}”.`"
+      :message="t('stores.noMatchesFor', { term: search })"
       compact
     />
 

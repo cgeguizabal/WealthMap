@@ -90,8 +90,8 @@ async function onSubmit() {
 
   toast.success(
     goal.status === 'Completed'
-      ? `${goal.name} is fully funded.`
-      : `Added — ${format(goal.currentAmount, { currency: goal.currency })} saved so far.`
+      ? t('goals.fullyFundedToast', { name: goal.name })
+      : t('goals.addedToast', { amount: format(goal.currentAmount, { currency: goal.currency }) })
   )
 
   emit('saved', result)
@@ -108,10 +108,10 @@ async function onSubmit() {
         <span class="context__name">{{ goal.name }}</span>
         <p class="context__amounts numeric">
           {{ format(goal.currentAmount, { currency: goal.currency }) }}
-          of {{ format(goal.targetAmount, { currency: goal.currency }) }}
+          {{ t('goals.ofTarget', { amount: format(goal.targetAmount, { currency: goal.currency }) }) }}
         </p>
         <span class="context__left numeric">
-          {{ format(remaining, { currency: goal.currency }) }} to go
+          {{ t('goals.toGo', { amount: format(remaining, { currency: goal.currency }) }) }}
         </span>
       </div>
 

@@ -260,7 +260,7 @@ onMounted(load)
 
             <span class="goal__amounts numeric">
               {{ format(goal.currentAmount, { currency: report.currency }) }}
-              <span class="goal__of">of {{ format(goal.targetAmount, { currency: report.currency }) }}</span>
+              <span class="goal__of">{{ t('goals.ofTarget', { amount: format(goal.targetAmount, { currency: report.currency }) }) }}</span>
             </span>
 
             <span class="goal__percent numeric">{{ goal.progressPercentage.toFixed(1) }}%</span>

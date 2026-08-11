@@ -63,7 +63,7 @@ onMounted(load)
 
     <BaseButton size="sm" variant="secondary" class="picker__add" @click="createOpen = true">
       <template #icon><BaseIcon name="plus" :size="14" /></template>
-      New
+      {{ t('common.new') }}
     </BaseButton>
 
     <StoreFormModal v-model="createOpen" @saved="onCreated" />

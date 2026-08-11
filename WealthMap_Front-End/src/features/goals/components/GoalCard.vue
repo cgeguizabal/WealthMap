@@ -53,14 +53,16 @@ const hasRequired = computed(() =>
 
     <div class="goal__amounts">
       <p class="goal__current numeric">{{ format(goal.currentAmount, { currency: goal.currency }) }}</p>
-      <p class="goal__target numeric">of {{ format(goal.targetAmount, { currency: goal.currency }) }}</p>
+      <p class="goal__target numeric">
+        {{ t('goals.ofTarget', { amount: format(goal.targetAmount, { currency: goal.currency }) }) }}
+      </p>
     </div>
 
     <BaseProgress
       :value="goal.currentAmount"
       :max="goal.targetAmount"
       :variant="progressVariant"
-      :label="`${goal.progressPercentage.toFixed(1)}% funded`"
+      :label="t('goals.percentFunded', { percent: goal.progressPercentage.toFixed(1) })"
     />
 
     <dl class="goal__meta">
