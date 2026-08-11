@@ -69,6 +69,7 @@ const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: '
           <div class="top__body">
             <span class="top__name">{{ expense.productName }}</span>
             <span class="top__meta">
+              <template v-if="expense.storeName">{{ expense.storeName }} · </template>
               {{ formatDateTime(expense.occurredAt, { withYear: false }) }} · {{ expense.category }} ·
               {{ METHOD_LABEL[expense.paymentMethod] ?? expense.paymentMethod }}
             </span>

@@ -329,7 +329,17 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                     // and the report's month is bounded in UTC too, so a local-time
                     // reading here could show a date outside the month it sits in.
                     table.Cell().Background(tint).Element(Body).Text($"{expense.OccurredAt:MM-dd HH:mm}");
-                    table.Cell().Background(tint).Element(Body).Text(expense.ProductName).SemiBold();
+
+                    // The store sits under the item rather than in its own column:
+                    // a sixth column would squeeze the four that carry the numbers.
+                    table.Cell().Background(tint).Element(Body).Column(item =>
+                    {
+                        item.Item().Text(expense.ProductName).SemiBold();
+
+                        if (!string.IsNullOrWhiteSpace(expense.StoreName))
+                            item.Item().Text(expense.StoreName).FontSize(7.5f).FontColor(Muted);
+                    });
+
                     table.Cell().Background(tint).Element(Body).Text(expense.Category);
                     table.Cell().Background(tint).Element(Body).Text(Humanize(expense.PaymentMethod));
                     table.Cell().Background(tint).Element(Body).AlignRight()

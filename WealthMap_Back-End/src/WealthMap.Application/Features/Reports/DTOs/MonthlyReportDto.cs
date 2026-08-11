@@ -15,7 +15,9 @@ public record ExpenseLineDto(
     decimal Amount,
     /// <summary>The full UTC instant, so the hour survives as far as the report.</summary>
     DateTime OccurredAt,
-    string PaymentMethod);
+    string PaymentMethod,
+    /// <summary>Where it was bought. Null when the purchase named no store.</summary>
+    string? StoreName);
 
 public record SpendingSectionDto(
     decimal TotalPurchases,

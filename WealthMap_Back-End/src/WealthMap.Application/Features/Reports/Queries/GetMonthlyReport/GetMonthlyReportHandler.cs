@@ -22,6 +22,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
     private readonly IProductGoalRepository _productGoals;
     private readonly IJobRepository _jobs;
     private readonly IPaymentRepository _paymentsRepo;
+    private readonly IStoreRepository _stores;
 
     public GetMonthlyReportHandler(
         IUserRepository users,
@@ -33,8 +34,10 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         ISavingsGoalRepository savingsGoals,
         IProductGoalRepository productGoals,
         IJobRepository jobs,
-        IPaymentRepository paymentsRepo)
+        IPaymentRepository paymentsRepo,
+        IStoreRepository stores)
     {
+        _stores = stores;
         _paymentsRepo = paymentsRepo;
         _users = users;
         _accounts = accounts;
@@ -93,7 +96,12 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
             .ToList();
 
         var income = BuildIncome(monthMovements, job);
-        var spending = BuildSpending(purchases, monthMovements);
+        // Stores are a shared catalogue, so the names are resolved once here rather
+        // than per purchase. Only the top expenses need them.
+        var storeNames = (await _stores.GetAllAsync(ct))
+            .ToDictionary(s => s.Id, s => s.Name);
+
+        var spending = BuildSpending(purchases, monthMovements, storeNames);
         var accountSummaries = BuildAccounts(accounts, movementsFromStart, monthEnd);
         var cardSummaries = BuildCards(cards, purchases, installments, monthPayments, monthStart, monthEnd);
         var goals = await BuildGoals(request.UserId, currency, ct);
@@ -132,7 +140,9 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
     }
 
     private static SpendingSectionDto BuildSpending(
-        IReadOnlyList<Purchase> purchases, IReadOnlyList<AccountMovement> monthMovements)
+        IReadOnlyList<Purchase> purchases,
+        IReadOnlyList<AccountMovement> monthMovements,
+        IReadOnlyDictionary<Guid, string> storeNames)
     {
         var totalPurchases = purchases.Sum(p => p.Amount.Amount);
 
@@ -160,7 +170,12 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
                 p.Category,
                 p.Amount.Amount,
                 p.OccurredAt,
-                p.PaymentMethod.ToString()))
+                p.PaymentMethod.ToString(),
+                // A store that has since been removed leaves the purchase intact,
+                // so a missing name is expected rather than an error.
+                p.StoreId is Guid storeId && storeNames.TryGetValue(storeId, out var name)
+                    ? name
+                    : null))
             .ToList();
 
         // Cash that left tracking. Kept out of the net result: whatever it buys is

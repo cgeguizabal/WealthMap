@@ -674,7 +674,7 @@ e.g. `/api/v1/reports/monthly/2026-08`. Malformed months → **400**.
                                   "count": 1, "sharePercentage": 75.00 } ],
                 "topExpenses": [ { "productName": "Monitor", "category": "Electronics",
                                    "amount": 600.00, "occurredAt": "2026-08-08T19:22:00Z",
-                                   "paymentMethod": "CreditCard" } ] },
+                                   "paymentMethod": "CreditCard", "storeName": "Walmart" } ] },
   "accounts": [ { "accountId": "...", "name": "Checking", "type": "Checking",
                   "openingBalance": 3000.00, "closingBalance": 1200.00,
                   "totalIn": 0, "totalOut": 1800.00, "movementCount": 2 } ],
@@ -685,6 +685,10 @@ e.g. `/api/v1/reports/monthly/2026-08`. Malformed months → **400**.
                "currentAmount": 500.00, "progressPercentage": 8.33, "status": "OnTrack" } ],
   "netResult": 3200.00, "generatedAt": "..." }
 ```
+
+`topExpenses[].storeName` is where the purchase was made, resolved from the shared store catalogue.
+It is `null` when the purchase named no store — cash purchases often do not — so treat it as
+optional rather than assuming every expense has one.
 
 **Times.** Every timestamp in this API is UTC, and clients are expected to render in the viewer's
 own zone — the web client does. `topExpenses[].occurredAt` was `occurredOn` (a bare date) and is now
