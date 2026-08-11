@@ -160,7 +160,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="account-form" variant="primary" :loading="submitting">
-        {{ isEdit ? 'Save changes' : 'Create account' }}
+        {{ isEdit ? t('common.saveChanges') : t('accounts.createAccount') }}
       </BaseButton>
     </template>
   </BaseModal>

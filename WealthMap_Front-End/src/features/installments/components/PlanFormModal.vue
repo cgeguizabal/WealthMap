@@ -161,7 +161,7 @@ async function onSubmit() {
             </template>
           </p>
           <p class="preview__note">
-            Interest free. The last payment carries the rounding so the plan sums exactly.
+            {{ t('installments.interestFreeHint') }}
           </p>
         </div>
       </div>
@@ -189,7 +189,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="plan-form" variant="primary" :loading="submitting">
-        Create plan
+        {{ t('installments.createPlan') }}
       </BaseButton>
     </template>
   </BaseModal>

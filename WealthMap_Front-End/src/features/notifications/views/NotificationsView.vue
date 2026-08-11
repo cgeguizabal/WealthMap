@@ -111,7 +111,7 @@ onMounted(() => {
       <template #actions>
         <BaseButton variant="primary" :loading="syncing" @click="sync">
           <template #icon><BaseIcon name="refresh" :size="15" /></template>
-          Check now
+          {{ t('notifications.checkNow') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -125,9 +125,7 @@ onMounted(() => {
         v-else-if="!items.length"
         :icon="tab === 'unread' ? 'check-circle' : 'bell'"
         :title="tab === 'unread' ? t('notifications.nothingUnread') : t('notifications.emptyTitle')"
-        :message="tab === 'unread'
-          ? 'You are up to date.'
-          : 'Use Check now to turn your current alerts into notifications you can work through.'"
+        :message="tab === 'unread' ? t('notifications.upToDate') : t('notifications.emptyMessage')"
         compact
       >
         <template v-if="tab === 'all'" #action>

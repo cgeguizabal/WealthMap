@@ -120,14 +120,14 @@ async function onSubmit() {
       />
 
       <p v-if="debt?.status === 'Defaulted'" class="form__hint">
-        Paying a defaulted debt returns it to active.
+        {{ t('debts.defaultedHint') }}
       </p>
     </form>
 
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="debt-payment-form" variant="primary" :loading="submitting">
-        Register payment
+        {{ t('debts.registerPayment') }}
       </BaseButton>
     </template>
   </BaseModal>

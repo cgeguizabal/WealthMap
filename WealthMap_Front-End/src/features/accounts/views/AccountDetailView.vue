@@ -93,7 +93,7 @@ onMounted(() => {
   <div>
     <RouterLink to="/accounts" class="back">
       <BaseIcon name="chevron-left" :size="15" />
-      All accounts
+      {{ t('accounts.allAccounts') }}
     </RouterLink>
 
     <div v-if="loadingAccount && !account" class="state"><BaseSpinner :size="22" /></div>
@@ -114,7 +114,7 @@ onMounted(() => {
         <template #actions>
           <BaseButton variant="secondary" @click="movementMode = 'deposit'; movementOpen = true">
             <template #icon><BaseIcon name="plus" :size="15" /></template>
-            Deposit
+            {{ t('accounts.deposit') }}
           </BaseButton>
 
           <BaseButton
@@ -123,12 +123,12 @@ onMounted(() => {
             @click="movementMode = 'withdraw'; movementOpen = true"
           >
             <template #icon><BaseIcon name="minus" :size="15" /></template>
-            Withdraw
+            {{ t('accounts.withdraw') }}
           </BaseButton>
 
           <BaseButton variant="ghost" @click="editOpen = true">
             <template #icon><BaseIcon name="pencil" :size="15" /></template>
-            Edit
+            {{ t('common.edit') }}
           </BaseButton>
         </template>
       </PageHeader>
@@ -147,14 +147,14 @@ onMounted(() => {
           </BaseBadge>
 
           <BaseBadge v-if="account.isBlockedForSaving" variant="warning">
-            Blocked for saving
+            {{ t('accounts.blocked') }}
           </BaseBadge>
 
           <BaseButton size="sm" variant="ghost" @click="toggleBlock">
             <template #icon>
               <BaseIcon :name="account.isBlockedForSaving ? 'unlock' : 'lock'" :size="14" />
             </template>
-            {{ account.isBlockedForSaving ? 'Unblock' : 'Block for saving' }}
+            {{ account.isBlockedForSaving ? t('accounts.unblock') : t('accounts.block') }}
           </BaseButton>
         </div>
 

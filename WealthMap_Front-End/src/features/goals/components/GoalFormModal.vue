@@ -178,9 +178,7 @@ async function onSubmit() {
         type="date"
         :min="today()"
         :required="isSavings"
-        :hint="isSavings
-          ? 'Drives the monthly figure and whether you are on track.'
-          : 'Optional. Without one there is no required monthly amount.'"
+        :hint="isSavings ? t('goals.savingsDeadlineHint') : t('goals.productDeadlineHint')"
         :error="fieldError('deadline')"
       />
 
@@ -198,7 +196,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="goal-form" variant="primary" :loading="submitting">
-        {{ isEdit ? 'Save changes' : 'Create goal' }}
+        {{ isEdit ? t('common.saveChanges') : t('goals.createGoal') }}
       </BaseButton>
     </template>
   </BaseModal>

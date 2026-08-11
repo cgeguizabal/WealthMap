@@ -124,8 +124,10 @@ onMounted(loadCards)
           <p class="totals__value numeric">{{ format(entry.available, { currency: entry.currency }) }}</p>
         </div>
         <p class="totals__sub numeric">
-          {{ format(entry.used, { currency: entry.currency }) }} owed of
-          {{ format(entry.limit, { currency: entry.currency }) }}
+          {{ t('cards.owedOf', {
+            used: format(entry.used, { currency: entry.currency }),
+            limit: format(entry.limit, { currency: entry.currency })
+          }) }}
         </p>
       </div>
     </div>

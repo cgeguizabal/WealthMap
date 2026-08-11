@@ -290,7 +290,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="purchase-form" variant="primary" :loading="submitting">
-        Record purchase
+        {{ t('purchases.newPurchase') }}
       </BaseButton>
     </template>
   </BaseModal>

@@ -149,9 +149,7 @@ onMounted(load)
       v-else-if="!visible.length"
       :icon="isSavingsTab ? 'target' : 'bag'"
       :title="isSavingsTab ? t('goals.noSavingsGoals') : t('goals.noProductGoals')"
-      :message="isSavingsTab
-        ? 'Set a target and a deadline, and WealthMap works out what to put aside each month.'
-        : 'Saving for something specific? Track it here — a deadline is optional.'"
+      :message="isSavingsTab ? t('goals.savingsEmptyMessage') : t('goals.productEmptyMessage')"
     >
       <template #action>
         <BaseButton variant="primary" @click="openCreate">

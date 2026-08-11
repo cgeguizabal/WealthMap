@@ -54,6 +54,7 @@ export default {
     continueLabel: 'Continue',
     keepIt: 'Keep it',
     tryAgain: 'Try again',
+    saveChanges: 'Save changes',
     refresh: 'Refresh',
     loading: 'Loading…',
     saving: 'Saving…',
@@ -208,6 +209,7 @@ export default {
     noAccountsMessage:
       'Money always lives in an account. Add your first one to start tracking.',
     addFirst: 'Add an account',
+    createAccount: 'Create account',
     loadFailed: 'Could not load your accounts',
     needTwoToTransfer: 'You need two accounts to transfer',
     unblockToWithdraw: 'Unblock the account to withdraw',
@@ -281,6 +283,8 @@ export default {
     noCardsTitle: 'No credit cards yet',
     noCardsMessage: 'Add a card to track its balance, available credit and due date.',
     addFirst: 'Add a card',
+    addCard: 'Add card',
+    limitInUse: '{percent}% of your limit in use',
     loadFailed: 'Could not load your cards',
     nothingOwed: 'Nothing owed on this card',
     deleteTitle: 'Delete {name}?',
@@ -388,7 +392,8 @@ export default {
     nothingCompleted: 'Nothing completed yet',
     allPaidOff: 'Every plan is paid off.',
     completedHint: 'Plans appear here once the last installment is paid.',
-    addFirst: 'Create a plan'
+    addFirst: 'Create a plan',
+    planSubtitle: '{count} interest-free payments · purchased {date}'
   },
 
   stores: {
@@ -404,6 +409,7 @@ export default {
     emptyTitle: 'No stores yet',
     emptyMessage: 'Add the shops you buy from so purchases can point at them.',
     addFirst: 'Add a store',
+    addStore: 'Add store',
     noMatches: 'No matches',
     namePlaceholder: 'Walmart',
     logoPlaceholder: 'https://…',
@@ -451,6 +457,7 @@ export default {
     emptyMessage:
       'Track a loan to see it in your totals, your safe-to-spend and your upcoming due dates.',
     addFirst: 'Add a debt',
+    addDebt: 'Add debt',
     deleteTitle: 'Delete {name}?',
     deleteMessage: 'This removes the debt and its history. It cannot be undone.',
     deleted: '{name} deleted.'
@@ -481,11 +488,16 @@ export default {
     monthsLeft: 'Months left',
     neededMonthly: 'Needed monthly',
     contribute: 'Contribute',
+    createGoal: 'Create goal',
+    linkedHint: 'Linked — contributing moves real money into the savings account',
+    trackedOnlyHint: 'Tracked only — contributing does not move money',
     contributeTitle: 'Add to goal',
     moveFrom: 'Move from',
     chooseAccount: 'Choose an account',
     noEligibleAccounts: 'No eligible accounts',
     fillIt: 'Fill it',
+    productNoMoney: 'Product goals track progress only — no money moves.',
+    noLinkedAccount: 'This goal has no linked account, so nothing moves between accounts.',
     contributeHint:
       "This is a real transfer into the goal's savings account, recorded on both sides.",
     targetReached: 'Target already reached',
@@ -507,6 +519,7 @@ export default {
     title: 'Job & income',
     subtitle: 'Your salary, what comes out of it, and anything else that arrives regularly.',
     addJob: 'Add your job',
+    saveJob: 'Save job',
     editJob: 'Edit job',
     deleteJob: 'Delete job',
     jobTitle: 'Job title',
@@ -591,6 +604,8 @@ export default {
     spending: 'Spending',
     netResult: 'Net result',
     nothingToShow: 'Nothing to show',
+    totalSpent: 'Total spent',
+    expectedNetSalary: 'Expected net salary',
     noIncomeTitle: 'No income recorded this month',
     noIncomeMessage: 'Transfers between your own accounts are not counted as income.',
     accountsTitle: 'Accounts',

@@ -66,7 +66,7 @@ const ratioVariant = computed(() => {
       </BaseProgress>
 
       <BaseBadge v-if="overspending" variant="negative" size="sm">
-        Spending above income
+        {{ t('dashboard.spendingAboveIncome') }}
       </BaseBadge>
     </div>
 

@@ -160,20 +160,20 @@ async function onSubmit() {
       />
 
       <p v-if="monthlyEquivalent !== null" class="equivalent">
-        Counts as
+        {{ t('job.countsAs') }}
         <strong class="numeric">{{ format(monthlyEquivalent, { currency: values.currency }) }}</strong>
         per month in your totals.
       </p>
 
       <p class="note">
-        This describes expected income. Money only appears in an account when you record a deposit.
+        {{ t('job.incomeHint') }}
       </p>
     </form>
 
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="income-form" variant="primary" :loading="submitting">
-        {{ isEdit ? 'Save changes' : 'Add income' }}
+        {{ isEdit ? t('common.saveChanges') : t('job.addIncome') }}
       </BaseButton>
     </template>
   </BaseModal>

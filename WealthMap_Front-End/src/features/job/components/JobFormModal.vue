@@ -179,7 +179,7 @@ async function onSubmit() {
       <fieldset class="days">
         <legend class="days__legend">{{ t('job.paymentDays') }}</legend>
         <p class="days__hint">
-          Between one and three days a month. A day past the month's end clamps to the last day.
+          {{ t('job.paymentDaysHint') }}
         </p>
 
         <div class="days__row">
@@ -209,7 +209,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="job-form" variant="primary" :loading="submitting">
-        {{ isEdit ? 'Save changes' : 'Save job' }}
+        {{ isEdit ? t('common.saveChanges') : t('job.saveJob') }}
       </BaseButton>
     </template>
   </BaseModal>

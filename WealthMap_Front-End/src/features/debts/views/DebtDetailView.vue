@@ -57,7 +57,7 @@ onMounted(() => {
   <div>
     <RouterLink to="/debts" class="back">
       <BaseIcon name="chevron-left" :size="15" />
-      All debts
+      {{ t('debts.allDebts') }}
     </RouterLink>
 
     <div v-if="loading && !debt" class="state"><BaseSpinner :size="22" /></div>
@@ -87,12 +87,12 @@ onMounted(() => {
             @click="payOpen = true"
           >
             <template #icon><BaseIcon name="receipt" :size="15" /></template>
-            Register payment
+            {{ t('debts.registerPayment') }}
           </BaseButton>
 
           <BaseButton variant="ghost" @click="editOpen = true">
             <template #icon><BaseIcon name="pencil" :size="15" /></template>
-            Edit
+            {{ t('common.edit') }}
           </BaseButton>
         </template>
       </PageHeader>

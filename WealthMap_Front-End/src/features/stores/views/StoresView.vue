@@ -57,7 +57,7 @@ onMounted(loadStores)
       <template #actions>
         <BaseButton variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          New store
+          {{ t('stores.newStore') }}
         </BaseButton>
       </template>
     </PageHeader>

@@ -90,8 +90,8 @@ const hasRequired = computed(() =>
     <p v-if="kind === 'savings'" class="goal__mode">
       <BaseIcon :name="isLinked ? 'wallet' : 'info'" :size="13" />
       {{ isLinked
-        ? 'Linked — contributing moves real money into the savings account'
-        : 'Tracked only — contributing does not move money' }}
+        ? t('goals.linkedHint')
+        : t('goals.trackedOnlyHint') }}
     </p>
 
     <footer class="goal__actions">
@@ -103,7 +103,7 @@ const hasRequired = computed(() =>
         @click="$emit('contribute', goal)"
       >
         <template #icon><BaseIcon name="plus" :size="14" /></template>
-        Contribute
+        {{ t('goals.contribute') }}
       </BaseButton>
 
       <div class="goal__spacer" />

@@ -34,7 +34,7 @@ const percent = computed(() => {
     >
       <template #action>
         <BaseButton variant="secondary" size="sm" @click="$router.push('/goals')">
-          Create a goal
+          {{ t('dashboard.createGoal') }}
         </BaseButton>
       </template>
     </BaseEmptyState>

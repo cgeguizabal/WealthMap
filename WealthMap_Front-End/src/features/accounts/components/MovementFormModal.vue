@@ -129,7 +129,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="movement-form" variant="primary" :loading="submitting">
-        {{ isDeposit ? 'Deposit' : 'Withdraw' }}
+        {{ isDeposit ? t('accounts.deposit') : t('accounts.withdraw') }}
       </BaseButton>
     </template>
   </BaseModal>

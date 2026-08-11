@@ -362,7 +362,7 @@ onMounted(load)
               </BaseButton>
               <BaseButton size="sm" variant="ghost" :title="t('common.remove')" @click="removeIncome(income)">
                 <template #icon><BaseIcon name="trash" :size="14" /></template>
-                <span class="sr-only">Remove</span>
+                <span class="sr-only">{{ t('common.remove') }}</span>
               </BaseButton>
             </div>
           </li>
@@ -370,7 +370,7 @@ onMounted(load)
 
         <template v-if="incomes.length" #footer>
           <div class="incomes__footer">
-            <span>Monthly equivalent</span>
+            <span>{{ t('job.monthlyEquivalent') }}</span>
             <span class="numeric">{{ format(monthlyExtras) }}</span>
           </div>
         </template>

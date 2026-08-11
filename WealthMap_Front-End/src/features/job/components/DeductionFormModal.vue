@@ -135,7 +135,7 @@ async function onSubmit() {
           <span class="numeric">{{ format(preview.net, { currency: job.currency }) }}</span>
         </div>
         <p v-if="preview.isNegative" class="preview__warning">
-          Deductions would exceed your gross salary. This will be rejected.
+          {{ t('job.deductionsExceed') }}
         </p>
       </div>
     </form>
@@ -143,7 +143,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="deduction-form" variant="primary" :loading="submitting">
-        {{ isEdit ? 'Save' : 'Add deduction' }}
+        {{ isEdit ? t('common.save') : t('job.addDeduction') }}
       </BaseButton>
     </template>
   </BaseModal>

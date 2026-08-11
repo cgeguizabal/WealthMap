@@ -52,7 +52,7 @@ const { label: serverLabel } = useServerText()
 
       <template #footer>
         <div class="spending__footer">
-          <span>Total spent</span>
+          <span>{{ t('reports.totalSpent') }}</span>
           <span class="numeric">{{ format(spending.totalPurchases, { currency }) }}</span>
         </div>
       </template>

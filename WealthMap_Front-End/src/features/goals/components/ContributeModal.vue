@@ -127,7 +127,7 @@ async function onSubmit() {
         <template #prefix>{{ goal?.currency }}</template>
         <template #suffix>
           <button type="button" class="form__max" @click="values.amount = remaining">
-            Fill it
+            {{ t('goals.fillIt') }}
           </button>
         </template>
       </BaseInput>
@@ -144,22 +144,20 @@ async function onSubmit() {
 
         <p class="form__note">
           <BaseIcon name="transfer" :size="14" />
-          This is a real transfer into the goal's savings account, recorded on both sides.
+          {{ t('goals.contributeHint') }}
         </p>
       </template>
 
       <p v-else class="form__note">
         <BaseIcon name="info" :size="14" />
-        {{ kind === 'product'
-          ? 'Product goals track progress only — no money moves.'
-          : 'This goal has no linked account, so nothing moves between accounts.' }}
+        {{ kind === 'product' ? t('goals.productNoMoney') : t('goals.noLinkedAccount') }}
       </p>
     </form>
 
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="contribute-form" variant="primary" :loading="submitting">
-        Contribute
+        {{ t('goals.contribute') }}
       </BaseButton>
     </template>
   </BaseModal>

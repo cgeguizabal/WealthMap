@@ -53,6 +53,7 @@ export default {
     continueLabel: 'Continuar',
     keepIt: 'Conservar',
     tryAgain: 'Reintentar',
+    saveChanges: 'Guardar cambios',
     refresh: 'Actualizar',
     loading: 'Cargando…',
     saving: 'Guardando…',
@@ -208,6 +209,7 @@ export default {
     noAccountsMessage:
       'El dinero siempre vive en una cuenta. Agrega la primera para empezar.',
     addFirst: 'Agregar una cuenta',
+    createAccount: 'Crear cuenta',
     loadFailed: 'No se pudieron cargar tus cuentas',
     needTwoToTransfer: 'Necesitas dos cuentas para transferir',
     unblockToWithdraw: 'Desbloquea la cuenta para retirar',
@@ -282,6 +284,8 @@ export default {
     noCardsMessage:
       'Agrega una tarjeta para seguir su saldo, crédito disponible y fecha de pago.',
     addFirst: 'Agregar una tarjeta',
+    addCard: 'Agregar tarjeta',
+    limitInUse: '{percent}% de tu límite en uso',
     loadFailed: 'No se pudieron cargar tus tarjetas',
     nothingOwed: 'No debes nada en esta tarjeta',
     deleteTitle: '¿Eliminar {name}?',
@@ -388,7 +392,8 @@ export default {
     nothingCompleted: 'Nada completado aún',
     allPaidOff: 'Todos los planes están pagados.',
     completedHint: 'Los planes aparecen aquí cuando se paga la última cuota.',
-    addFirst: 'Crear un plan'
+    addFirst: 'Crear un plan',
+    planSubtitle: '{count} pagos sin interés · comprado el {date}'
   },
 
   stores: {
@@ -404,6 +409,7 @@ export default {
     emptyTitle: 'Aún no hay comercios',
     emptyMessage: 'Agrega los lugares donde compras para que tus compras puedan señalarlos.',
     addFirst: 'Agregar un comercio',
+    addStore: 'Agregar comercio',
     noMatches: 'Sin coincidencias',
     namePlaceholder: 'Walmart',
     logoPlaceholder: 'https://…',
@@ -452,6 +458,7 @@ export default {
     emptyMessage:
       'Registra un préstamo para verlo en tus totales, en lo que puedes gastar y en tus próximos vencimientos.',
     addFirst: 'Agregar una deuda',
+    addDebt: 'Agregar deuda',
     deleteTitle: '¿Eliminar {name}?',
     deleteMessage: 'Esto elimina la deuda y su historial. No se puede deshacer.',
     deleted: '{name} eliminada.'
@@ -482,11 +489,16 @@ export default {
     monthsLeft: 'Meses restantes',
     neededMonthly: 'Necesario al mes',
     contribute: 'Aportar',
+    createGoal: 'Crear meta',
+    linkedHint: 'Vinculada — aportar mueve dinero real a la cuenta de ahorro',
+    trackedOnlyHint: 'Solo seguimiento — aportar no mueve dinero',
     contributeTitle: 'Aportar a la meta',
     moveFrom: 'Mover desde',
     chooseAccount: 'Elige una cuenta',
     noEligibleAccounts: 'No hay cuentas elegibles',
     fillIt: 'Completar',
+    productNoMoney: 'Las metas de producto solo siguen el progreso — no mueven dinero.',
+    noLinkedAccount: 'Esta meta no tiene cuenta vinculada, así que no se mueve dinero entre cuentas.',
     contributeHint:
       'Es una transferencia real a la cuenta de ahorro de la meta, registrada en ambos lados.',
     targetReached: 'Objetivo ya alcanzado',
@@ -508,6 +520,7 @@ export default {
     title: 'Trabajo e ingresos',
     subtitle: 'Tu salario, lo que se le descuenta, y cualquier otra cosa que llegue con regularidad.',
     addJob: 'Agregar tu trabajo',
+    saveJob: 'Guardar trabajo',
     editJob: 'Editar trabajo',
     deleteJob: 'Eliminar trabajo',
     jobTitle: 'Puesto',
@@ -594,6 +607,8 @@ export default {
     spending: 'Gastos',
     netResult: 'Resultado neto',
     nothingToShow: 'Nada que mostrar',
+    totalSpent: 'Total gastado',
+    expectedNetSalary: 'Salario neto esperado',
     noIncomeTitle: 'No hay ingresos registrados este mes',
     noIncomeMessage: 'Las transferencias entre tus propias cuentas no cuentan como ingreso.',
     accountsTitle: 'Cuentas',

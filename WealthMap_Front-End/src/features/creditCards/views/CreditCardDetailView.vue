@@ -132,7 +132,7 @@ onMounted(() => {
   <div>
     <RouterLink to="/credit-cards" class="back">
       <BaseIcon name="chevron-left" :size="15" />
-      All cards
+      {{ t('cards.allCards') }}
     </RouterLink>
 
     <div v-if="loading && !card" class="state"><BaseSpinner :size="22" /></div>
@@ -153,12 +153,12 @@ onMounted(() => {
         <template #actions>
           <BaseButton variant="primary" :disabled="card.usedCredit <= 0" @click="payOpen = true">
             <template #icon><BaseIcon name="receipt" :size="15" /></template>
-            Register payment
+            {{ t('cards.registerPayment') }}
           </BaseButton>
           <BaseButton variant="secondary" @click="limitOpen = true">{{ t('cards.limit') }}</BaseButton>
           <BaseButton variant="ghost" @click="editOpen = true">
             <template #icon><BaseIcon name="pencil" :size="15" /></template>
-            Edit
+            {{ t('common.edit') }}
           </BaseButton>
         </template>
       </PageHeader>
@@ -187,7 +187,7 @@ onMounted(() => {
           :value="card.usedCredit"
           :max="card.creditLimit"
           :variant="variant"
-          :label="`${utilisation.toFixed(0)}% of your limit in use`"
+          :label="t('cards.limitInUse', { percent: utilisation.toFixed(0) })"
         />
 
         <dl class="summary__meta">

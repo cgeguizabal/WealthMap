@@ -76,7 +76,7 @@ const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBa
         @click="$emit('pay', plan)"
       >
         <template #icon><BaseIcon name="receipt" :size="14" /></template>
-        Pay next
+        {{ t('installments.payNext') }}
       </BaseButton>
     </footer>
   </article>

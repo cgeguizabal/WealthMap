@@ -52,7 +52,7 @@ onMounted(loadPlan)
   <div>
     <RouterLink to="/installments" class="back">
       <BaseIcon name="chevron-left" :size="15" />
-      All plans
+      {{ t('installments.allPlans') }}
     </RouterLink>
 
     <div v-if="loading && !plan" class="state"><BaseSpinner :size="22" /></div>
@@ -71,12 +71,12 @@ onMounted(loadPlan)
     <template v-else-if="plan">
       <PageHeader
         :title="plan.productName"
-        :subtitle="`${plan.monthsCount} interest-free payments · purchased ${plan.purchasedAt}`"
+        :subtitle="t('installments.planSubtitle', { count: plan.monthsCount, date: plan.purchasedAt })"
       >
         <template #actions>
           <BaseButton variant="primary" :disabled="plan.isCompleted" @click="payOpen = true">
             <template #icon><BaseIcon name="receipt" :size="15" /></template>
-            Pay next installment
+            {{ t('installments.payNextTitle') }}
           </BaseButton>
         </template>
       </PageHeader>

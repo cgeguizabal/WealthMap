@@ -172,7 +172,7 @@ onMounted(load)
 
         <template v-if="report.income.expectedSalaryNet > 0" #footer>
           <span class="footnote">
-            Expected net salary
+            {{ t('reports.expectedNetSalary') }}
             <strong class="numeric">{{ format(report.income.expectedSalaryNet, { currency: report.currency }) }}</strong>
             per month
           </span>

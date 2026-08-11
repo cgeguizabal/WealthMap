@@ -49,7 +49,7 @@ async function onSubmit() {
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <p v-if="card" class="form__context">
-        Currently owed
+        {{ t('cards.currentlyOwed') }}
         <strong class="numeric">{{ format(card.usedCredit, { currency: card.currency }) }}</strong>
       </p>
 
