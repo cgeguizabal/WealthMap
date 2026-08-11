@@ -13,7 +13,8 @@ public record ExpenseLineDto(
     string ProductName,
     string Category,
     decimal Amount,
-    DateOnly OccurredOn,
+    /// <summary>The full UTC instant, so the hour survives as far as the report.</summary>
+    DateTime OccurredAt,
     string PaymentMethod);
 
 public record SpendingSectionDto(

@@ -14,6 +14,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
+import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
 
 import PurchaseFormModal from '../components/PurchaseFormModal.vue'
 
@@ -93,10 +94,6 @@ function onSaved() {
   dashboard.invalidate()
 }
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: '2-digit' })
-}
-
 watch(pagination.page, load)
 onMounted(load)
 </script>
@@ -148,7 +145,7 @@ onMounted(load)
         empty-message="Nothing matches these filters — or nothing has been recorded yet."
       >
         <template #cell-occurredAt="{ value }">
-          <span class="numeric muted">{{ formatDate(value) }}</span>
+          <BaseTimestamp :value="value" :with-year="false" />
         </template>
 
         <template #cell-productName="{ row }">

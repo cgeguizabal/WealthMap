@@ -157,7 +157,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
                 p.ProductName,
                 p.Category,
                 p.Amount.Amount,
-                DateOnly.FromDateTime(p.OccurredAt),
+                p.OccurredAt,
                 p.PaymentMethod.ToString()))
             .ToList();
 

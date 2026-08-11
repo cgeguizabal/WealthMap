@@ -3,6 +3,7 @@ import { useMoney } from '@/composables/useMoney'
 import BaseTable from '@/components/base/BaseTable.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
+import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
 
 defineProps({
   movements: { type: Array, default: () => [] },
@@ -37,12 +38,6 @@ const ICON_BY_TYPE = {
 function humanize(value) {
   return value.replace(/([A-Z])/g, ' $1').trim()
 }
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric', month: 'short', day: '2-digit'
-  })
-}
 </script>
 
 <template>
@@ -55,7 +50,7 @@ function formatDate(iso) {
       empty-message="Deposits, withdrawals, transfers and payments all appear here."
     >
       <template #cell-occurredAt="{ value }">
-        <span class="numeric muted">{{ formatDate(value) }}</span>
+        <BaseTimestamp :value="value" />
       </template>
 
       <template #cell-description="{ row }">

@@ -1,5 +1,6 @@
 <script setup>
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import BaseCard from '@/components/base/BaseCard.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
@@ -10,6 +11,7 @@ defineProps({
 })
 
 const { format } = useMoney()
+const { formatDateTime } = useDateTime()
 
 const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: 'Cash' }
 </script>
@@ -67,7 +69,7 @@ const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: '
           <div class="top__body">
             <span class="top__name">{{ expense.productName }}</span>
             <span class="top__meta">
-              {{ expense.occurredOn }} · {{ expense.category }} ·
+              {{ formatDateTime(expense.occurredAt, { withYear: false }) }} · {{ expense.category }} ·
               {{ METHOD_LABEL[expense.paymentMethod] ?? expense.paymentMethod }}
             </span>
           </div>

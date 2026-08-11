@@ -307,7 +307,8 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
             {
                 table.ColumnsDefinition(c =>
                 {
-                    c.ConstantColumn(62);
+                    // Wide enough for "MM-dd HH:mm"; the old 62 fit the date alone.
+                    c.ConstantColumn(88);
                     c.RelativeColumn(3);
                     c.RelativeColumn(2);
                     c.RelativeColumn(2);
@@ -315,7 +316,7 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                 });
 
                 HeaderRow(table,
-                    ("Date", false), ("Item", false), ("Category", false), ("Method", false), ("Amount", true));
+                    ("Date (UTC)", false), ("Item", false), ("Category", false), ("Method", false), ("Amount", true));
 
                 var isFirst = true;
 
@@ -324,7 +325,10 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                     // The biggest expense is the one worth noticing, as on screen.
                     var tint = isFirst ? CanvasAlt : Surface;
 
-                    table.Cell().Background(tint).Element(Body).Text($"{expense.OccurredOn:MM-dd}");
+                    // UTC like every other time in this document — the footer says so,
+                    // and the report's month is bounded in UTC too, so a local-time
+                    // reading here could show a date outside the month it sits in.
+                    table.Cell().Background(tint).Element(Body).Text($"{expense.OccurredAt:MM-dd HH:mm}");
                     table.Cell().Background(tint).Element(Body).Text(expense.ProductName).SemiBold();
                     table.Cell().Background(tint).Element(Body).Text(expense.Category);
                     table.Cell().Background(tint).Element(Body).Text(Humanize(expense.PaymentMethod));

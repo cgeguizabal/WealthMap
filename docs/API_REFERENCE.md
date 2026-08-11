@@ -673,7 +673,7 @@ e.g. `/api/v1/reports/monthly/2026-08`. Malformed months → **400**.
                 "byCategory": [ { "category": "Electronics", "total": 600.00,
                                   "count": 1, "sharePercentage": 75.00 } ],
                 "topExpenses": [ { "productName": "Monitor", "category": "Electronics",
-                                   "amount": 600.00, "occurredOn": "2026-08-08",
+                                   "amount": 600.00, "occurredAt": "2026-08-08T19:22:00Z",
                                    "paymentMethod": "CreditCard" } ] },
   "accounts": [ { "accountId": "...", "name": "Checking", "type": "Checking",
                   "openingBalance": 3000.00, "closingBalance": 1200.00,
@@ -685,6 +685,16 @@ e.g. `/api/v1/reports/monthly/2026-08`. Malformed months → **400**.
                "currentAmount": 500.00, "progressPercentage": 8.33, "status": "OnTrack" } ],
   "netResult": 3200.00, "generatedAt": "..." }
 ```
+
+**Times.** Every timestamp in this API is UTC, and clients are expected to render in the viewer's
+own zone — the web client does. `topExpenses[].occurredAt` was `occurredOn` (a bare date) and is now
+the full instant, so the hour survives as far as the report.
+
+The PDF is the exception: it prints times in **UTC**, labelled, in a `Date (UTC)` column. It does
+not convert to a local zone because the report's month is bounded in UTC — converting only the
+display could put a 31 July timestamp inside an August report. So the PDF and the web client can
+show different hours for the same purchase. Making the report properly zone-aware means moving the
+period boundaries too, which changes which purchases land in which month.
 
 Reading these correctly:
 

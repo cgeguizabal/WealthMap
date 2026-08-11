@@ -2,6 +2,7 @@
 import { useMoney } from '@/composables/useMoney'
 import BaseTable from '@/components/base/BaseTable.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
+import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
 
 const props = defineProps({
   payments: { type: Array, default: () => [] },
@@ -24,12 +25,6 @@ const COLUMNS = [
 const columns = props.showTarget ? COLUMNS : COLUMNS.filter((c) => c.key !== 'targetType')
 
 const TARGET_LABEL = { CreditCard: 'Credit card', Debt: 'Debt', Installment: 'Installment' }
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric', month: 'short', day: '2-digit'
-  })
-}
 </script>
 
 <template>
@@ -41,7 +36,7 @@ function formatDate(iso) {
     :empty-message="emptyMessage"
   >
     <template #cell-occurredAt="{ value }">
-      <span class="numeric muted">{{ formatDate(value) }}</span>
+      <BaseTimestamp :value="value" />
     </template>
 
     <template #cell-targetType="{ value }">

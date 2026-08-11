@@ -18,6 +18,7 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
 
 import CardFormModal from '../components/CardFormModal.vue'
 import CardPaymentModal from '../components/CardPaymentModal.vue'
@@ -105,12 +106,6 @@ function isPlan(row) {
 
 function openCharge(row) {
   if (isPlan(row)) router.push(`/installments/${row.id}`)
-}
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: 'numeric', month: 'short', day: '2-digit'
-  })
 }
 
 function refresh() {
@@ -213,7 +208,7 @@ onMounted(() => {
           @row-click="openCharge"
         >
           <template #cell-occurredAt="{ value }">
-            <span class="numeric muted">{{ formatDate(value) }}</span>
+            <BaseTimestamp :value="value" />
           </template>
 
           <!--

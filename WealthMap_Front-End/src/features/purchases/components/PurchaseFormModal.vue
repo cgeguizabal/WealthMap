@@ -8,6 +8,7 @@ import { creditCardsApi } from '@/api/creditCards.api'
 import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import { useAuthStore } from '@/stores/auth.store'
 
 import BaseModal from '@/components/base/BaseModal.vue'
@@ -25,6 +26,7 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 
 const toast = useToast()
 const { format } = useMoney()
+const { toLocalInputValue, fromLocalInputValue } = useDateTime()
 const auth = useAuthStore()
 
 const accounts = ref([])
@@ -35,8 +37,13 @@ const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
 
 const categoryOptions = PURCHASE_CATEGORIES.map((name) => ({ value: name, label: name }))
 
-function today() {
-  return new Date().toISOString().slice(0, 10)
+/**
+ * Local wall-clock "now" for the datetime-local input. Built from local parts on
+ * purpose — toISOString would hand the field a UTC time and silently shift what
+ * the user sees by their offset.
+ */
+function now() {
+  return toLocalInputValue(new Date())
 }
 
 function blank() {
@@ -48,7 +55,7 @@ function blank() {
     accountId: null,
     creditCardId: null,
     currency: auth.currency,
-    occurredAt: today(),
+    occurredAt: now(),
     storeId: null,
     notes: ''
   }
@@ -62,7 +69,8 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
     amount: payload.amount,
     category: payload.category,
     paymentMethod: payload.paymentMethod,
-    occurredAt: payload.occurredAt || null,
+    // The input yields local wall-clock with no zone; the API stores UTC instants.
+    occurredAt: fromLocalInputValue(payload.occurredAt),
     storeId: payload.storeId || null,
     notes: payload.notes || null,
     currency: null,
@@ -218,9 +226,9 @@ async function onSubmit() {
 
         <BaseInput
           v-model="values.occurredAt"
-          label="Date"
-          type="date"
-          :max="today()"
+          label="Date and time"
+          type="datetime-local"
+          :max="now()"
           :error="fieldError('occurredAt')"
         />
       </div>
