@@ -147,6 +147,7 @@ export default {
     safeToSpend: 'Safe to spend',
     safeToSpendHint: 'Net income less committed payments this month',
     netWorth: 'Net worth',
+    netWorthNote: 'available minus everything owed',
     needsAttention: 'Needs attention',
     thisMonth: 'This month',
     netIncome: 'Net income',
@@ -585,6 +586,10 @@ export default {
     incomePlaceholder: 'Freelance',
     frequency: 'Frequency',
     countsAs: 'Counts as',
+    // Trailing half of a sentence wrapped around a bolded figure. Split only
+    // because the emphasis has to sit on the amount; both languages happen to
+    // put it in the same place. A language that did not would need one key.
+    perMonthInTotals: 'per month in your totals.',
     incomeHint:
       'This describes expected income. Money only appears in an account when you record a deposit.',
     monthlyEquivalent: 'Monthly equivalent',
@@ -615,6 +620,7 @@ export default {
     nothingToShow: 'Nothing to show',
     totalSpent: 'Total spent',
     expectedNetSalary: 'Expected net salary',
+    perMonth: 'per month',
     noIncomeTitle: 'No income recorded this month',
     noIncomeMessage: 'Transfers between your own accounts are not counted as income.',
     accountsTitle: 'Accounts',

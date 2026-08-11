@@ -162,7 +162,7 @@ async function onSubmit() {
       <p v-if="monthlyEquivalent !== null" class="equivalent">
         {{ t('job.countsAs') }}
         <strong class="numeric">{{ format(monthlyEquivalent, { currency: values.currency }) }}</strong>
-        per month in your totals.
+        {{ t('job.perMonthInTotals') }}
       </p>
 
       <p class="note">

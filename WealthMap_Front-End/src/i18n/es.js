@@ -147,6 +147,7 @@ export default {
     safeToSpend: 'Puedes gastar',
     safeToSpendHint: 'Ingreso neto menos los pagos comprometidos de este mes',
     netWorth: 'Patrimonio neto',
+    netWorthNote: 'lo disponible menos todo lo que debes',
     needsAttention: 'Requiere atención',
     thisMonth: 'Este mes',
     netIncome: 'Ingreso neto',
@@ -587,6 +588,7 @@ export default {
     incomePlaceholder: 'Trabajo independiente',
     frequency: 'Frecuencia',
     countsAs: 'Cuenta como',
+    perMonthInTotals: 'al mes en tus totales.',
     incomeHint:
       'Esto describe el ingreso esperado. El dinero solo aparece en una cuenta cuando registras un depósito.',
     monthlyEquivalent: 'Equivalente mensual',
@@ -618,6 +620,7 @@ export default {
     nothingToShow: 'Nada que mostrar',
     totalSpent: 'Total gastado',
     expectedNetSalary: 'Salario neto esperado',
+    perMonth: 'al mes',
     noIncomeTitle: 'No hay ingresos registrados este mes',
     noIncomeMessage: 'Las transferencias entre tus propias cuentas no cuentan como ingreso.',
     accountsTitle: 'Cuentas',

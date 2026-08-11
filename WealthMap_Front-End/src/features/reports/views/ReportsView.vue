@@ -174,7 +174,7 @@ onMounted(load)
           <span class="footnote">
             {{ t('reports.expectedNetSalary') }}
             <strong class="numeric">{{ format(report.income.expectedSalaryNet, { currency: report.currency }) }}</strong>
-            per month
+            {{ t('reports.perMonth') }}
           </span>
         </template>
       </BaseCard>

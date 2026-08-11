@@ -152,7 +152,7 @@ onMounted(() => {
         <strong class="numeric" :class="{ 'is-negative': data.netWorth < 0 }">
           {{ format(data.netWorth) }}
         </strong>
-        <span class="dashboard__worth-note">available minus everything owed</span>
+        <span class="dashboard__worth-note">{{ t('dashboard.netWorthNote') }}</span>
       </p>
     </div>
   </div>
