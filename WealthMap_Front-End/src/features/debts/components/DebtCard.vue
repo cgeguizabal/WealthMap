@@ -68,7 +68,7 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
       </BaseProgress>
 
       <p class="debt__due">
-        <template v-if="debt.nextDueDate">Next due {{ debt.nextDueDate }}</template>
+        <template v-if="debt.nextDueDate">{{ t('composed.nextDue', { date: debt.nextDueDate }) }}</template>
         <template v-else>{{ t('debts.nothingFurtherDue') }}</template>
       </p>
     </RouterLink>

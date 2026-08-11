@@ -80,12 +80,12 @@ async function onSubmit() {
 
       <div v-if="nextInstallment && plan" class="next">
         <span class="next__label">
-          Installment {{ nextInstallment.number }} of {{ plan.monthsCount }}
+          {{ t('composed.installmentOf', { number: nextInstallment.number, total: plan.monthsCount }) }}
         </span>
         <p class="next__amount numeric">
           {{ format(nextInstallment.amount, { currency: nextInstallment.currency }) }}
         </p>
-        <span class="next__due">Due {{ nextInstallment.dueDate }}</span>
+        <span class="next__due">{{ t('composed.dueOn', { date: nextInstallment.dueDate }) }}</span>
       </div>
 
       <PaymentSourcePicker

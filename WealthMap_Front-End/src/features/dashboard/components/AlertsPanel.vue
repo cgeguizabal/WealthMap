@@ -76,7 +76,7 @@ const overflow = computed(() => Math.max(0, props.alerts.length - visible.value.
         </ul>
 
         <p v-if="overflow" class="alerts__more">
-          and {{ overflow }} more — see notifications
+          {{ t('composed.andMore', { count: overflow }) }}
         </p>
       </div>
     </div>

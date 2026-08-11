@@ -9,7 +9,7 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
 
-const { t } = useI18n()
+const { t, tc } = useI18n()
 
 const props = defineProps({
   goals: { type: Object, default: null }
@@ -67,7 +67,7 @@ const percent = computed(() => {
       </ul>
 
       <BaseBadge v-if="goals.behindSchedule > 0" variant="warning" size="sm">
-        {{ goals.behindSchedule }} goal{{ goals.behindSchedule === 1 ? '' : 's' }} off pace
+        {{ tc('composed.goalsOffPace', goals.behindSchedule) }}
       </BaseBadge>
     </template>
 

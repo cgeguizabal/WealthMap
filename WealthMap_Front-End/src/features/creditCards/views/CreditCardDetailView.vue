@@ -253,8 +253,10 @@ onMounted(() => {
 
         <template v-if="purchasePage && purchasePage.totalCount > purchasePage.items.length" #footer>
           <span class="footnote">
-            Showing the {{ purchasePage.items.length }} most recent of
-            {{ purchasePage.totalCount }} purchases on this card.
+            {{ t('composed.showingRecent', {
+              shown: purchasePage.items.length,
+              total: purchasePage.totalCount
+            }) }}
           </span>
         </template>
       </BaseCard>

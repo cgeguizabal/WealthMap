@@ -758,6 +758,33 @@ export default {
     }
   },
 
+/** Sentences that wrap a figure. The number is a placeholder so word order can move. */
+  composed: {
+    dashboardNote: 'Everything below is computed from what you have recorded — nothing is estimated.',
+    checkingAndSavings: '{checking} checking · {savings} savings',
+    usedOfLimit: '{used} used of {limit} ({percent}%)',
+    loansAndCards: '{loans} loans · {cards} cards',
+    includesInstallments: 'includes {amount} in installment plans',
+    committedNote: 'loans + next installments',
+    goalsOffPace: { one: '{count} goal off pace', other: '{count} goals off pace' },
+    itemCount: { one: '{count} item', other: '{count} items' },
+    andMore: 'and {count} more — see notifications',
+    showingRecent: 'Showing the {shown} most recent of {total} purchases on this card.',
+    nextDue: 'Next due {date}',
+    dueOnDay: 'Due on day {day} each month',
+    nextDate: ' · next {date}',
+    newSavingsGoal: 'New savings goal',
+    newProductGoal: 'New product goal',
+    createSavingsGoal: 'Create a savings goal',
+    createProductGoal: 'Create a product goal',
+    installmentOf: 'Installment {number} of {total}',
+    dueOn: 'Due {date}',
+    perDepositTimes: 'Per deposit ({count}×)',
+    reportPeriod: '{start} → {end} · all amounts in {currency}',
+    reportDueDay: 'Due day {day}',
+    generatedNote: 'Generated {when} · figures cover {currency} holdings only'
+  },
+
   offline: {
     message: 'You are offline. Changes will fail until the connection is back.'
   }

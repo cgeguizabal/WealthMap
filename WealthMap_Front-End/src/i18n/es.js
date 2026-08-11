@@ -757,6 +757,33 @@ export default {
     }
   },
 
+/** Frases que envuelven una cifra. El número es un marcador para poder mover el orden. */
+  composed: {
+    dashboardNote: 'Todo lo de abajo se calcula con lo que has registrado — nada se estima.',
+    checkingAndSavings: '{checking} en corriente · {savings} en ahorro',
+    usedOfLimit: '{used} usados de {limit} ({percent}%)',
+    loansAndCards: '{loans} en préstamos · {cards} en tarjetas',
+    includesInstallments: 'incluye {amount} en planes de cuotas',
+    committedNote: 'préstamos + próximas cuotas',
+    goalsOffPace: { one: '{count} meta fuera de ritmo', other: '{count} metas fuera de ritmo' },
+    itemCount: { one: '{count} artículo', other: '{count} artículos' },
+    andMore: 'y {count} más — ver notificaciones',
+    showingRecent: 'Mostrando las {shown} más recientes de {total} compras en esta tarjeta.',
+    nextDue: 'Próximo vencimiento {date}',
+    dueOnDay: 'Vence el día {day} de cada mes',
+    nextDate: ' · próximo {date}',
+    newSavingsGoal: 'Nueva meta de ahorro',
+    newProductGoal: 'Nueva meta de producto',
+    createSavingsGoal: 'Crear una meta de ahorro',
+    createProductGoal: 'Crear una meta de producto',
+    installmentOf: 'Cuota {number} de {total}',
+    dueOn: 'Vence {date}',
+    perDepositTimes: 'Por depósito ({count}×)',
+    reportPeriod: '{start} → {end} · todos los montos en {currency}',
+    reportDueDay: 'Vence el día {day}',
+    generatedNote: 'Generado {when} · las cifras cubren solo lo que está en {currency}'
+  },
+
   offline: {
     message: 'Estás sin conexión. Los cambios fallarán hasta que vuelva.'
   }

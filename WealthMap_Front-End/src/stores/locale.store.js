@@ -22,6 +22,18 @@ export const useLocaleStore = defineStore('locale', () => {
     return translate(locale.value, key, params)
   }
 
+  /**
+   * Picks `key.one` or `key.other` by count, and passes the count through.
+   *
+   * Deliberately only two forms: English and Spanish both need exactly that, and
+   * pretending otherwise would mean shipping CLDR plural rules for no one. A
+   * language with a "few" form would need this replaced, not extended.
+   */
+  function tc(key, count, params) {
+    const form = Math.abs(Number(count)) === 1 ? 'one' : 'other'
+    return translate(locale.value, `${key}.${form}`, { count, ...params })
+  }
+
   watch(
     locale,
     (value) => {
@@ -37,5 +49,5 @@ export const useLocaleStore = defineStore('locale', () => {
     { immediate: true }
   )
 
-  return { locale, setLocale, t }
+  return { locale, setLocale, t, tc }
 })

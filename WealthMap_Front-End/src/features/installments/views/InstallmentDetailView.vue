@@ -125,7 +125,7 @@ onMounted(loadPlan)
               <span class="schedule__amount numeric">
                 {{ format(item.amount, { currency: item.currency }) }}
               </span>
-              <span class="schedule__due">Due {{ item.dueDate }}</span>
+              <span class="schedule__due">{{ t('composed.dueOn', { date: item.dueDate }) }}</span>
             </div>
 
             <BaseBadge v-if="item.isPaid" variant="positive" size="sm">{{ t('common.paid') }}</BaseBadge>

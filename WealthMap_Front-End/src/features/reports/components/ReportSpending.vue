@@ -7,7 +7,7 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
 
-const { t } = useI18n()
+const { t, tc } = useI18n()
 
 defineProps({
   spending: { type: Object, required: true },
@@ -44,7 +44,7 @@ const { label: serverLabel } = useServerText()
           </div>
 
           <div class="category__meta">
-            <span>{{ entry.count }} item{{ entry.count === 1 ? '' : 's' }}</span>
+            <span>{{ tc('composed.itemCount', entry.count) }}</span>
             <span class="numeric">{{ entry.sharePercentage.toFixed(1) }}%</span>
           </div>
         </li>

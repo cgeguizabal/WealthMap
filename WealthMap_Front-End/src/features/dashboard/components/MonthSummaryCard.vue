@@ -39,7 +39,7 @@ const ratioVariant = computed(() => {
       <div class="month__row">
         <dt>
           {{ t('dashboard.committed') }}
-          <span class="month__note">loans + next installments</span>
+          <span class="month__note">{{ t('composed.committedNote') }}</span>
         </dt>
         <dd class="numeric">{{ format(data.monthlyObligations) }}</dd>
       </div>

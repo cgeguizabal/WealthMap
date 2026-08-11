@@ -46,7 +46,7 @@ onMounted(() => {
   <div class="dashboard">
     <PageHeader :title="firstName ? t('dashboard.greeting', { name: firstName }) : t('dashboard.title')">
       <template #subtitle>
-        Everything below is computed from what you have recorded — nothing is estimated.
+        {{ t('composed.dashboardNote') }}
       </template>
 
       <template #actions>
@@ -93,7 +93,10 @@ onMounted(() => {
           icon="wallet"
           tone="positive"
         >
-          {{ format(data.totalInChecking) }} checking · {{ format(data.totalInSavings) }} savings
+          {{ t('composed.checkingAndSavings', {
+            checking: format(data.totalInChecking),
+            savings: format(data.totalInSavings)
+          }) }}
         </StatTile>
 
         <StatTile
@@ -101,8 +104,11 @@ onMounted(() => {
           :value="format(data.totalAvailableCredit)"
           icon="card"
         >
-          {{ format(data.totalUsedCredit) }} used of {{ format(data.totalCreditLimit) }}
-          ({{ utilisation.toFixed(0) }}%)
+          {{ t('composed.usedOfLimit', {
+            used: format(data.totalUsedCredit),
+            limit: format(data.totalCreditLimit),
+            percent: utilisation.toFixed(0)
+          }) }}
         </StatTile>
 
         <StatTile
@@ -113,9 +119,12 @@ onMounted(() => {
         >
           <!-- installmentRemaining sits inside totalUsedCredit, so it is shown as
                context and never added to the total -->
-          {{ format(data.totalLoanDebt) }} loans · {{ format(data.totalUsedCredit) }} cards
+          {{ t('composed.loansAndCards', {
+            loans: format(data.totalLoanDebt),
+            cards: format(data.totalUsedCredit)
+          }) }}
           <template v-if="data.installmentRemaining > 0">
-            <br />includes {{ format(data.installmentRemaining) }} in installment plans
+            <br />{{ t('composed.includesInstallments', { amount: format(data.installmentRemaining) }) }}
           </template>
         </StatTile>
 

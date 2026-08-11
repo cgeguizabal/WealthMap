@@ -121,7 +121,7 @@ onMounted(load)
       <template #actions>
         <BaseButton variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          New {{ isSavingsTab ? 'savings goal' : 'product goal' }}
+          {{ isSavingsTab ? t('composed.newSavingsGoal') : t('composed.newProductGoal') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -155,7 +155,7 @@ onMounted(load)
     >
       <template #action>
         <BaseButton variant="primary" @click="openCreate">
-          Create {{ isSavingsTab ? 'a savings goal' : 'a product goal' }}
+          {{ isSavingsTab ? t('composed.createSavingsGoal') : t('composed.createProductGoal') }}
         </BaseButton>
       </template>
     </BaseEmptyState>

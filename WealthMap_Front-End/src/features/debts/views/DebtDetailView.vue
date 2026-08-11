@@ -76,8 +76,8 @@ onMounted(() => {
     <template v-else-if="debt">
       <PageHeader :title="debt.name">
         <template #subtitle>
-          Due on day {{ debt.monthlyDueDay }} each month
-          <template v-if="debt.nextDueDate"> · next {{ debt.nextDueDate }}</template>
+          {{ t('composed.dueOnDay', { day: debt.monthlyDueDay }) }}
+          <template v-if="debt.nextDueDate">{{ t('composed.nextDate', { date: debt.nextDueDate }) }}</template>
         </template>
 
         <template #actions>

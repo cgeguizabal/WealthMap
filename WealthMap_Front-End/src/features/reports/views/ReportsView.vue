@@ -19,9 +19,11 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import ReportSpending from '../components/ReportSpending.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
+import { useDateTime } from '@/composables/useDateTime'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
+const { formatDateTime } = useDateTime()
 
 const { format } = useMoney()
 const toast = useToast()
@@ -123,7 +125,11 @@ onMounted(load)
         <div>
           <h2 class="masthead__month">{{ monthLabel }}</h2>
           <p class="masthead__period">
-            {{ report.periodStart }} → {{ report.periodEnd }} · all amounts in {{ report.currency }}
+            {{ t('composed.reportPeriod', {
+              start: report.periodStart,
+              end: report.periodEnd,
+              currency: report.currency
+            }) }}
           </p>
         </div>
 
@@ -221,7 +227,7 @@ onMounted(load)
           <template #cell-cardName="{ row }">
             <div class="cell-stack">
               <span class="cell-stack__title">{{ row.cardName }}</span>
-              <span class="cell-stack__sub">Due day {{ row.paymentDueDay }}</span>
+              <span class="cell-stack__sub">{{ t('composed.reportDueDay', { day: row.paymentDueDay }) }}</span>
             </div>
           </template>
 
@@ -267,8 +273,10 @@ onMounted(load)
       </BaseCard>
 
       <p class="generated">
-        Generated {{ new Date(report.generatedAt).toLocaleString() }} · figures cover
-        {{ report.currency }} holdings only
+        {{ t('composed.generatedNote', {
+          when: formatDateTime(report.generatedAt),
+          currency: report.currency
+        }) }}
       </p>
     </motion.div>
   </div>

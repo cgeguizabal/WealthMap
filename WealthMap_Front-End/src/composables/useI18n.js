@@ -14,6 +14,8 @@ export function useI18n() {
 
   return {
     t: store.t,
+    /** Count-aware: `tc('goals.offPace', n)` picks the one/other form. */
+    tc: store.tc,
     locale,
     setLocale: store.setLocale,
     locales: SUPPORTED_LOCALES

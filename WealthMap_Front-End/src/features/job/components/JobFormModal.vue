@@ -199,7 +199,7 @@ async function onSubmit() {
           <span class="numeric">{{ format(preview.net, { currency: values.currency }) }}</span>
         </div>
         <div class="preview__row preview__row--total">
-          <span>Per deposit ({{ dayCount }}×)</span>
+          <span>{{ t('composed.perDepositTimes', { count: dayCount }) }}</span>
           <span class="numeric">{{ format(preview.perDeposit, { currency: values.currency }) }}</span>
         </div>
         <p v-if="!isEdit" class="preview__note">{{ t('job.deductionsAfterSave') }}</p>
