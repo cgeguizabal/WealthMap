@@ -77,7 +77,7 @@ public class Job : BaseEntity
 
         var currency = GrossMonthlySalary.Currency;
         var monthly = NetMonthly.Amount;
-        var share = decimal.Round(monthly / paydays.Count, 2, MidpointRounding.ToEven);
+        var share = decimal.Round(monthly / paydays.Count, 2, MidpointRounding.AwayFromZero);
 
         return index == paydays.Count - 1
             ? new Money(monthly - share * (paydays.Count - 1), currency)

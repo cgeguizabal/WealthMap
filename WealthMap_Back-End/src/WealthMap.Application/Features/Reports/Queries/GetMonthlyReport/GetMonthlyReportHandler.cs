@@ -145,7 +145,9 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
                     g.Key,
                     total,
                     g.Count(),
-                    totalPurchases == 0 ? 0 : decimal.Round(total / totalPurchases * 100m, 2));
+                    totalPurchases == 0
+                        ? 0
+                        : decimal.Round(total / totalPurchases * 100m, 2, MidpointRounding.AwayFromZero));
             })
             .OrderByDescending(c => c.Total)
             .ToList();

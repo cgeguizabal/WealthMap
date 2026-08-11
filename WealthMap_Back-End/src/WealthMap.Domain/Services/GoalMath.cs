@@ -13,7 +13,7 @@ public static class GoalMath
     public static decimal ProgressPercentage(Money current, Money target) =>
         target.Amount == 0
             ? 0
-            : decimal.Round(Math.Min(current.Amount / target.Amount, 1m) * 100m, 2);
+            : decimal.Round(Math.Min(current.Amount / target.Amount, 1m) * 100m, 2, MidpointRounding.AwayFromZero);
 
     public static int? MonthsRemaining(DateOnly today, DateOnly? deadline)
     {

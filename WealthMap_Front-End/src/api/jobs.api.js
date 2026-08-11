@@ -1,4 +1,5 @@
 import client from './client'
+import { roundCents } from '@/composables/useMoney'
 
 /**
  * One job per user. Every deduction endpoint returns the *whole* job, so the
@@ -28,6 +29,9 @@ export const DEDUCTION_TYPE_OPTIONS = [
 /**
  * Mirrors the domain rule so the effect of an edit can be shown before saving:
  * net = gross − Σfixed − gross × Σpercentage ÷ 100.
+ *
+ * Rounded to cents on the way out, so the preview cannot show a different figure
+ * from the one the server stores a moment later.
  */
 export function computeNet(gross, deductions) {
   const total = Number(gross) || 0
@@ -40,5 +44,5 @@ export function computeNet(gross, deductions) {
     .filter((d) => d.type === 'Percentage' || d.type === DEDUCTION_TYPE.PERCENTAGE)
     .reduce((sum, d) => sum + Number(d.value), 0)
 
-  return total - fixed - (total * percent) / 100
+  return roundCents(total - fixed - (total * percent) / 100)
 }

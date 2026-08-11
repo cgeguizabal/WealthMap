@@ -141,7 +141,7 @@ public sealed class FinancialSnapshot
     /// <summary>Obligations as a share of net income; null when there is no income on record.</summary>
     public decimal? DebtRatio => MonthlyNetIncome.IsZero
         ? null
-        : decimal.Round(MonthlyObligations.Amount / MonthlyNetIncome.Amount * 100m, 2);
+        : decimal.Round(MonthlyObligations.Amount / MonthlyNetIncome.Amount * 100m, 2, MidpointRounding.AwayFromZero);
 
     public IReadOnlyList<UpcomingDueDate> UpcomingDueDates(int withinDays)
     {

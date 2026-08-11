@@ -12,7 +12,11 @@ public readonly record struct Money
         if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
             throw new DomainException("Currency must be a 3-letter ISO code (e.g. USD).");
 
-        Amount = decimal.Round(amount, 2, MidpointRounding.ToEven);
+        // Half away from zero, the rounding people check against a payslip:
+        // 418.525 is 418.53. Banker's rounding would make it 418.52, because it
+        // breaks ties toward the even digit — correct for avoiding drift over
+        // many roundings, but not what anyone reading a balance expects.
+        Amount = decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
         Currency = currency.ToUpperInvariant();
     }
 

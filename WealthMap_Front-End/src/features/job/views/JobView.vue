@@ -21,7 +21,7 @@ import JobFormModal from '../components/JobFormModal.vue'
 import DeductionFormModal from '../components/DeductionFormModal.vue'
 import IncomeFormModal from '../components/IncomeFormModal.vue'
 
-const { format } = useMoney()
+const { format, roundCents } = useMoney()
 const toast = useToast()
 const ui = useUiStore()
 const dashboard = useDashboardStore()
@@ -72,15 +72,17 @@ function onJobMutated(updated) {
 function monthlyCost(deduction) {
   if (!job.value) return 0
 
-  return deduction.type === 'Percentage'
-    ? (job.value.grossMonthlySalary * Number(deduction.value)) / 100
-    : Number(deduction.value)
+  return roundCents(
+    deduction.type === 'Percentage'
+      ? (job.value.grossMonthlySalary * Number(deduction.value)) / 100
+      : Number(deduction.value)
+  )
 }
 
 /** Deductions are monthly; each payday carries an equal share of them. */
 function perPaydayCost(deduction) {
   const days = job.value?.paymentDays?.length || 1
-  return monthlyCost(deduction) / days
+  return roundCents(monthlyCost(deduction) / days)
 }
 
 function openDeduction(deduction = null) {
