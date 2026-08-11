@@ -37,21 +37,30 @@ public class CreatePurchaseHandler : ICommandHandler<CreatePurchaseCommand, Purc
     {
         var method = (PaymentMethod)request.PaymentMethod;
 
-        if (request.StoreId is not null
-            && await _stores.GetByIdAsync(request.StoreId.Value, ct) is null)
-            throw new NotFoundException("Store", request.StoreId.Value);
+        // The store is fetched to prove it exists; its name is kept so the response
+        // can name it too, rather than returning a bare id the caller must resolve.
+        string? storeName = null;
+
+        if (request.StoreId is not null)
+        {
+            var store = await _stores.GetByIdAsync(request.StoreId.Value, ct)
+                ?? throw new NotFoundException("Store", request.StoreId.Value);
+
+            storeName = store.Name;
+        }
 
         var occurredAt = NormalizeToUtc(request.OccurredAt) ?? DateTime.UtcNow;
 
         return method switch
         {
-            PaymentMethod.DebitAccount => await HandleDebit(request, occurredAt, ct),
-            PaymentMethod.CreditCard => await HandleCredit(request, occurredAt, ct),
-            _ => await HandleCash(request, occurredAt, ct)
+            PaymentMethod.DebitAccount => await HandleDebit(request, occurredAt, storeName, ct),
+            PaymentMethod.CreditCard => await HandleCredit(request, occurredAt, storeName, ct),
+            _ => await HandleCash(request, occurredAt, storeName, ct)
         };
     }
 
-    private async Task<PurchaseDto> HandleDebit(CreatePurchaseCommand request, DateTime occurredAt, CancellationToken ct)
+    private async Task<PurchaseDto> HandleDebit(
+        CreatePurchaseCommand request, DateTime occurredAt, string? storeName, CancellationToken ct)
     {
         var account = await _accounts.GetByIdForUserAsync(request.AccountId!.Value, request.UserId, ct)
             ?? throw new NotFoundException("Account", request.AccountId.Value);
@@ -80,10 +89,11 @@ public class CreatePurchaseHandler : ICommandHandler<CreatePurchaseCommand, Purc
             await _movements.AddAsync(movement, ct);
         }, ct);
 
-        return PurchaseDto.FromEntity(purchase);
+        return PurchaseDto.FromEntity(purchase, storeName);
     }
 
-    private async Task<PurchaseDto> HandleCredit(CreatePurchaseCommand request, DateTime occurredAt, CancellationToken ct)
+    private async Task<PurchaseDto> HandleCredit(
+        CreatePurchaseCommand request, DateTime occurredAt, string? storeName, CancellationToken ct)
     {
         var card = await _cards.GetByIdForUserAsync(request.CreditCardId!.Value, request.UserId, ct)
             ?? throw new NotFoundException("CreditCard", request.CreditCardId.Value);
@@ -100,10 +110,11 @@ public class CreatePurchaseHandler : ICommandHandler<CreatePurchaseCommand, Purc
             await _purchases.AddAsync(purchase, ct);
         }, ct);
 
-        return PurchaseDto.FromEntity(purchase);
+        return PurchaseDto.FromEntity(purchase, storeName);
     }
 
-    private async Task<PurchaseDto> HandleCash(CreatePurchaseCommand request, DateTime occurredAt, CancellationToken ct)
+    private async Task<PurchaseDto> HandleCash(
+        CreatePurchaseCommand request, DateTime occurredAt, string? storeName, CancellationToken ct)
     {
         // Cash has no instrument to borrow a currency from — the validator
         // guarantees one was sent explicitly.
@@ -116,7 +127,7 @@ public class CreatePurchaseHandler : ICommandHandler<CreatePurchaseCommand, Purc
         await _purchases.AddAsync(purchase, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return PurchaseDto.FromEntity(purchase);
+        return PurchaseDto.FromEntity(purchase, storeName);
     }
 
     private static DateTime? NormalizeToUtc(DateTime? value) => value switch

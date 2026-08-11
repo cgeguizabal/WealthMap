@@ -151,6 +151,12 @@ onMounted(load)
         <template #cell-productName="{ row }">
           <div class="item">
             <span class="item__name">{{ row.productName }}</span>
+            <!-- Where it was bought sits above the note: it identifies the
+                 purchase, whereas the note only elaborates on it. -->
+            <span v-if="row.storeName" class="item__store">
+              <BaseIcon name="store" :size="12" />
+              {{ row.storeName }}
+            </span>
             <span v-if="row.notes" class="item__notes">{{ row.notes }}</span>
           </div>
         </template>
@@ -210,9 +216,19 @@ onMounted(load)
 
 .muted { color: var(--text-muted); font-size: var(--fs-sm); }
 
-.item { display: flex; flex-direction: column; }
+.item { display: flex; flex-direction: column; align-items: flex-start; }
 .item__name { font-weight: var(--fw-medium); }
 .item__notes { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.item__store {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  @include truncate;
+}
 
 .method {
   display: inline-flex;

@@ -409,10 +409,15 @@ card; a malformed GUID → **400**, an unknown one → an empty page.
 
 ```json
 { "id": "...", "productName": "Groceries", "amount": 85.50, "currency": "USD",
-  "occurredAt": "...", "storeId": "...", "category": "Food",
+  "occurredAt": "...", "storeId": "...", "storeName": "Walmart", "category": "Food",
   "paymentMethod": "DebitAccount", "accountId": "...", "creditCardId": null,
   "notes": null, "createdAt": "..." }
 ```
+
+`storeName` accompanies `storeId` so a list can show where a purchase was made without a second
+request per row. It is `null` when the purchase named no store — cash purchases often do not — and
+also if that store has since left the catalogue, which does not invalidate the purchase. Every
+purchase response carries it, including the one returned by `POST /purchases`.
 
 ### `GET /api/v1/purchases/{id}`
 

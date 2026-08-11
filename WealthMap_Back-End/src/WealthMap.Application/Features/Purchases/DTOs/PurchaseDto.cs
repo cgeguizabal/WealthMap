@@ -14,9 +14,16 @@ public record PurchaseDto(
     Guid? AccountId,
     Guid? CreditCardId,
     string? Notes,
-    DateTime CreatedAt)
+    DateTime CreatedAt,
+    /// <summary>Where it was bought. Null when the purchase named no store.</summary>
+    string? StoreName = null)
 {
-    public static PurchaseDto FromEntity(Purchase purchase) => new(
+    /// <summary>
+    /// <paramref name="storeName"/> is passed in rather than read off the entity:
+    /// stores are a shared catalogue with their own repository, and a purchase
+    /// holds only the id. Callers that have not resolved it leave it null.
+    /// </summary>
+    public static PurchaseDto FromEntity(Purchase purchase, string? storeName = null) => new(
         purchase.Id,
         purchase.ProductName,
         purchase.Amount.Amount,
@@ -28,5 +35,6 @@ public record PurchaseDto(
         purchase.AccountId,
         purchase.CreditCardId,
         purchase.Notes,
-        purchase.CreatedAt);
+        purchase.CreatedAt,
+        storeName);
 }
