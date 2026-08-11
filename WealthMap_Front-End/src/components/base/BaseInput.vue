@@ -78,7 +78,13 @@ function onInput(event) {
 </template>
 
 <style scoped lang="scss">
-.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+/* min-width: 0 so the field can shrink inside a grid or flex row (see BaseSelect) */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
 
 .field__label {
   font-size: var(--fs-sm);
@@ -98,6 +104,7 @@ function onInput(event) {
   border-radius: var(--radius);
   padding: 0 var(--sp-3);
   height: 38px;
+  min-width: 0;
 
   transition: box-shadow var(--dur-fast) var(--ease);
 

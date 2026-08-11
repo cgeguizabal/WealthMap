@@ -29,15 +29,15 @@
   --radius-sm:     4px;
   /* Softer than ink so outlines frame content without stamping it. */
   --border-color:  #5C5A55;
-  --border:        1px solid var(--border-color);
+  --border:        1.4px solid var(--border-color);
   --border-subtle: 1px solid var(--line);
 
   /* ── Flat shadows (hard offset, zero blur) ──
      Warm mid-grey rather than ink: keeps the stamped, flat character while
      reading far softer against the canvas. */
   --shadow-color:  #BDBAB2;
-  --shadow-sm:     2px 2px 0 var(--shadow-color);
-  --shadow:        4px 4px 0 var(--shadow-color);
+  --shadow-sm:     3px 3px 0 var(--shadow-color);
+  --shadow:        6px 6px 0 var(--shadow-color);
   --shadow-lg:     6px 6px 0 var(--shadow-color);
   --shadow-accent: 4px 4px 0 var(--accent);
 

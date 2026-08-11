@@ -91,25 +91,26 @@ async function onSubmit() {
         :error="fieldErrors.password"
       />
 
-      <div class="form__row">
-        <BaseInput
-          v-model="values.country"
-          label="Country"
-          placeholder="Mexico"
-          autocomplete="country-name"
-          required
-          :error="fieldErrors.country"
-        />
+      <BaseInput
+        v-model="values.country"
+        label="Country"
+        placeholder="Mexico"
+        autocomplete="country-name"
+        required
+        :error="fieldErrors.country"
+      />
 
-        <BaseSelect
-          v-model="values.currency"
-          label="Currency"
-          :options="CURRENCIES"
-          required
-          hint="Used for every total."
-          :error="fieldErrors.currency"
-        />
-      </div>
+      <!-- Full width: the descriptive option labels do not fit a half column
+           in a 420px panel, and this is the one choice that cannot be changed
+           later, so it is worth the room. -->
+      <BaseSelect
+        v-model="values.currency"
+        label="Currency"
+        :options="CURRENCIES"
+        required
+        hint="Every total in WealthMap is shown in this currency."
+        :error="fieldErrors.currency"
+      />
 
       <BaseButton type="submit" variant="primary" size="lg" block :loading="submitting">
         Create account
@@ -130,12 +131,6 @@ async function onSubmit() {
   gap: var(--sp-4);
 }
 
-.form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-4);
-}
-
 .form__error {
   padding: var(--sp-3);
   border: 1px solid var(--negative);
@@ -145,7 +140,4 @@ async function onSubmit() {
   font-size: var(--fs-sm);
 }
 
-@media (max-width: 480px) {
-  .form__row { grid-template-columns: 1fr; }
-}
 </style>

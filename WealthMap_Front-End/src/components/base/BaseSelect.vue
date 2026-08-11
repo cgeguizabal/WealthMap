@@ -77,7 +77,18 @@ function onChange(event) {
 </template>
 
 <style scoped lang="scss">
-.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+/*
+ * A native <select> is as wide as its longest option. Grid and flex items
+ * default to a min-size of `auto`, so that intrinsic width becomes a floor the
+ * column cannot go below — one long option then widens the whole row. The
+ * `min-width: 0` chain below lets it shrink, and the label ellipsises instead.
+ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
 
 .field__label { font-size: var(--fs-sm); font-weight: var(--fw-medium); }
 .field__required { color: var(--negative); margin-left: 2px; }
@@ -92,6 +103,7 @@ function onChange(event) {
   border-radius: var(--radius);
   height: 38px;
   padding: 0 var(--sp-3);
+  min-width: 0;
 
   &:focus-within { box-shadow: var(--shadow-sm); }
 
@@ -100,17 +112,26 @@ function onChange(event) {
 }
 
 .field__select {
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   height: 100%;
+
   border: none;
   outline: none;
   background: transparent;
   font-size: var(--fs-base);
   cursor: pointer;
 
+  /* Long option labels truncate rather than force the control wider */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
   appearance: none;
   -webkit-appearance: none;
+  -moz-appearance: none;
   padding-right: var(--sp-5);
 }
 
