@@ -94,7 +94,7 @@ async function onSubmit() {
       <BaseInput
         v-model="values.country"
         label="Country"
-        placeholder="Mexico"
+        placeholder="El Salvador"
         autocomplete="country-name"
         required
         :error="fieldErrors.country"
