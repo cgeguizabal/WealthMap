@@ -18,6 +18,9 @@ import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 import DebtCard from '../components/DebtCard.vue'
 import DebtFormModal from '../components/DebtFormModal.vue'
 import DebtPaymentModal from '../components/DebtPaymentModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const { format } = useMoney()
 const toast = useToast()
@@ -59,9 +62,9 @@ function openPay(debt) {
 
 async function markDefaulted(debt) {
   const confirmed = await ui.confirm({
-    title: `Mark ${debt.name} as defaulted?`,
-    message: 'It stays in your totals. Registering a payment later returns it to active.',
-    confirmLabel: 'Mark defaulted',
+    title: t('debts.markDefaultedTitle', { name: debt.name }),
+    message: t('debts.markDefaultedMessage'),
+    confirmLabel: t('debts.markDefaulted'),
     variant: 'danger'
   })
 
@@ -78,9 +81,9 @@ async function markDefaulted(debt) {
 
 async function remove(debt) {
   const confirmed = await ui.confirm({
-    title: `Delete ${debt.name}?`,
-    message: 'This removes the debt and its history. It cannot be undone.',
-    confirmLabel: 'Delete',
+    title: t('debts.deleteTitle', { name: debt.name }),
+    message: t('debts.deleteMessage'),
+    confirmLabel: t('common.delete'),
     variant: 'danger'
   })
 
@@ -88,7 +91,7 @@ async function remove(debt) {
 
   try {
     await debtsApi.remove(debt.id)
-    toast.success(`${debt.name} deleted.`)
+    toast.success(t('debts.deleted', { name: debt.name }))
     refresh()
   } catch (err) {
     toast.error(err.message)
@@ -105,18 +108,18 @@ onMounted(loadDebts)
 
 <template>
   <div>
-    <PageHeader title="Debts" subtitle="Loans and anything else you owe outside a credit card.">
+    <PageHeader :title="t('debts.title')" :subtitle="t('debts.subtitle')">
       <template #actions>
         <BaseButton variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          New debt
+          {{ t('debts.newDebt') }}
         </BaseButton>
       </template>
     </PageHeader>
 
     <div v-if="outstanding.length" class="totals">
       <div v-for="entry in outstanding" :key="entry.currency" class="totals__item">
-        <span class="totals__label">Still owed</span>
+        <span class="totals__label">{{ t('debts.stillOwed') }}</span>
         <span class="totals__value numeric">{{ format(entry.total, { currency: entry.currency }) }}</span>
       </div>
     </div>
@@ -126,19 +129,19 @@ onMounted(loadDebts)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Could not load your debts"
+      :title="t('debts.loadFailed')"
       :message="error.message"
     >
-      <template #action><BaseButton variant="primary" @click="loadDebts">Try again</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="loadDebts">{{ t('common.tryAgain') }}</BaseButton></template>
     </BaseEmptyState>
 
     <BaseEmptyState
       v-else-if="!debts?.length"
       icon="debt"
-      title="No debts recorded"
-      message="Track a loan to see it in your totals, your safe-to-spend and your upcoming due dates."
+      :title="t('debts.emptyTitle')"
+      :message="t('debts.emptyMessage')"
     >
-      <template #action><BaseButton variant="primary" @click="openCreate">Add a debt</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="openCreate">{{ t('debts.addFirst') }}</BaseButton></template>
     </BaseEmptyState>
 
     <motion.div

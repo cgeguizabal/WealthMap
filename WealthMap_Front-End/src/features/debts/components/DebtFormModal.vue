@@ -9,6 +9,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -86,14 +89,14 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit debt' : 'New debt'">
+  <BaseModal v-model="open" :title="isEdit ? t('debts.editDebt') : t('debts.newDebt')">
     <form id="debt-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.name"
-        label="Name"
-        placeholder="Car loan"
+        :label="t('common.name')"
+        :placeholder="t('debts.namePlaceholder')"
         required
         :error="fieldError('name')"
       />
@@ -102,7 +105,7 @@ async function onSubmit() {
         <div class="form__row">
           <BaseInput
             v-model="values.originalAmount"
-            label="Original amount"
+            :label="t('debts.originalAmount')"
             type="number"
             step="0.01"
             min="0"
@@ -112,7 +115,7 @@ async function onSubmit() {
 
           <BaseSelect
             v-model="values.currency"
-            label="Currency"
+            :label="t('common.currency')"
             :options="CURRENCIES"
             required
             :error="fieldError('currency')"
@@ -121,12 +124,12 @@ async function onSubmit() {
 
         <BaseInput
           v-model="values.remainingAmount"
-          label="Still owed"
+          :label="t('debts.stillOwed')"
           type="number"
           step="0.01"
           min="0"
-          placeholder="Same as original"
-          hint="Only if you have already paid some of it down."
+          :placeholder="t('debts.sameAsOriginal')"
+          :hint="t('debts.stillOwedHint')"
           :error="fieldError('remainingAmount')"
         />
       </template>
@@ -134,7 +137,7 @@ async function onSubmit() {
       <div class="form__row">
         <BaseInput
           v-model="values.monthlyPayment"
-          label="Monthly payment"
+          :label="t('debts.monthlyPayment')"
           type="number"
           step="0.01"
           min="0"
@@ -144,17 +147,17 @@ async function onSubmit() {
 
         <BaseSelect
           v-model="values.monthlyDueDay"
-          label="Due day"
+          :label="t('debts.dueDay')"
           :options="DAYS"
           required
-          hint="Clamps in short months."
+          :hint="t('debts.clampsHint')"
           :error="fieldError('monthlyDueDay')"
         />
       </div>
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="debt-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Add debt' }}
       </BaseButton>

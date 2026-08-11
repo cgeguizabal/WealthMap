@@ -5,6 +5,9 @@ import AppShell from '@/components/layout/AppShell.vue'
 import BaseToast from '@/components/base/BaseToast.vue'
 import BaseConfirmDialog from '@/components/base/BaseConfirmDialog.vue'
 import BaseErrorBoundary from '@/components/base/BaseErrorBoundary.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 
@@ -17,7 +20,7 @@ const useShell = computed(() => route.meta.layout !== 'blank')
 </script>
 
 <template>
-  <a class="skip-link" href="#main-content">Skip to content</a>
+  <a class="skip-link" href="#main-content">{{ t('nav.skipToContent') }}</a>
 
   <AppShell v-if="useShell">
     <BaseErrorBoundary>

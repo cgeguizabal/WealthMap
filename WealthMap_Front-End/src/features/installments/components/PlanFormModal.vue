@@ -12,6 +12,9 @@ import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import StorePicker from '@/features/shared/components/StorePicker.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false }
@@ -98,32 +101,32 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="New installment plan">
+  <BaseModal v-model="open" :title="t('installments.planTitle')">
     <form id="plan-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.productName"
-        label="What are you buying?"
-        placeholder="TV"
+        :label="t('installments.productLabel')"
+        :placeholder="t('installments.productPlaceholder')"
         required
         :error="fieldError('productName')"
       />
 
       <BaseSelect
         v-model="values.creditCardId"
-        label="Card"
+        :label="t('installments.card')"
         :options="cardOptions"
-        :placeholder="cardOptions.length ? 'Choose a card' : 'No cards yet'"
+        :placeholder="cardOptions.length ? t('installments.chooseCard') : t('installments.noCards')"
         required
-        hint="The full price is charged to this card straight away."
+        :hint="t('installments.cardHint')"
         :error="fieldError('creditCardId')"
       />
 
       <div class="form__row">
         <BaseInput
           v-model="values.totalPrice"
-          label="Total price"
+          :label="t('installments.totalPrice')"
           type="number"
           step="0.01"
           min="0"
@@ -136,7 +139,7 @@ async function onSubmit() {
 
         <BaseSelect
           v-model="values.monthsCount"
-          label="Months"
+          :label="t('installments.months')"
           :options="MONTH_OPTIONS"
           required
           :error="fieldError('monthsCount')"
@@ -173,7 +176,7 @@ async function onSubmit() {
       <div class="form__row">
         <BaseInput
           v-model="values.purchasedAt"
-          label="Purchase date"
+          :label="t('installments.purchaseDate')"
           type="date"
           :max="today()"
           :error="fieldError('purchasedAt')"
@@ -184,7 +187,7 @@ async function onSubmit() {
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="plan-form" variant="primary" :loading="submitting">
         Create plan
       </BaseButton>

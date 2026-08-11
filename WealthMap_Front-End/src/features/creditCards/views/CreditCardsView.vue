@@ -76,18 +76,15 @@ function openLimit(card) {
  */
 async function remove(card) {
   const owedNote = card.usedCredit > 0
-    ? ` It still has ${format(card.usedCredit, { currency: card.currency })} owed, ` +
-      'and deleting it will not pay that off.'
+    ? t('cards.deleteOwedNote', {
+        amount: format(card.usedCredit, { currency: card.currency })
+      })
     : ''
 
   const confirmed = await confirmTwice({
     title: t('cards.deleteTitle', { name: card.cardName }),
-    message:
-      `${card.cardName} will be removed from your cards and your available ` +
-      `credit.${owedNote} Its purchases, installment plans and payments are kept.`,
-    secondMessage:
-      `This removes ${card.cardName} from WealthMap. You will not be able to ` +
-      'charge purchases to it or record payments against it again.'
+    message: t('cards.deleteMessage', { name: card.cardName, owed: owedNote }),
+    secondMessage: t('cards.deleteSecond', { name: card.cardName })
   })
 
   if (!confirmed) return

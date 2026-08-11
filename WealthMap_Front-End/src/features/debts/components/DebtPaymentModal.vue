@@ -11,6 +11,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import PaymentSourcePicker from '@/features/shared/components/PaymentSourcePicker.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -76,7 +79,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="Register a debt payment" size="sm">
+  <BaseModal v-model="open" :title="t('debts.registerPaymentTitle')" size="sm">
     <form id="debt-payment-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
@@ -87,17 +90,17 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.amount"
-        label="Amount"
+        :label="t('common.amount')"
         type="number"
         step="0.01"
         min="0"
         required
-        hint="Cannot exceed what is left."
+        :hint="t('debts.paymentHint')"
         :error="fieldError('amount')"
       >
         <template #prefix>{{ debt?.currency }}</template>
         <template #suffix>
-          <button type="button" class="form__max" @click="values.amount = remaining">Pay all</button>
+          <button type="button" class="form__max" @click="values.amount = remaining">{{ t('debts.payAll') }}</button>
         </template>
       </BaseInput>
 
@@ -111,8 +114,8 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.notes"
-        label="Notes"
-        placeholder="Optional"
+        :label="t('common.notes')"
+        :placeholder="t('common.optional')"
         :error="fieldError('notes')"
       />
 
@@ -122,7 +125,7 @@ async function onSubmit() {
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="debt-payment-form" variant="primary" :loading="submitting">
         Register payment
       </BaseButton>

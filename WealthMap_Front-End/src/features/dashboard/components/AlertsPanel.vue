@@ -4,6 +4,9 @@ import { motion } from 'motion-v'
 import { fadeInRow } from '@/composables/useMotionSafe'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   alerts: { type: Array, default: () => [] }
@@ -32,7 +35,7 @@ const overflow = computed(() => Math.max(0, props.alerts.length - visible.value.
       :aria-controls="listId"
       @click="expanded = !expanded"
     >
-      <h2 class="alerts__title">Needs attention</h2>
+      <h2 class="alerts__title">{{ t('dashboard.needsAttention') }}</h2>
       <BaseBadge size="sm">{{ alerts.length }}</BaseBadge>
 
       <span class="alerts__spacer" />

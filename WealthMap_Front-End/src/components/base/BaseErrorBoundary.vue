@@ -3,6 +3,9 @@ import { ref, onErrorCaptured, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import BaseEmptyState from './BaseEmptyState.vue'
 import BaseButton from './BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 /**
  * Catches render and lifecycle errors from the routed view. Without this a
@@ -33,13 +36,13 @@ function retry() {
   <BaseEmptyState
     v-if="error"
     icon="alert"
-    title="This screen ran into a problem"
-    message="The rest of the app is still fine. Try again, or move to another section."
+    :title="t('common.screenFailedTitle')"
+    :message="t('common.screenFailedMessage')"
   >
     <template #action>
       <div class="actions">
-        <BaseButton variant="primary" @click="retry">Try again</BaseButton>
-        <BaseButton variant="secondary" @click="$router.push('/')">Go to dashboard</BaseButton>
+        <BaseButton variant="primary" @click="retry">{{ t('common.tryAgain') }}</BaseButton>
+        <BaseButton variant="secondary" @click="$router.push('/')">{{ t('common.goToDashboard') }}</BaseButton>
       </div>
     </template>
   </BaseEmptyState>

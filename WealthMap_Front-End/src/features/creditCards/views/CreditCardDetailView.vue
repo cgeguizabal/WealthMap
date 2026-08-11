@@ -24,6 +24,9 @@ import CardFormModal from '../components/CardFormModal.vue'
 import CardPaymentModal from '../components/CardPaymentModal.vue'
 import LimitModal from '../components/LimitModal.vue'
 import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -136,11 +139,11 @@ onMounted(() => {
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Card not found"
-      message="It may have been removed, or it is not yours."
+      :title="t('cards.notFound')"
+      :message="t('common.notFoundHint')"
     >
       <template #action>
-        <BaseButton variant="secondary" @click="$router.push('/credit-cards')">Back to cards</BaseButton>
+        <BaseButton variant="secondary" @click="$router.push('/credit-cards')">{{ t('cards.backToCards') }}</BaseButton>
       </template>
     </BaseEmptyState>
 
@@ -151,7 +154,7 @@ onMounted(() => {
             <template #icon><BaseIcon name="receipt" :size="15" /></template>
             Register payment
           </BaseButton>
-          <BaseButton variant="secondary" @click="limitOpen = true">Limit</BaseButton>
+          <BaseButton variant="secondary" @click="limitOpen = true">{{ t('cards.limit') }}</BaseButton>
           <BaseButton variant="ghost" @click="editOpen = true">
             <template #icon><BaseIcon name="pencil" :size="15" /></template>
             Edit
@@ -162,19 +165,19 @@ onMounted(() => {
       <div class="summary">
         <div class="summary__figures">
           <div class="summary__figure">
-            <span class="summary__label">Available</span>
+            <span class="summary__label">{{ t('cards.available') }}</span>
             <p class="summary__value numeric is-positive">
               {{ format(card.availableCredit, { currency: card.currency }) }}
             </p>
           </div>
 
           <div class="summary__figure">
-            <span class="summary__label">Owed</span>
+            <span class="summary__label">{{ t('cards.owed') }}</span>
             <p class="summary__value numeric">{{ format(card.usedCredit, { currency: card.currency }) }}</p>
           </div>
 
           <div class="summary__figure">
-            <span class="summary__label">Limit</span>
+            <span class="summary__label">{{ t('cards.limit') }}</span>
             <p class="summary__value numeric">{{ format(card.creditLimit, { currency: card.currency }) }}</p>
           </div>
         </div>
@@ -187,9 +190,9 @@ onMounted(() => {
         />
 
         <dl class="summary__meta">
-          <div><dt>Due day</dt><dd class="numeric">{{ card.paymentDueDay }}</dd></div>
-          <div><dt>Statement cutoff</dt><dd class="numeric">{{ card.statementCutoffDay }}</dd></div>
-          <div><dt>Interest</dt><dd class="numeric">{{ formatPercent(card.annualInterestRate, 2) }}</dd></div>
+          <div><dt>{{ t('cards.dueDay') }}</dt><dd class="numeric">{{ card.paymentDueDay }}</dd></div>
+          <div><dt>{{ t('cards.statementCutoff') }}</dt><dd class="numeric">{{ card.statementCutoffDay }}</dd></div>
+          <div><dt>{{ t('cards.interest') }}</dt><dd class="numeric">{{ formatPercent(card.annualInterestRate, 2) }}</dd></div>
         </dl>
 
         <p v-if="card.notes" class="summary__notes">{{ card.notes }}</p>
@@ -203,8 +206,8 @@ onMounted(() => {
           :rows="charges"
           :loading="loadingCharges"
           :clickable="isPlan"
-          empty-title="Nothing charged to this card"
-          empty-message="Purchases paid with this card, and installment plans on it, appear here."
+          :empty-title="t('cards.noChargesTitle')"
+          :empty-message="t('cards.noChargesMessage')"
           @row-click="openCharge"
         >
           <template #cell-occurredAt="{ value }">
@@ -260,7 +263,7 @@ onMounted(() => {
           :payments="payments ?? []"
           :loading="loadingPayments"
           :show-target="false"
-          empty-message="Once you register a payment it appears here — including cash payments, which touch no account."
+          :empty-message="t('cards.noPaymentsMessage')"
         />
       </BaseCard>
 

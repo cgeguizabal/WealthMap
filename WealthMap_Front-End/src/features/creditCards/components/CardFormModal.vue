@@ -8,6 +8,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -94,22 +97,22 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit card' : 'New credit card'">
+  <BaseModal v-model="open" :title="isEdit ? t('cards.editCard') : t('cards.newCard')">
     <form id="card-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.cardName"
-        label="Card name"
-        placeholder="Gold"
+        :label="t('cards.cardName')"
+        :placeholder="t('cards.cardNamePlaceholder')"
         required
         :error="fieldError('cardName')"
       />
 
       <BaseInput
         v-model="values.bankName"
-        label="Bank"
-        placeholder="BBVA"
+        :label="t('accounts.bankName')"
+        :placeholder="t('accounts.bankPlaceholder')"
         required
         :error="fieldError('bankName')"
       />
@@ -117,7 +120,7 @@ async function onSubmit() {
       <div v-if="!isEdit" class="form__row">
         <BaseInput
           v-model="values.creditLimit"
-          label="Credit limit"
+          :label="t('cards.creditLimit')"
           type="number"
           step="0.01"
           min="0"
@@ -128,7 +131,7 @@ async function onSubmit() {
 
         <BaseSelect
           v-model="values.currency"
-          label="Currency"
+          :label="t('common.currency')"
           :options="CURRENCIES"
           required
           :error="fieldError('currency')"
@@ -137,7 +140,7 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.annualInterestRate"
-        label="Annual interest rate"
+        :label="t('cards.interestRate')"
         type="number"
         step="0.001"
         min="0"
@@ -151,16 +154,16 @@ async function onSubmit() {
       <div class="form__row">
         <BaseSelect
           v-model="values.paymentDueDay"
-          label="Payment due day"
+          :label="t('cards.paymentDueDay')"
           :options="DAYS"
           required
-          hint="Clamps in short months."
+          :hint="t('cards.clampsHint')"
           :error="fieldError('paymentDueDay')"
         />
 
         <BaseSelect
           v-model="values.statementCutoffDay"
-          label="Statement cutoff"
+          :label="t('cards.statementCutoff')"
           :options="DAYS"
           required
           :error="fieldError('statementCutoffDay')"
@@ -170,14 +173,14 @@ async function onSubmit() {
       <BaseInput
         v-if="isEdit"
         v-model="values.notes"
-        label="Notes"
-        placeholder="Optional"
+        :label="t('common.notes')"
+        :placeholder="t('common.optional')"
         :error="fieldError('notes')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="card-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Add card' }}
       </BaseButton>

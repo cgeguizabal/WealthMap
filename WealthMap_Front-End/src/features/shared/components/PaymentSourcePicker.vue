@@ -4,6 +4,9 @@ import { useMoney } from '@/composables/useMoney'
 import { PAYMENT_SOURCE } from '@/api/payments.api'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 /**
  * The Account/External choice is identical for cards, debts and installments,
@@ -52,9 +55,9 @@ watch(() => props.currency, () => {
 
 <template>
   <div class="source">
-    <span class="source__label">Paid from</span>
+    <span class="source__label">{{ t('common.paidFrom') }}</span>
 
-    <div class="source__options" role="radiogroup" aria-label="Payment source">
+    <div class="source__options" role="radiogroup" :aria-label="t('common.paymentSource')">
       <button
         type="button"
         role="radio"
@@ -63,8 +66,8 @@ watch(() => props.currency, () => {
         @click="choose(PAYMENT_SOURCE.ACCOUNT)"
       >
         <BaseIcon name="wallet" :size="16" />
-        <span class="source__option-title">One of my accounts</span>
-        <span class="source__option-note">Withdraws and records a movement</span>
+        <span class="source__option-title">{{ t('common.myAccounts') }}</span>
+        <span class="source__option-note">{{ t('common.myAccountsNote') }}</span>
       </button>
 
       <button
@@ -75,17 +78,17 @@ watch(() => props.currency, () => {
         @click="choose(PAYMENT_SOURCE.EXTERNAL)"
       >
         <BaseIcon name="receipt" :size="16" />
-        <span class="source__option-title">External</span>
-        <span class="source__option-note">Cash or someone else paid</span>
+        <span class="source__option-title">{{ t('common.external') }}</span>
+        <span class="source__option-note">{{ t('common.externalNote') }}</span>
       </button>
     </div>
 
     <BaseSelect
       v-if="isAccount"
       :model-value="sourceAccountId"
-      label="Account"
+      :label="t('common.account')"
       :options="eligibleAccounts"
-      :placeholder="eligibleAccounts.length ? 'Choose an account' : `No ${currency} accounts available`"
+      :placeholder="eligibleAccounts.length ? t('accounts.chooseAccount') : t('common.noAccountsInCurrency', { currency })"
       required
       :error="error"
       @update:model-value="emit('update:sourceAccountId', $event)"

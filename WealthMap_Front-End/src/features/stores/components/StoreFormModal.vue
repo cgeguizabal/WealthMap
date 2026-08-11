@@ -7,6 +7,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -63,45 +66,45 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit store' : 'New store'" size="sm">
+  <BaseModal v-model="open" :title="isEdit ? t('stores.editStore') : t('stores.newStore')" size="sm">
     <form id="store-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.name"
-        label="Name"
-        placeholder="Walmart"
+        :label="t('common.name')"
+        :placeholder="t('stores.namePlaceholder')"
         required
         :error="fieldError('name')"
       />
 
       <BaseSelect
         v-model="values.category"
-        label="Category"
+        :label="t('common.category')"
         :options="categoryOptions"
-        placeholder="Choose a category"
+        :placeholder="t('common.chooseCategory')"
         required
         :error="fieldError('category')"
       />
 
       <BaseInput
         v-model="values.logoUrl"
-        label="Logo URL"
-        placeholder="https://…"
-        hint="Optional. Must be a full URL."
+        :label="t('stores.logoUrl')"
+        :placeholder="t('stores.logoPlaceholder')"
+        :hint="t('stores.logoHint')"
         :error="fieldError('logoUrl')"
       />
 
       <BaseInput
         v-model="values.description"
-        label="Description"
-        placeholder="Optional"
+        :label="t('common.description')"
+        :placeholder="t('common.optional')"
         :error="fieldError('description')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="store-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Add store' }}
       </BaseButton>

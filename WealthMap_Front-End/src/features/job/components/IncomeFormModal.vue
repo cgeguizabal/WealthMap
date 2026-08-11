@@ -11,6 +11,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -95,14 +98,14 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit income' : 'Add recurring income'" size="sm">
+  <BaseModal v-model="open" :title="isEdit ? t('job.editIncome') : t('job.addRecurringIncome')" size="sm">
     <form id="income-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.name"
-        label="Name"
-        placeholder="Freelance"
+        :label="t('common.name')"
+        :placeholder="t('job.incomePlaceholder')"
         required
         :error="fieldError('name')"
       />
@@ -110,7 +113,7 @@ async function onSubmit() {
       <div class="form__row">
         <BaseInput
           v-model="values.amount"
-          label="Amount"
+          :label="t('common.amount')"
           type="number"
           step="0.01"
           min="0"
@@ -121,7 +124,7 @@ async function onSubmit() {
         <BaseSelect
           v-if="!isEdit"
           v-model="values.currency"
-          label="Currency"
+          :label="t('common.currency')"
           :options="CURRENCIES"
           required
           :error="fieldError('currency')"
@@ -130,7 +133,7 @@ async function onSubmit() {
 
       <BaseSelect
         v-model="values.frequency"
-        label="Frequency"
+        :label="t('job.frequency')"
         :options="INCOME_FREQUENCY_OPTIONS"
         required
         :error="fieldError('frequency')"
@@ -138,9 +141,9 @@ async function onSubmit() {
 
       <BaseSelect
         v-model="values.depositAccountId"
-        label="Paid into"
+        :label="t('job.paidInto')"
         :options="accountOptions"
-        :placeholder="accountOptions.length ? 'Choose an account' : 'No accounts yet'"
+        :placeholder="accountOptions.length ? t('job.chooseAccount') : t('job.noAccounts')"
         required
         :error="fieldError('depositAccountId')"
       />
@@ -157,7 +160,7 @@ async function onSubmit() {
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="income-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Add income' }}
       </BaseButton>

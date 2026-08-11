@@ -17,6 +17,9 @@ import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 
 import ReportSpending from '../components/ReportSpending.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const { format } = useMoney()
 const toast = useToast()
@@ -70,10 +73,10 @@ async function downloadPdf() {
   try {
     const blob = await reportsApi.monthlyPdf(month.value)
     downloadBlob(blob, `wealthmap-${month.value}.pdf`)
-    toast.success('Report downloaded.')
+    toast.success(t('reports.downloaded'))
   } catch {
     // A failed blob request has no JSON body to read a message from.
-    toast.error('Could not generate the PDF. Try again.')
+    toast.error(t('reports.downloadFailed'))
   } finally {
     downloading.value = false
   }
@@ -84,11 +87,11 @@ onMounted(load)
 
 <template>
   <div>
-    <PageHeader title="Monthly report" subtitle="What came in, what went out, and where you ended up.">
+    <PageHeader :title="t('reports.title')" :subtitle="t('reports.subtitle')">
       <template #actions>
-        <input v-model="month" class="month-input" type="month" aria-label="Report month" />
+        <input v-model="month" class="month-input" type="month" :aria-label="t('reports.reportMonth')" />
 
-        <BaseButton variant="secondary" :loading="loading" @click="load">View</BaseButton>
+        <BaseButton variant="secondary" :loading="loading" @click="load">{{ t('reports.view') }}</BaseButton>
 
         <BaseButton variant="primary" :loading="downloading" :disabled="!report" @click="downloadPdf">
           <template #icon><BaseIcon name="download" :size="15" /></template>
@@ -102,10 +105,10 @@ onMounted(load)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Could not build the report"
+      :title="t('reports.loadFailed')"
       :message="error.message"
     >
-      <template #action><BaseButton variant="primary" @click="load">Try again</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="load">{{ t('common.tryAgain') }}</BaseButton></template>
     </BaseEmptyState>
 
     <motion.div
@@ -122,18 +125,18 @@ onMounted(load)
         </div>
 
         <div class="masthead__net" :class="{ 'is-negative': report.netResult < 0 }">
-          <span class="masthead__net-label">Net result</span>
+          <span class="masthead__net-label">{{ t('reports.netResult') }}</span>
           <span class="masthead__net-value numeric">{{ format(report.netResult, { currency: report.currency }) }}</span>
         </div>
       </header>
 
       <section class="totals">
         <div class="total total--in">
-          <span class="total__label">Income</span>
+          <span class="total__label">{{ t('reports.income') }}</span>
           <span class="total__value numeric">{{ format(report.income.total, { currency: report.currency }) }}</span>
         </div>
         <div class="total total--out">
-          <span class="total__label">Spending</span>
+          <span class="total__label">{{ t('reports.spending') }}</span>
           <span class="total__value numeric">
             {{ format(report.spending.totalPurchases, { currency: report.currency }) }}
           </span>
@@ -141,12 +144,12 @@ onMounted(load)
       </section>
 
       <!-- ── Income ──────────────────────────── -->
-      <BaseCard title="Income" :padded="false">
+      <BaseCard :title="t('reports.income')" :padded="false">
         <BaseEmptyState
           v-if="!report.income.lines.length"
           icon="arrow-down-left"
-          title="No income recorded this month"
-          message="Transfers between your own accounts are not counted as income."
+          :title="t('reports.noIncomeTitle')"
+          :message="t('reports.noIncomeMessage')"
           compact
         />
 
@@ -171,13 +174,13 @@ onMounted(load)
       <ReportSpending :spending="report.spending" :currency="report.currency" />
 
       <!-- ── Accounts ────────────────────────── -->
-      <BaseCard title="Accounts" subtitle="Opening to closing, movement by movement" :padded="false">
+      <BaseCard :title="t('reports.accountsTitle')" :subtitle="t('reports.accountsSubtitle')" :padded="false">
         <BaseTable
           :columns="ACCOUNT_COLUMNS"
           :rows="report.accounts"
           row-key="accountId"
-          empty-title="No accounts in this period"
-          empty-message="Accounts opened after this month are not shown."
+          :empty-title="t('reports.noAccountsTitle')"
+          :empty-message="t('reports.noAccountsMessage')"
         >
           <template #cell-name="{ row }">
             <div class="cell-stack">
@@ -207,8 +210,8 @@ onMounted(load)
       <!-- ── Cards ───────────────────────────── -->
       <BaseCard
         v-if="report.cards.length"
-        title="Credit cards"
-        subtitle="Balances are current, not month-end. Paid covers every source, cash included."
+        :title="t('reports.cardsTitle')"
+        :subtitle="t('reports.cardsSubtitle')"
         :padded="false"
       >
         <BaseTable :columns="CARD_COLUMNS" :rows="report.cards" row-key="cardId">
@@ -238,7 +241,7 @@ onMounted(load)
       </BaseCard>
 
       <!-- ── Goals ───────────────────────────── -->
-      <BaseCard v-if="report.goals.length" title="Goals" :padded="false">
+      <BaseCard v-if="report.goals.length" :title="t('goals.title')" :padded="false">
         <ul class="goals">
           <li v-for="goal in report.goals" :key="`${goal.kind}-${goal.name}`" class="goal">
             <div class="goal__body">

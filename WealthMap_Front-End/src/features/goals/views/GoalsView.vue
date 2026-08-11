@@ -18,6 +18,9 @@ import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 import GoalCard from '../components/GoalCard.vue'
 import GoalFormModal from '../components/GoalFormModal.vue'
 import ContributeModal from '../components/ContributeModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const { format } = useMoney()
 const toast = useToast()
@@ -83,9 +86,9 @@ function openContribute(goal) {
 
 async function remove(goal) {
   const confirmed = await ui.confirm({
-    title: `Delete ${goal.name}?`,
-    message: 'The goal and its progress are removed. Money already in a linked account stays put.',
-    confirmLabel: 'Delete',
+    title: t('goals.deleteTitle', { name: goal.name }),
+    message: t('goals.deleteMessage'),
+    confirmLabel: t('common.delete'),
     variant: 'danger'
   })
 
@@ -93,7 +96,7 @@ async function remove(goal) {
 
   try {
     await (isSavingsTab.value ? savingsGoalsApi.remove(goal.id) : productGoalsApi.remove(goal.id))
-    toast.success(`${goal.name} deleted.`)
+    toast.success(t('goals.deleted', { name: goal.name }))
     refresh()
   } catch (err) {
     toast.error(err.message)
@@ -112,8 +115,8 @@ onMounted(load)
 <template>
   <div>
     <PageHeader
-      title="Goals"
-      subtitle="What you are saving toward, and what it takes each month to get there."
+      :title="t('goals.title')"
+      :subtitle="t('goals.subtitle')"
     >
       <template #actions>
         <BaseButton variant="primary" @click="openCreate">
@@ -126,15 +129,15 @@ onMounted(load)
     <div v-if="summary.total" class="summary">
       <div class="summary__item">
         <span class="summary__value numeric">{{ summary.total }}</span>
-        <span class="summary__label">Goals</span>
+        <span class="summary__label">{{ t('goals.title') }}</span>
       </div>
       <div class="summary__item">
         <span class="summary__value numeric">{{ summary.done }}</span>
-        <span class="summary__label">Completed</span>
+        <span class="summary__label">{{ t('goals.completed') }}</span>
       </div>
       <div class="summary__item" :class="{ 'is-warning': summary.behind > 0 }">
         <span class="summary__value numeric">{{ summary.behind }}</span>
-        <span class="summary__label">Off pace</span>
+        <span class="summary__label">{{ t('goals.offPace') }}</span>
       </div>
     </div>
 
@@ -145,7 +148,7 @@ onMounted(load)
     <BaseEmptyState
       v-else-if="!visible.length"
       :icon="isSavingsTab ? 'target' : 'bag'"
-      :title="isSavingsTab ? 'No savings goals yet' : 'No product goals yet'"
+      :title="isSavingsTab ? t('goals.noSavingsGoals') : t('goals.noProductGoals')"
       :message="isSavingsTab
         ? 'Set a target and a deadline, and WealthMap works out what to put aside each month.'
         : 'Saving for something specific? Track it here — a deadline is optional.'"

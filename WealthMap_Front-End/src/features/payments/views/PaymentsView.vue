@@ -11,6 +11,9 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
 import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const toast = useToast()
 const pagination = usePagination({ pageSize: 20 })
@@ -58,8 +61,8 @@ onMounted(load)
 <template>
   <div>
     <PageHeader
-      title="Payments"
-      subtitle="Everything you have paid against cards, debts and installment plans — whatever the money came from."
+      :title="t('payments.title')"
+      :subtitle="t('payments.subtitle')"
     />
 
     <BaseCard :padded="false">
@@ -68,16 +71,16 @@ onMounted(load)
           <BaseSelect
             v-model="filters.targetType"
             :options="PAYMENT_TARGET_OPTIONS"
-            placeholder="All types"
-            label="Type"
+            :placeholder="t('payments.allTypes')"
+            :label="t('common.type')"
           />
 
-          <BaseInput v-model="filters.from" label="From" type="date" />
+          <BaseInput v-model="filters.from" :label="t('payments.from')" type="date" />
           <BaseInput v-model="filters.to" label="To" type="date" />
 
           <div class="filters__actions">
-            <BaseButton variant="secondary" @click="applyFilters">Apply</BaseButton>
-            <BaseButton variant="ghost" @click="clearFilters">Clear</BaseButton>
+            <BaseButton variant="secondary" @click="applyFilters">{{ t('common.apply') }}</BaseButton>
+            <BaseButton variant="ghost" @click="clearFilters">{{ t('common.clear') }}</BaseButton>
           </div>
         </div>
       </template>

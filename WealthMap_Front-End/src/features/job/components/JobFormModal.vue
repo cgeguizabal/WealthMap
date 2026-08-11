@@ -11,6 +11,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -120,23 +123,23 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit job' : 'Add your job'">
+  <BaseModal v-model="open" :title="isEdit ? t('job.editJob') : t('job.addJob')">
     <form id="job-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <div class="form__row">
         <BaseInput
           v-model="values.title"
-          label="Job title"
-          placeholder="Full-stack developer"
+          :label="t('job.jobTitle')"
+          :placeholder="t('job.jobTitlePlaceholder')"
           required
           :error="fieldError('title')"
         />
 
         <BaseInput
           v-model="values.employer"
-          label="Employer"
-          placeholder="Acme"
+          :label="t('job.employer')"
+          :placeholder="t('job.employerPlaceholder')"
           required
           :error="fieldError('employer')"
         />
@@ -145,19 +148,19 @@ async function onSubmit() {
       <div class="form__row">
         <BaseInput
           v-model="values.grossMonthlySalary"
-          label="Gross monthly salary"
+          :label="t('job.grossSalary')"
           type="number"
           step="0.01"
           min="0"
           required
-          hint="Before deductions."
+          :hint="t('job.grossHint')"
           :error="fieldError('grossMonthlySalary')"
         />
 
         <BaseSelect
           v-if="!isEdit"
           v-model="values.currency"
-          label="Currency"
+          :label="t('common.currency')"
           :options="CURRENCIES"
           required
           :error="fieldError('currency')"
@@ -166,23 +169,23 @@ async function onSubmit() {
 
       <BaseSelect
         v-model="values.depositAccountId"
-        label="Paid into"
+        :label="t('job.paidInto')"
         :options="accountOptions"
-        :placeholder="accountOptions.length ? 'Choose an account' : 'No account in this currency'"
+        :placeholder="accountOptions.length ? t('job.chooseAccount') : t('job.noAccountInCurrency')"
         required
         :error="fieldError('depositAccountId')"
       />
 
       <fieldset class="days">
-        <legend class="days__legend">Payment days</legend>
+        <legend class="days__legend">{{ t('job.paymentDays') }}</legend>
         <p class="days__hint">
           Between one and three days a month. A day past the month's end clamps to the last day.
         </p>
 
         <div class="days__row">
-          <BaseSelect v-model="values.day1" label="First" :options="DAYS" required />
-          <BaseSelect v-model="values.day2" label="Second" :options="DAYS" placeholder="None" />
-          <BaseSelect v-model="values.day3" label="Third" :options="DAYS" placeholder="None" />
+          <BaseSelect v-model="values.day1" :label="t('job.first')" :options="DAYS" required />
+          <BaseSelect v-model="values.day2" :label="t('job.second')" :options="DAYS" :placeholder="t('job.none')" />
+          <BaseSelect v-model="values.day3" :label="t('job.third')" :options="DAYS" :placeholder="t('job.none')" />
         </div>
 
         <p v-if="fieldError('paymentDays')" class="days__error">
@@ -192,19 +195,19 @@ async function onSubmit() {
 
       <div v-if="preview" class="preview">
         <div class="preview__row">
-          <span>Net monthly</span>
+          <span>{{ t('job.netMonthly') }}</span>
           <span class="numeric">{{ format(preview.net, { currency: values.currency }) }}</span>
         </div>
         <div class="preview__row preview__row--total">
           <span>Per deposit ({{ dayCount }}×)</span>
           <span class="numeric">{{ format(preview.perDeposit, { currency: values.currency }) }}</span>
         </div>
-        <p v-if="!isEdit" class="preview__note">Deductions are added after the job is saved.</p>
+        <p v-if="!isEdit" class="preview__note">{{ t('job.deductionsAfterSave') }}</p>
       </div>
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="job-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Save job' }}
       </BaseButton>

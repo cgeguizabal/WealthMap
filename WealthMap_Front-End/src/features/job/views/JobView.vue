@@ -20,6 +20,9 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import JobFormModal from '../components/JobFormModal.vue'
 import DeductionFormModal from '../components/DeductionFormModal.vue'
 import IncomeFormModal from '../components/IncomeFormModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const { format, roundCents } = useMoney()
 const toast = useToast()
@@ -97,9 +100,9 @@ function openIncome(income = null) {
 
 async function removeDeduction(deduction) {
   const confirmed = await ui.confirm({
-    title: `Remove ${deduction.name}?`,
-    message: 'Your net salary goes back up by this amount.',
-    confirmLabel: 'Remove',
+    title: t('job.removeDeductionTitle', { name: deduction.name }),
+    message: t('job.removeDeductionMessage'),
+    confirmLabel: t('common.remove'),
     variant: 'danger'
   })
 
@@ -107,7 +110,7 @@ async function removeDeduction(deduction) {
 
   try {
     job.value = await jobsApi.removeDeduction(job.value.id, deduction.id)
-    toast.success('Deduction removed.')
+    toast.success(t('job.deductionRemoved'))
     dashboard.invalidate()
   } catch (err) {
     toast.error(err.message)
@@ -116,9 +119,9 @@ async function removeDeduction(deduction) {
 
 async function removeJob() {
   const confirmed = await ui.confirm({
-    title: `Delete ${job.value.title}?`,
-    message: 'The job and all its deductions are removed. Your accounts are untouched.',
-    confirmLabel: 'Delete job',
+    title: t('job.deleteJobTitle', { name: job.value.title }),
+    message: t('job.deleteJobMessage'),
+    confirmLabel: t('job.deleteJob'),
     variant: 'danger'
   })
 
@@ -126,7 +129,7 @@ async function removeJob() {
 
   try {
     await jobsApi.remove(job.value.id)
-    toast.success('Job deleted.')
+    toast.success(t('job.jobDeleted'))
     job.value = null
     dashboard.invalidate()
   } catch (err) {
@@ -136,8 +139,8 @@ async function removeJob() {
 
 async function removeIncome(income) {
   const confirmed = await ui.confirm({
-    title: `Remove ${income.name}?`,
-    confirmLabel: 'Remove',
+    title: t('job.removeIncomeTitle', { name: income.name }),
+    confirmLabel: t('common.remove'),
     variant: 'danger'
   })
 
@@ -145,7 +148,7 @@ async function removeIncome(income) {
 
   try {
     await incomesApi.remove(income.id)
-    toast.success('Income removed.')
+    toast.success(t('job.incomeRemoved'))
     load()
     dashboard.invalidate()
   } catch (err) {
@@ -164,18 +167,18 @@ onMounted(load)
 <template>
   <div>
     <PageHeader
-      title="Job & income"
-      subtitle="Your salary, what comes out of it, and anything else that arrives regularly."
+      :title="t('job.title')"
+      :subtitle="t('job.subtitle')"
     >
       <template #actions>
         <BaseButton variant="secondary" @click="openIncome()">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          Add income
+          {{ t('job.addIncome') }}
         </BaseButton>
 
         <BaseButton v-if="!job" variant="primary" @click="jobOpen = true">
           <template #icon><BaseIcon name="briefcase" :size="15" /></template>
-          Add job
+          {{ t('job.addJob') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -187,12 +190,12 @@ onMounted(load)
       <BaseEmptyState
         v-if="!job"
         icon="briefcase"
-        title="No job recorded"
-        message="Add your salary and its deductions, and WealthMap works out your real take-home and when it lands."
+        :title="t('job.emptyTitle')"
+        :message="t('job.emptyMessage')"
         class="empty"
       >
         <template #action>
-          <BaseButton variant="primary" @click="jobOpen = true">Add your job</BaseButton>
+          <BaseButton variant="primary" @click="jobOpen = true">{{ t('job.addJob') }}</BaseButton>
         </template>
       </BaseEmptyState>
 
@@ -211,39 +214,39 @@ onMounted(load)
             <div class="job__head-actions">
               <BaseButton size="sm" variant="ghost" @click="jobOpen = true">
                 <template #icon><BaseIcon name="pencil" :size="14" /></template>
-                Edit
+                {{ t('common.edit') }}
               </BaseButton>
               <BaseButton size="sm" variant="ghost" @click="removeJob">
                 <template #icon><BaseIcon name="trash" :size="14" /></template>
-                <span class="sr-only">Delete job</span>
+                <span class="sr-only">{{ t('job.deleteJob') }}</span>
               </BaseButton>
             </div>
           </header>
 
           <div class="job__figures">
             <div class="job__figure">
-              <span class="job__label">Gross monthly</span>
+              <span class="job__label">{{ t('job.grossMonthly') }}</span>
               <p class="numeric">{{ format(job.grossMonthlySalary, { currency: job.currency }) }}</p>
             </div>
 
             <div class="job__figure">
-              <span class="job__label">Deducted</span>
+              <span class="job__label">{{ t('job.deducted') }}</span>
               <p class="numeric is-negative">−{{ format(totalDeducted, { currency: job.currency }) }}</p>
             </div>
 
             <div class="job__figure job__figure--headline">
-              <span class="job__label">Net monthly</span>
+              <span class="job__label">{{ t('job.netMonthly') }}</span>
               <p class="numeric">{{ format(job.netMonthly, { currency: job.currency }) }}</p>
             </div>
 
             <div class="job__figure">
-              <span class="job__label">Per deposit (after deductions)</span>
+              <span class="job__label">{{ t('job.perDeposit') }}</span>
               <p class="numeric">{{ format(job.netPerDeposit, { currency: job.currency }) }}</p>
             </div>
           </div>
 
           <div class="job__schedule">
-            <span class="job__label">Paid on day</span>
+            <span class="job__label">{{ t('job.paidOnDay') }}</span>
             <div class="job__days">
               <BaseBadge v-for="day in job.paymentDays" :key="day" size="sm">{{ day }}</BaseBadge>
             </div>
@@ -257,7 +260,7 @@ onMounted(load)
           </div>
         </div>
 
-        <BaseCard title="Deductions" subtitle="Taken from your payslip — the app does the arithmetic, not the tax law" :padded="false">
+        <BaseCard :title="t('job.deductions')" :subtitle="t('job.deductionsSubtitle')" :padded="false">
           <template #actions>
             <BaseButton size="sm" variant="secondary" @click="openDeduction()">
               <template #icon><BaseIcon name="plus" :size="14" /></template>
@@ -268,8 +271,8 @@ onMounted(load)
           <BaseEmptyState
             v-if="!job.deductions.length"
             icon="minus"
-            title="No deductions"
-            message="Net equals gross until you add what comes out."
+            :title="t('job.noDeductionsTitle')"
+            :message="t('job.noDeductionsMessage')"
             compact
           />
 
@@ -278,7 +281,7 @@ onMounted(load)
               <div class="deduction__body">
                 <span class="deduction__name">{{ deduction.name }}</span>
                 <span class="deduction__type">
-                  {{ deduction.type === 'Percentage' ? 'Percentage of gross' : 'Fixed amount' }}
+                  {{ deduction.type === 'Percentage' ? t('job.percentageOfGross') : t('job.fixedAmount') }}
                 </span>
                 <!--
                   Spelling out the monthly total and the per-payday share, because a
@@ -286,10 +289,9 @@ onMounted(load)
                   or again at every payday. It is once a month, split evenly.
                 -->
                 <span class="deduction__split">
-                  {{ format(monthlyCost(deduction), { currency: job.currency }) }} a month
+                  {{ t('job.perMonth', { amount: format(monthlyCost(deduction), { currency: job.currency }) }) }}
                   <template v-if="job.paymentDays.length > 1">
-                    · {{ format(perPaydayCost(deduction), { currency: job.currency }) }}
-                    at each of {{ job.paymentDays.length }} paydays
+                    · {{ t('job.perPayday', { amount: format(perPaydayCost(deduction), { currency: job.currency }), count: job.paymentDays.length }) }}
                   </template>
                 </span>
               </div>
@@ -301,13 +303,13 @@ onMounted(load)
               </span>
 
               <div class="deduction__actions">
-                <BaseButton size="sm" variant="ghost" title="Edit" @click="openDeduction(deduction)">
+                <BaseButton size="sm" variant="ghost" :title="t('common.edit')" @click="openDeduction(deduction)">
                   <template #icon><BaseIcon name="pencil" :size="14" /></template>
-                  <span class="sr-only">Edit</span>
+                  <span class="sr-only">{{ t('common.edit') }}</span>
                 </BaseButton>
-                <BaseButton size="sm" variant="ghost" title="Remove" @click="removeDeduction(deduction)">
+                <BaseButton size="sm" variant="ghost" :title="t('common.remove')" @click="removeDeduction(deduction)">
                   <template #icon><BaseIcon name="trash" :size="14" /></template>
-                  <span class="sr-only">Remove</span>
+                  <span class="sr-only">{{ t('common.remove') }}</span>
                 </BaseButton>
               </div>
             </li>
@@ -317,8 +319,8 @@ onMounted(load)
 
       <!-- ── Additional incomes ──────────────── -->
       <BaseCard
-        title="Other income"
-        subtitle="Recurring extras — one-off money is a bonus deposit on an account"
+        :title="t('job.otherIncome')"
+        :subtitle="t('job.otherIncomeSubtitle')"
         :padded="false"
         class="incomes-card"
       >
@@ -332,8 +334,8 @@ onMounted(load)
         <BaseEmptyState
           v-if="!incomes.length"
           icon="plus"
-          title="No other income"
-          message="Freelance work, rent, anything that arrives on a schedule."
+          :title="t('job.noOtherIncome')"
+          :message="t('job.noOtherIncomeMessage')"
           compact
         />
 
@@ -352,11 +354,11 @@ onMounted(load)
             </span>
 
             <div class="income__actions">
-              <BaseButton size="sm" variant="ghost" title="Edit" @click="openIncome(income)">
+              <BaseButton size="sm" variant="ghost" :title="t('common.edit')" @click="openIncome(income)">
                 <template #icon><BaseIcon name="pencil" :size="14" /></template>
                 <span class="sr-only">Edit</span>
               </BaseButton>
-              <BaseButton size="sm" variant="ghost" title="Remove" @click="removeIncome(income)">
+              <BaseButton size="sm" variant="ghost" :title="t('common.remove')" @click="removeIncome(income)">
                 <template #icon><BaseIcon name="trash" :size="14" /></template>
                 <span class="sr-only">Remove</span>
               </BaseButton>

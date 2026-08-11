@@ -5,6 +5,9 @@ import { useMoney } from '@/composables/useMoney'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   card: { type: Object, required: true }
@@ -39,19 +42,19 @@ const variant = computed(() => {
           </div>
         </div>
 
-        <span class="card__due">Due day {{ card.paymentDueDay }}</span>
+        <span class="card__due">{{ t('cards.dueDayWithNumber', { day: card.paymentDueDay }) }}</span>
       </header>
 
       <div class="card__figures">
         <div>
-          <span class="card__figure-label">Available</span>
+          <span class="card__figure-label">{{ t('cards.available') }}</span>
           <p class="card__available numeric">
             {{ format(card.availableCredit, { currency: card.currency }) }}
           </p>
         </div>
 
         <div class="card__owed">
-          <span class="card__figure-label">Owed</span>
+          <span class="card__figure-label">{{ t('cards.owed') }}</span>
           <p class="numeric">{{ format(card.usedCredit, { currency: card.currency }) }}</p>
         </div>
       </div>
@@ -64,7 +67,7 @@ const variant = computed(() => {
       >
         <template #label>
           <span class="card__limit">
-            Limit {{ format(card.creditLimit, { currency: card.currency }) }}
+            {{ t('cards.limit') }} {{ format(card.creditLimit, { currency: card.currency }) }}
           </span>
         </template>
       </BaseProgress>
@@ -75,15 +78,15 @@ const variant = computed(() => {
         size="sm"
         variant="secondary"
         :disabled="card.usedCredit <= 0"
-        :title="card.usedCredit <= 0 ? 'Nothing owed on this card' : undefined"
+        :title="card.usedCredit <= 0 ? t('cards.nothingOwed') : undefined"
         @click="$emit('pay', card)"
       >
         <template #icon><BaseIcon name="receipt" :size="14" /></template>
-        Pay
+        {{ t('cards.pay') }}
       </BaseButton>
 
       <BaseButton size="sm" variant="ghost" @click="$emit('limit', card)">
-        Limit
+        {{ t('cards.limit') }}
       </BaseButton>
 
       <div class="card__spacer" />
@@ -91,8 +94,8 @@ const variant = computed(() => {
       <BaseButton
         size="sm"
         variant="ghost"
-        title="Edit"
-        aria-label="Edit card"
+        :title="t('common.edit')"
+        :aria-label="t('cards.editCard')"
         @click="$emit('edit', card)"
       >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
@@ -102,8 +105,8 @@ const variant = computed(() => {
         class="card__delete"
         size="sm"
         variant="ghost"
-        title="Delete"
-        aria-label="Delete card"
+        :title="t('common.delete')"
+        :aria-label="t('cards.deleteAria')"
         @click="$emit('delete', card)"
       >
         <template #icon><BaseIcon name="trash" :size="14" /></template>

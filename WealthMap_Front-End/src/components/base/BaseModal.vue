@@ -1,6 +1,9 @@
 <script setup>
 import { ref, watch, nextTick, onUnmounted } from 'vue'
 import BaseIcon from './BaseIcon.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -98,7 +101,7 @@ onUnmounted(() => lockScroll(false))
               <h3 class="modal__title">{{ title }}</h3>
             </slot>
 
-            <button class="modal__close" type="button" aria-label="Close dialog" @click="close">
+            <button class="modal__close" type="button" :aria-label="t('common.closeDialog')" @click="close">
               <BaseIcon name="x" :size="18" />
             </button>
           </header>

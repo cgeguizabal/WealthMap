@@ -1,5 +1,7 @@
 <script setup>
+import { computed } from 'vue'
 import { useMoney } from '@/composables/useMoney'
+import { useI18n } from '@/composables/useI18n'
 import BaseTable from '@/components/base/BaseTable.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
@@ -14,14 +16,16 @@ defineProps({
 defineEmits(['update:page'])
 
 const { format } = useMoney()
+const { t } = useI18n()
 
-const COLUMNS = [
-  { key: 'occurredAt', label: 'Date', width: '150px' },
-  { key: 'description', label: 'Description' },
-  { key: 'type', label: 'Type', width: '150px' },
-  { key: 'amount', label: 'Amount', align: 'right', width: '130px' },
-  { key: 'balanceAfter', label: 'Balance', align: 'right', width: '130px' }
-]
+/** Computed so the headers follow the language selector rather than freezing. */
+const COLUMNS = computed(() => [
+  { key: 'occurredAt', label: t('common.date'), width: '150px' },
+  { key: 'description', label: t('common.description') },
+  { key: 'type', label: t('common.type'), width: '150px' },
+  { key: 'amount', label: t('common.amount'), align: 'right', width: '130px' },
+  { key: 'balanceAfter', label: t('accounts.balance'), align: 'right', width: '130px' }
+])
 
 const ICON_BY_TYPE = {
   SalaryDeposit: 'briefcase',
@@ -46,8 +50,8 @@ function humanize(value) {
       :columns="COLUMNS"
       :rows="movements"
       :loading="loading"
-      empty-title="No movements yet"
-      empty-message="Deposits, withdrawals, transfers and payments all appear here."
+      :empty-title="t('accounts.noMovementsTitle')"
+      :empty-message="t('accounts.noMovementsMessage')"
     >
       <template #cell-occurredAt="{ value }">
         <BaseTimestamp :value="value" />

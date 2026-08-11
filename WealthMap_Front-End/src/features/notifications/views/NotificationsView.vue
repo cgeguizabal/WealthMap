@@ -15,6 +15,9 @@ import BaseTabs from '@/components/base/BaseTabs.vue'
 import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const notifications = useNotificationsStore()
 const { items, unreadCount, loading, pagination } = storeToRefs(notifications)
@@ -49,7 +52,7 @@ async function markRead(notification) {
 
   const ok = await notifications.markRead(notification.id)
   if (!ok) {
-    toast.error('Could not mark that as read.')
+    toast.error(t('notifications.markFailed'))
     return
   }
 
@@ -64,9 +67,9 @@ async function sync() {
     const created = await notifications.sync()
 
     if (created === null) {
-      toast.error('Could not check for new alerts.')
+      toast.error(t('notifications.checkFailed'))
     } else if (created.length === 0) {
-      toast.info('Nothing new — everything current is already here.')
+      toast.info(t('notifications.nothingNew'))
     } else {
       toast.success(`${created.length} new notification${created.length === 1 ? '' : 's'}.`)
     }
@@ -98,8 +101,8 @@ onMounted(() => {
 <template>
   <div>
     <PageHeader
-      title="Notifications"
-      subtitle="Alerts you have been shown. Checking again re-raises anything still true."
+      :title="t('notifications.title')"
+      :subtitle="t('notifications.subtitle')"
     >
       <template #actions>
         <BaseButton variant="primary" :loading="syncing" @click="sync">
@@ -117,14 +120,14 @@ onMounted(() => {
       <BaseEmptyState
         v-else-if="!items.length"
         :icon="tab === 'unread' ? 'check-circle' : 'bell'"
-        :title="tab === 'unread' ? 'Nothing unread' : 'No notifications yet'"
+        :title="tab === 'unread' ? t('notifications.nothingUnread') : t('notifications.emptyTitle')"
         :message="tab === 'unread'
           ? 'You are up to date.'
           : 'Use Check now to turn your current alerts into notifications you can work through.'"
         compact
       >
         <template v-if="tab === 'all'" #action>
-          <BaseButton variant="secondary" :loading="syncing" @click="sync">Check now</BaseButton>
+          <BaseButton variant="secondary" :loading="syncing" @click="sync">{{ t('notifications.checkNow') }}</BaseButton>
         </template>
       </BaseEmptyState>
 
@@ -161,11 +164,11 @@ onMounted(() => {
             v-if="!item.isRead"
             size="sm"
             variant="ghost"
-            title="Mark as read"
+            :title="t('notifications.markAsRead')"
             @click="markRead(item)"
           >
             <template #icon><BaseIcon name="check" :size="14" /></template>
-            <span class="note__action-label">Read</span>
+            <span class="note__action-label">{{ t('notifications.readTab') }}</span>
           </BaseButton>
         </motion.li>
       </ul>

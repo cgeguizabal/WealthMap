@@ -7,6 +7,9 @@ import BaseProgress from '@/components/base/BaseProgress.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   goals: { type: Object, default: null }
@@ -21,12 +24,12 @@ const percent = computed(() => {
 </script>
 
 <template>
-  <BaseCard title="Goals">
+  <BaseCard :title="t('dashboard.goalsTitle')">
     <BaseEmptyState
       v-if="!goals || goals.total === 0"
       icon="target"
-      title="No goals yet"
-      message="Set a target and WealthMap works out what you need to put aside each month."
+      :title="t('dashboard.noGoalsTitle')"
+      :message="t('dashboard.noGoalsMessage')"
       compact
     >
       <template #action>
@@ -51,15 +54,15 @@ const percent = computed(() => {
       <ul class="goals__stats">
         <li class="goals__stat">
           <span class="goals__stat-value numeric">{{ goals.total }}</span>
-          <span class="goals__stat-label">Total</span>
+          <span class="goals__stat-label">{{ t('common.total') }}</span>
         </li>
         <li class="goals__stat">
           <span class="goals__stat-value numeric">{{ goals.completed }}</span>
-          <span class="goals__stat-label">Completed</span>
+          <span class="goals__stat-label">{{ t('common.completed') }}</span>
         </li>
         <li class="goals__stat">
           <span class="goals__stat-value numeric">{{ goals.behindSchedule }}</span>
-          <span class="goals__stat-label">Behind</span>
+          <span class="goals__stat-label">{{ t('dashboard.behind') }}</span>
         </li>
       </ul>
 
@@ -69,7 +72,7 @@ const percent = computed(() => {
     </template>
 
     <template #footer>
-      <RouterLink to="/goals" class="goals__link">View all goals</RouterLink>
+      <RouterLink to="/goals" class="goals__link">{{ t('dashboard.viewAllGoals') }}</RouterLink>
     </template>
   </BaseCard>
 </template>

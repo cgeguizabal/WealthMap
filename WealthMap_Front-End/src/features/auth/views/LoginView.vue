@@ -2,10 +2,12 @@
 import { reactive, ref, computed } from 'vue'
 import { useRouter, useRoute, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { useI18n } from '@/composables/useI18n'
 import AuthShell from '../components/AuthShell.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
@@ -38,13 +40,13 @@ async function onSubmit() {
 </script>
 
 <template>
-  <AuthShell title="Sign in" subtitle="Pick up where your money left off.">
+  <AuthShell :title="t('auth.loginTitle')" :subtitle="t('auth.loginSubtitle')">
     <form class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.email"
-        label="Email"
+        :label="t('auth.email')"
         type="email"
         placeholder="you@example.com"
         autocomplete="email"
@@ -54,7 +56,7 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.password"
-        label="Password"
+        :label="t('auth.password')"
         type="password"
         placeholder="••••••••"
         autocomplete="current-password"
@@ -63,13 +65,13 @@ async function onSubmit() {
       />
 
       <BaseButton type="submit" variant="primary" size="lg" block :loading="submitting">
-        Sign in
+        {{ t('auth.signIn') }}
       </BaseButton>
     </form>
 
     <template #footer>
-      No account yet?
-      <RouterLink :to="{ name: 'register', query: route.query }">Create one</RouterLink>
+      {{ t('auth.noAccount') }}
+      <RouterLink :to="{ name: 'register', query: route.query }">{{ t('auth.createOne') }}</RouterLink>
     </template>
   </AuthShell>
 </template>

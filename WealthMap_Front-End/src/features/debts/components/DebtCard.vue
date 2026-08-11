@@ -7,6 +7,9 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   debt: { type: Object, required: true }
@@ -36,14 +39,14 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
 
       <div class="debt__figures">
         <div>
-          <span class="debt__label">Remaining</span>
+          <span class="debt__label">{{ t('debts.remaining') }}</span>
           <p class="debt__remaining numeric">
             {{ format(debt.remainingAmount, { currency: debt.currency }) }}
           </p>
         </div>
 
         <div class="debt__monthly">
-          <span class="debt__label">Monthly</span>
+          <span class="debt__label">{{ t('debts.monthly') }}</span>
           <p class="numeric">{{ format(debt.monthlyPayment, { currency: debt.currency }) }}</p>
         </div>
       </div>
@@ -64,7 +67,7 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
 
       <p class="debt__due">
         <template v-if="debt.nextDueDate">Next due {{ debt.nextDueDate }}</template>
-        <template v-else>Nothing further due</template>
+        <template v-else>{{ t('debts.nothingFurtherDue') }}</template>
       </p>
     </RouterLink>
 
@@ -78,7 +81,7 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
         v-if="debt.status === 'Active'"
         size="sm"
         variant="ghost"
-        title="Mark as defaulted"
+        :title="t('debts.markDefaulted')"
         @click="$emit('default', debt)"
       >
         Default
@@ -89,8 +92,8 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
       <BaseButton
         size="sm"
         variant="ghost"
-        title="Edit"
-        aria-label="Edit debt"
+        :title="t('common.edit')"
+        :aria-label="t('debts.editDebt')"
         @click="$emit('edit', debt)"
       >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
@@ -99,8 +102,8 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
       <BaseButton
         size="sm"
         variant="ghost"
-        title="Delete"
-        aria-label="Delete debt"
+        :title="t('common.delete')"
+        :aria-label="t('debts.deleteAria')"
         @click="$emit('delete', debt)"
       >
         <template #icon><BaseIcon name="trash" :size="14" /></template>

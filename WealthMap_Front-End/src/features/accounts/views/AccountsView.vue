@@ -85,18 +85,15 @@ async function toggleBlock(account) {
  */
 async function remove(account) {
   const balanceNote = account.balance !== 0
-    ? ` It still holds ${format(account.balance, { currency: account.currency })}.`
+    ? t('accounts.deleteBalanceNote', {
+        amount: format(account.balance, { currency: account.currency })
+      })
     : ''
 
   const confirmed = await confirmTwice({
     title: t('accounts.deleteTitle', { name: account.name }),
-    message:
-      `${account.name} will be removed from your accounts, balances and totals.` +
-      `${balanceNote} Its movement history is kept, and past purchases and ` +
-      'payments made from it stay on record.',
-    secondMessage:
-      `This removes ${account.name} from WealthMap. You will not be able to ` +
-      'deposit, withdraw or transfer with it again.'
+    message: t('accounts.deleteMessage', { name: account.name, balance: balanceNote }),
+    secondMessage: t('accounts.deleteSecond', { name: account.name })
   })
 
   if (!confirmed) return

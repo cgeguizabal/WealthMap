@@ -18,6 +18,9 @@ import UpcomingDueList from '../components/UpcomingDueList.vue'
 import GoalsSummaryCard from '../components/GoalsSummaryCard.vue'
 import MonthSummaryCard from '../components/MonthSummaryCard.vue'
 import ExcludedCurrenciesNotice from '../components/ExcludedCurrenciesNotice.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const dashboard = useDashboardStore()
 const auth = useAuthStore()
@@ -41,7 +44,7 @@ onMounted(() => {
 
 <template>
   <div class="dashboard">
-    <PageHeader :title="firstName ? `Good to see you, ${firstName}` : 'Dashboard'">
+    <PageHeader :title="firstName ? t('dashboard.greeting', { name: firstName }) : t('dashboard.title')">
       <template #subtitle>
         Everything below is computed from what you have recorded — nothing is estimated.
       </template>
@@ -49,7 +52,7 @@ onMounted(() => {
       <template #actions>
         <BaseButton variant="secondary" :loading="loading" @click="dashboard.load()">
           <template #icon><BaseIcon name="refresh" :size="15" /></template>
-          Refresh
+          {{ t('common.refresh') }}
         </BaseButton>
       </template>
     </PageHeader>
@@ -64,11 +67,11 @@ onMounted(() => {
     <BaseEmptyState
       v-else-if="error && !data"
       icon="alert"
-      title="Could not load your dashboard"
+      :title="t('dashboard.loadFailed')"
       :message="error.message"
     >
       <template #action>
-        <BaseButton variant="primary" @click="dashboard.load()">Try again</BaseButton>
+        <BaseButton variant="primary" @click="dashboard.load()">{{ t('common.tryAgain') }}</BaseButton>
       </template>
     </BaseEmptyState>
 
@@ -85,7 +88,7 @@ onMounted(() => {
       v-bind="fadeUp()"
       >
         <StatTile
-          label="Available"
+          :label="t('dashboard.available')"
           :value="format(data.totalAvailable)"
           icon="wallet"
           tone="positive"
@@ -94,7 +97,7 @@ onMounted(() => {
         </StatTile>
 
         <StatTile
-          label="Available credit"
+          :label="t('dashboard.availableCredit')"
           :value="format(data.totalAvailableCredit)"
           icon="card"
         >
@@ -103,7 +106,7 @@ onMounted(() => {
         </StatTile>
 
         <StatTile
-          label="Total debt"
+          :label="t('dashboard.totalDebt')"
           :value="format(data.totalDebt)"
           icon="debt"
           tone="negative"
@@ -117,12 +120,12 @@ onMounted(() => {
         </StatTile>
 
         <StatTile
-          label="Safe to spend"
+          :label="t('dashboard.safeToSpend')"
           :value="format(data.safeToSpend)"
           icon="target"
           :tone="data.safeToSpend < 0 ? 'negative' : 'accent'"
         >
-          Net income less committed payments this month
+          {{ t('dashboard.safeToSpendHint') }}
         </StatTile>
       </motion.section>
 
@@ -136,7 +139,7 @@ onMounted(() => {
       </section>
 
       <p class="dashboard__worth">
-        Net worth
+        {{ t('dashboard.netWorth') }}
         <strong class="numeric" :class="{ 'is-negative': data.netWorth < 0 }">
           {{ format(data.netWorth) }}
         </strong>

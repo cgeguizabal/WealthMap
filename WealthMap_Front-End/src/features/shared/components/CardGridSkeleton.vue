@@ -1,5 +1,8 @@
 <script setup>
 import BaseSkeleton from '@/components/base/BaseSkeleton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 /**
  * Placeholder for the card grids used by accounts, cards, plans, debts and
@@ -11,7 +14,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="grid" role="status" aria-label="Loading">
+  <div class="grid" role="status" :aria-label="t('common.loading')">
     <article v-for="n in count" :key="n" class="card">
       <div class="card__head">
         <BaseSkeleton width="55%" :height="15" />

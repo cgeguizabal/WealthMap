@@ -6,6 +6,9 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   goal: { type: Object, required: true },
@@ -60,22 +63,22 @@ const hasRequired = computed(() =>
 
     <dl class="goal__meta">
       <div v-if="goal.deadline">
-        <dt>Deadline</dt>
+        <dt>{{ t('goals.deadline') }}</dt>
         <dd>{{ goal.deadline }}</dd>
       </div>
       <div v-else>
-        <dt>Deadline</dt>
-        <dd class="is-muted">None set</dd>
+        <dt>{{ t('goals.deadline') }}</dt>
+        <dd class="is-muted">{{ t('goals.noneSet') }}</dd>
       </div>
 
       <div v-if="goal.monthsRemaining !== null && goal.monthsRemaining !== undefined">
-        <dt>Months left</dt>
+        <dt>{{ t('goals.monthsLeft') }}</dt>
         <dd class="numeric">{{ goal.monthsRemaining }}</dd>
       </div>
 
       <!-- Computed server-side from what is left and how many months remain -->
       <div v-if="hasRequired">
-        <dt>Needed monthly</dt>
+        <dt>{{ t('goals.neededMonthly') }}</dt>
         <dd class="numeric is-strong">
           {{ format(goal.requiredMonthlyContribution, { currency: goal.currency }) }}
         </dd>
@@ -94,7 +97,7 @@ const hasRequired = computed(() =>
         size="sm"
         variant="secondary"
         :disabled="isComplete"
-        :title="isComplete ? 'Target already reached' : undefined"
+        :title="isComplete ? t('goals.targetReached') : undefined"
         @click="$emit('contribute', goal)"
       >
         <template #icon><BaseIcon name="plus" :size="14" /></template>
@@ -106,8 +109,8 @@ const hasRequired = computed(() =>
       <BaseButton
         size="sm"
         variant="ghost"
-        title="Edit"
-        aria-label="Edit goal"
+        :title="t('common.edit')"
+        :aria-label="t('goals.editGoal')"
         @click="$emit('edit', goal)"
       >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
@@ -116,8 +119,8 @@ const hasRequired = computed(() =>
       <BaseButton
         size="sm"
         variant="ghost"
-        title="Delete"
-        aria-label="Delete goal"
+        :title="t('common.delete')"
+        :aria-label="t('goals.deleteAria')"
         @click="$emit('delete', goal)"
       >
         <template #icon><BaseIcon name="trash" :size="14" /></template>

@@ -2,6 +2,9 @@
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui.store'
 import BaseIcon from './BaseIcon.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 /**
  * Mounted once near the app root. Any component raises a toast through the UI
@@ -29,7 +32,7 @@ const ICON_BY_TYPE = {
           <p v-if="toast.message" class="toast__message">{{ toast.message }}</p>
         </div>
 
-        <button class="toast__close" type="button" aria-label="Dismiss" @click="ui.dismissToast(toast.id)">
+        <button class="toast__close" type="button" :aria-label="t('common.dismiss')" @click="ui.dismissToast(toast.id)">
           <BaseIcon name="x" :size="14" />
         </button>
       </div>

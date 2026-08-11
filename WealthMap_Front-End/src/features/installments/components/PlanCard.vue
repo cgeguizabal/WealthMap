@@ -6,6 +6,9 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   plan: { type: Object, required: true }
@@ -28,20 +31,20 @@ const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBa
           <h3 class="plan__name">{{ plan.productName }}</h3>
         </div>
 
-        <BaseBadge v-if="plan.isCompleted" variant="positive" size="sm">Paid off</BaseBadge>
+        <BaseBadge v-if="plan.isCompleted" variant="positive" size="sm">{{ t('installments.paidOff') }}</BaseBadge>
         <BaseBadge v-else size="sm">{{ paidCount }}/{{ plan.monthsCount }}</BaseBadge>
       </header>
 
       <div class="plan__figures">
         <div>
-          <span class="plan__label">Remaining</span>
+          <span class="plan__label">{{ t('installments.remaining') }}</span>
           <p class="plan__remaining numeric">
             {{ format(plan.remainingBalance, { currency: plan.currency }) }}
           </p>
         </div>
 
         <div class="plan__monthly">
-          <span class="plan__label">Monthly</span>
+          <span class="plan__label">{{ t('common.monthly') }}</span>
           <p class="numeric">{{ format(plan.monthlyPayment, { currency: plan.currency }) }}</p>
         </div>
       </div>

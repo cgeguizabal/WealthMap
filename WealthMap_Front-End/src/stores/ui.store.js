@@ -40,10 +40,13 @@ export const useUiStore = defineStore('ui', () => {
   function confirm(options = {}) {
     return new Promise((resolve) => {
       confirmState.value = {
-        title: options.title ?? 'Are you sure?',
+        // Left null rather than defaulted to English here: the dialog resolves
+        // the fallbacks, so they follow the language selector. A default baked in
+        // at this layer would be fixed at whatever language the caller ran in.
+        title: options.title ?? null,
         message: options.message ?? '',
-        confirmLabel: options.confirmLabel ?? 'Confirm',
-        cancelLabel: options.cancelLabel ?? 'Cancel',
+        confirmLabel: options.confirmLabel ?? null,
+        cancelLabel: options.cancelLabel ?? null,
         variant: options.variant ?? 'primary',
         confirmDelayMs: options.confirmDelayMs ?? 0,
         resolve

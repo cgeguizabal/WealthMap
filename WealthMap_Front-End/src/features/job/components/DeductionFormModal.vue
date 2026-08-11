@@ -9,6 +9,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -79,22 +82,22 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit deduction' : 'Add deduction'" size="sm">
+  <BaseModal v-model="open" :title="isEdit ? t('job.editDeduction') : t('job.addDeduction')" size="sm">
     <form id="deduction-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.name"
-        label="Name"
-        placeholder="Income tax"
+        :label="t('common.name')"
+        :placeholder="t('job.deductionNamePlaceholder')"
         required
-        hint="Copy it from your payslip — WealthMap does the arithmetic, not the tax law."
+        :hint="t('job.deductionNameHint')"
         :error="fieldError('name')"
       />
 
       <BaseSelect
         v-model="values.type"
-        label="Type"
+        :label="t('common.type')"
         :options="DEDUCTION_TYPE_OPTIONS"
         required
         :error="fieldError('type')"
@@ -102,7 +105,7 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.value"
-        :label="isPercentage ? 'Percentage' : 'Amount'"
+        :label="isPercentage ? t('job.percentage') : t('common.amount')"
         type="number"
         step="0.01"
         min="0"
@@ -116,11 +119,11 @@ async function onSubmit() {
 
       <div v-if="preview" class="preview" :class="{ 'preview--invalid': preview.isNegative }">
         <div class="preview__row">
-          <span>Takes off</span>
+          <span>{{ t('job.takesOff') }}</span>
           <span class="numeric">−{{ format(preview.reduction, { currency: job.currency }) }}</span>
         </div>
         <div class="preview__row preview__row--total">
-          <span>Net monthly becomes</span>
+          <span>{{ t('job.netBecomes') }}</span>
           <span class="numeric">{{ format(preview.net, { currency: job.currency }) }}</span>
         </div>
         <p v-if="preview.isNegative" class="preview__warning">
@@ -130,7 +133,7 @@ async function onSubmit() {
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="deduction-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save' : 'Add deduction' }}
       </BaseButton>

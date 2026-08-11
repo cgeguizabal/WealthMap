@@ -4,6 +4,9 @@ import { useMoney } from '@/composables/useMoney'
 import BaseCard from '@/components/base/BaseCard.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   data: { type: Object, required: true }
@@ -26,23 +29,23 @@ const ratioVariant = computed(() => {
 </script>
 
 <template>
-  <BaseCard title="This month">
+  <BaseCard :title="t('dashboard.thisMonth')">
     <dl class="month">
       <div class="month__row">
-        <dt>Net income</dt>
+        <dt>{{ t('dashboard.netIncome') }}</dt>
         <dd class="numeric">{{ format(data.monthlyNetIncome) }}</dd>
       </div>
 
       <div class="month__row">
         <dt>
-          Committed
+          {{ t('dashboard.committed') }}
           <span class="month__note">loans + next installments</span>
         </dt>
         <dd class="numeric">{{ format(data.monthlyObligations) }}</dd>
       </div>
 
       <div class="month__row month__row--total">
-        <dt>Safe to spend</dt>
+        <dt>{{ t('dashboard.safeToSpend') }}</dt>
         <dd class="numeric" :class="{ 'is-negative': data.safeToSpend < 0 }">
           {{ format(data.safeToSpend) }}
         </dd>
@@ -57,7 +60,7 @@ const ratioVariant = computed(() => {
         size="sm"
       >
         <template #label>
-          <span class="month__spent-label">Spent so far</span>
+          <span class="month__spent-label">{{ t('dashboard.spentSoFar') }}</span>
           <span class="month__spent numeric">{{ format(data.monthSpending) }}</span>
         </template>
       </BaseProgress>
@@ -68,7 +71,7 @@ const ratioVariant = computed(() => {
     </div>
 
     <div v-if="data.debtRatioPercentage !== null && data.debtRatioPercentage !== undefined" class="month__ratio">
-      <span class="month__ratio-label">Debt ratio</span>
+      <span class="month__ratio-label">{{ t('dashboard.debtRatio') }}</span>
       <BaseBadge :variant="ratioVariant" size="sm">
         {{ formatPercent(data.debtRatioPercentage, 2) }}
       </BaseBadge>

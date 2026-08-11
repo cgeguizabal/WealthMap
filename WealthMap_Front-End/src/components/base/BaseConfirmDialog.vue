@@ -2,6 +2,7 @@
 import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui.store'
+import { useI18n } from '@/composables/useI18n'
 import BaseModal from './BaseModal.vue'
 import BaseButton from './BaseButton.vue'
 
@@ -11,7 +12,13 @@ import BaseButton from './BaseButton.vue'
  * across callbacks.
  */
 const ui = useUiStore()
+const { t } = useI18n()
 const { confirmState } = storeToRefs(ui)
+
+/** Fallbacks live here, not in the store, so they follow the language selector. */
+const title = computed(() => confirmState.value?.title ?? t('common.areYouSure'))
+const confirmLabel = computed(() => confirmState.value?.confirmLabel ?? t('common.confirm'))
+const cancelLabel = computed(() => confirmState.value?.cancelLabel ?? t('common.cancel'))
 
 const isOpen = computed({
   get: () => confirmState.value !== null,
@@ -40,7 +47,7 @@ onBeforeUnmount(() => clearTimeout(armTimer))
 <template>
   <BaseModal
     v-model="isOpen"
-    :title="confirmState?.title"
+    :title="title"
     size="sm"
     :close-on-backdrop="false"
   >
@@ -48,14 +55,14 @@ onBeforeUnmount(() => clearTimeout(armTimer))
 
     <template #footer>
       <BaseButton variant="secondary" @click="ui.resolveConfirm(false)">
-        {{ confirmState?.cancelLabel }}
+        {{ cancelLabel }}
       </BaseButton>
       <BaseButton
         :variant="confirmState?.variant"
         :disabled="!armed"
         @click="ui.resolveConfirm(true)"
       >
-        {{ confirmState?.confirmLabel }}
+        {{ confirmLabel }}
       </BaseButton>
     </template>
   </BaseModal>

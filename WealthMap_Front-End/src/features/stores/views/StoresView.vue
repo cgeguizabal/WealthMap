@@ -14,6 +14,9 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 
 import StoreFormModal from '../components/StoreFormModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const { data: stores, loading, error, run: loadStores } = useAsync(storesApi.list, { initialData: [] })
 
@@ -46,8 +49,8 @@ onMounted(loadStores)
 <template>
   <div>
     <PageHeader
-      title="Stores"
-      subtitle="A shared catalogue — everyone sees every store, but only you can edit the ones you added."
+      :title="t('stores.title')"
+      :subtitle="t('stores.subtitle')"
     >
       <template #actions>
         <BaseButton variant="primary" @click="openCreate">
@@ -58,7 +61,7 @@ onMounted(loadStores)
     </PageHeader>
 
     <div class="search">
-      <BaseInput v-model="search" placeholder="Search by name or category">
+      <BaseInput v-model="search" :placeholder="t('stores.searchPlaceholder')">
         <template #prefix><BaseIcon name="search" :size="16" /></template>
       </BaseInput>
     </div>
@@ -68,25 +71,25 @@ onMounted(loadStores)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Could not load the catalogue"
+      :title="t('stores.loadFailed')"
       :message="error.message"
     >
-      <template #action><BaseButton variant="primary" @click="loadStores">Try again</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="loadStores">{{ t('common.tryAgain') }}</BaseButton></template>
     </BaseEmptyState>
 
     <BaseEmptyState
       v-else-if="!stores?.length"
       icon="store"
-      title="No stores yet"
-      message="Add the shops you buy from so purchases can point at them."
+      :title="t('stores.emptyTitle')"
+      :message="t('stores.emptyMessage')"
     >
-      <template #action><BaseButton variant="primary" @click="openCreate">Add a store</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="openCreate">{{ t('stores.addFirst') }}</BaseButton></template>
     </BaseEmptyState>
 
     <BaseEmptyState
       v-else-if="!filtered.length"
       icon="search"
-      title="No matches"
+      :title="t('stores.noMatches')"
       :message="`Nothing in the catalogue matches “${search}”.`"
       compact
     />
@@ -121,17 +124,17 @@ onMounted(loadStores)
             v-if="store.isMine"
             size="sm"
             variant="ghost"
-            title="Edit"
+            :title="t('common.edit')"
             @click="openEdit(store)"
           >
             <template #icon><BaseIcon name="pencil" :size="14" /></template>
-            <span class="sr-only">Edit</span>
+            <span class="sr-only">{{ t('common.edit') }}</span>
           </BaseButton>
         </div>
 
         <p v-if="store.description" class="store__description">{{ store.description }}</p>
 
-        <span v-if="store.isMine" class="store__mine">Added by you</span>
+        <span v-if="store.isMine" class="store__mine">{{ t('stores.addedByYou') }}</span>
       </article>
     </motion.div>
 

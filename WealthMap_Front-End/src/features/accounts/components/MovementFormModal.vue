@@ -8,6 +8,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -62,7 +65,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isDeposit ? 'Deposit' : 'Withdraw'" size="sm">
+  <BaseModal v-model="open" :title="isDeposit ? t('accounts.deposit') : t('accounts.withdraw')" size="sm">
     <form id="movement-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
@@ -73,7 +76,7 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.amount"
-        label="Amount"
+        :label="t('common.amount')"
         type="number"
         step="0.01"
         min="0"
@@ -87,17 +90,17 @@ async function onSubmit() {
       <BaseSelect
         v-if="isDeposit"
         v-model="values.type"
-        label="Kind"
+        :label="t('common.kind')"
         :options="DEPOSIT_TYPE_OPTIONS"
         required
-        hint="Salary and transfers are recorded automatically."
+        :hint="t('accounts.depositKindHint')"
         :error="fieldError('type')"
       />
 
       <BaseInput
         v-model="values.description"
-        label="Description"
-        :placeholder="isDeposit ? 'Cash deposit' : 'Groceries'"
+        :label="t('common.description')"
+        :placeholder="isDeposit ? t('accounts.depositPlaceholder') : t('accounts.withdrawPlaceholder')"
         required
         :error="fieldError('description')"
       />
@@ -105,15 +108,15 @@ async function onSubmit() {
       <BaseInput
         v-if="!isDeposit"
         v-model="values.location"
-        label="Location"
-        placeholder="Optional — ATM Reforma 222"
-        hint="Withdrawals are recorded as ATM withdrawals; cash then leaves tracking."
+        :label="t('common.location')"
+        :placeholder="t('accounts.locationPlaceholder')"
+        :hint="t('accounts.withdrawHint')"
         :error="fieldError('location')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="movement-form" variant="primary" :loading="submitting">
         {{ isDeposit ? 'Deposit' : 'Withdraw' }}
       </BaseButton>

@@ -5,6 +5,9 @@ import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import StoreFormModal from '@/features/stores/components/StoreFormModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 /**
  * The catalogue is shared, so the list is everyone's stores. Creating one inline
@@ -52,7 +55,7 @@ onMounted(load)
         :model-value="modelValue"
         :label="label"
         :options="options"
-        placeholder="No store"
+        :placeholder="t('stores.noStore')"
         :error="error"
         @update:model-value="emit('update:modelValue', $event)"
       />

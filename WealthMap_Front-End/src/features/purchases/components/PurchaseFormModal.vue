@@ -17,6 +17,9 @@ import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import StorePicker from '@/features/shared/components/StorePicker.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false }
@@ -147,23 +150,23 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="Record a purchase">
+  <BaseModal v-model="open" :title="t('purchases.recordTitle')">
     <form id="purchase-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.productName"
-        label="What did you buy?"
-        placeholder="Groceries"
+        :label="t('purchases.productName')"
+        :placeholder="t('purchases.productPlaceholder')"
         required
         :error="fieldError('productName')"
       />
 
       <!-- The method decides which fields below are required -->
       <div class="method">
-        <span class="method__label">Paid with</span>
+        <span class="method__label">{{ t('purchases.paidWith') }}</span>
 
-        <div class="method__options" role="radiogroup" aria-label="Payment method">
+        <div class="method__options" role="radiogroup" :aria-label="t('purchases.paymentMethod')">
           <button
             v-for="option in PAYMENT_METHOD_OPTIONS"
             :key="option.value"
@@ -183,9 +186,9 @@ async function onSubmit() {
       <BaseSelect
         v-if="isDebit"
         v-model="values.accountId"
-        label="Account"
+        :label="t('common.account')"
         :options="accountOptions"
-        :placeholder="accountOptions.length ? 'Choose an account' : 'No accounts yet'"
+        :placeholder="accountOptions.length ? t('purchases.chooseAccount') : t('purchases.noAccounts')"
         required
         :error="fieldError('accountId')"
       />
@@ -193,9 +196,9 @@ async function onSubmit() {
       <BaseSelect
         v-if="isCredit"
         v-model="values.creditCardId"
-        label="Card"
+        :label="t('purchases.card')"
         :options="cardOptions"
-        :placeholder="cardOptions.length ? 'Choose a card' : 'No cards yet'"
+        :placeholder="cardOptions.length ? t('purchases.chooseCard') : t('purchases.noCards')"
         required
         :error="fieldError('creditCardId')"
       />
@@ -203,17 +206,17 @@ async function onSubmit() {
       <BaseSelect
         v-if="isCash"
         v-model="values.currency"
-        label="Currency"
+        :label="t('common.currency')"
         :options="CURRENCIES"
         required
-        hint="Cash has no account to inherit a currency from."
+        :hint="t('purchases.cashCurrencyHint')"
         :error="fieldError('currency')"
       />
 
       <div class="form__row">
         <BaseInput
           v-model="values.amount"
-          label="Amount"
+          :label="t('common.amount')"
           type="number"
           step="0.01"
           min="0"
@@ -226,7 +229,7 @@ async function onSubmit() {
 
         <BaseInput
           v-model="values.occurredAt"
-          label="Date and time"
+          :label="t('common.dateAndTime')"
           type="datetime-local"
           :max="now()"
           :error="fieldError('occurredAt')"
@@ -235,9 +238,9 @@ async function onSubmit() {
 
       <BaseSelect
         v-model="values.category"
-        label="Category"
+        :label="t('common.category')"
         :options="categoryOptions"
-        placeholder="Choose a category"
+        :placeholder="t('common.chooseCategory')"
         required
         :error="fieldError('category')"
       />
@@ -246,14 +249,14 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.notes"
-        label="Notes"
-        placeholder="Optional"
+        :label="t('common.notes')"
+        :placeholder="t('common.optional')"
         :error="fieldError('notes')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="purchase-form" variant="primary" :loading="submitting">
         Record purchase
       </BaseButton>

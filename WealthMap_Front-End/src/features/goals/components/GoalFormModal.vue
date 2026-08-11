@@ -11,6 +11,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -123,15 +126,15 @@ async function onSubmit() {
 <template>
   <BaseModal
     v-model="open"
-    :title="isEdit ? 'Edit goal' : isSavings ? 'New savings goal' : 'New product goal'"
+    :title="isEdit ? t('goals.editGoal') : isSavings ? t('goals.newSavingsGoal') : t('goals.newProductGoal')"
   >
     <form id="goal-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.name"
-        label="Name"
-        :placeholder="isSavings ? 'Emergency fund' : 'PlayStation 6'"
+        :label="t('common.name')"
+        :placeholder="isSavings ? t('goals.savingsPlaceholder') : t('goals.productPlaceholder')"
         required
         :error="fieldError('name')"
       />
@@ -139,7 +142,7 @@ async function onSubmit() {
       <div class="form__row">
         <BaseInput
           v-model="values.targetAmount"
-          label="Target"
+          :label="t('goals.target')"
           type="number"
           step="0.01"
           min="0"
@@ -150,7 +153,7 @@ async function onSubmit() {
         <BaseSelect
           v-if="!isEdit"
           v-model="values.currency"
-          label="Currency"
+          :label="t('common.currency')"
           :options="CURRENCIES"
           required
           :error="fieldError('currency')"
@@ -160,18 +163,18 @@ async function onSubmit() {
       <BaseInput
         v-if="!isEdit"
         v-model="values.currentAmount"
-        label="Already saved"
+        :label="t('goals.alreadySaved')"
         type="number"
         step="0.01"
         min="0"
         placeholder="0.00"
-        hint="Optional — what you have put aside for this already."
+        :hint="t('goals.alreadySavedHint')"
         :error="fieldError('currentAmount')"
       />
 
       <BaseInput
         v-model="values.deadline"
-        label="Deadline"
+        :label="t('goals.deadline')"
         type="date"
         :min="today()"
         :required="isSavings"
@@ -184,16 +187,16 @@ async function onSubmit() {
       <BaseSelect
         v-if="isSavings"
         v-model="values.linkedAccountId"
-        label="Linked savings account"
+        :label="t('goals.linkedAccount')"
         :options="linkOptions"
-        :placeholder="linkOptions.length ? 'None — track only' : 'No savings account in this currency'"
-        hint="Link one and contributing moves real money into it."
+        :placeholder="linkOptions.length ? t('goals.trackOnly') : t('goals.noSavingsAccount')"
+        :hint="t('goals.linkHint')"
         :error="fieldError('linkedAccountId')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="goal-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Create goal' }}
       </BaseButton>

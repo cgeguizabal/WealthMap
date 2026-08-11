@@ -19,6 +19,9 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import MovementsTable from '../components/MovementsTable.vue'
 import MovementFormModal from '../components/MovementFormModal.vue'
 import AccountFormModal from '../components/AccountFormModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const toast = useToast()
@@ -67,10 +70,10 @@ async function toggleBlock() {
   try {
     if (account.value.isBlockedForSaving) {
       await accountsApi.unblock(accountId)
-      toast.success('Account unblocked.')
+      toast.success(t('accounts.accountUnblocked'))
     } else {
       await accountsApi.block(accountId)
-      toast.success('Account blocked for saving.')
+      toast.success(t('accounts.accountBlocked'))
     }
     loadAccount()
   } catch (err) {
@@ -96,11 +99,11 @@ onMounted(() => {
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Account not found"
-      message="It may have been removed, or it is not yours."
+      :title="t('accounts.notFound')"
+      :message="t('common.notFoundHint')"
     >
       <template #action>
-        <BaseButton variant="secondary" @click="$router.push('/accounts')">Back to accounts</BaseButton>
+        <BaseButton variant="secondary" @click="$router.push('/accounts')">{{ t('accounts.backToAccounts') }}</BaseButton>
       </template>
     </BaseEmptyState>
 
@@ -130,7 +133,7 @@ onMounted(() => {
 
       <div class="summary">
         <div class="summary__balance">
-          <span class="summary__label">Current balance</span>
+          <span class="summary__label">{{ t('accounts.currentBalance') }}</span>
           <span class="summary__value numeric">
             {{ format(account.balance, { currency: account.currency }) }}
           </span>
@@ -156,7 +159,7 @@ onMounted(() => {
         <p v-if="account.notes" class="summary__notes">{{ account.notes }}</p>
       </div>
 
-      <BaseCard title="Movements" subtitle="Newest first — every balance change is recorded" :padded="false">
+      <BaseCard :title="t('accounts.movements')" :subtitle="t('accounts.movementsSubtitle')" :padded="false">
         <MovementsTable
           :movements="movements"
           :loading="loadingMovements"

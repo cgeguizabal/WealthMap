@@ -6,6 +6,9 @@ import AuthShell from '../components/AuthShell.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -57,14 +60,14 @@ async function onSubmit() {
 </script>
 
 <template>
-  <AuthShell title="Create your account" subtitle="Takes a minute. Your data stays yours.">
+  <AuthShell :title="t('auth.registerTitle')" :subtitle="t('auth.registerSubtitle')">
     <form class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.fullName"
-        label="Full name"
-        placeholder="Ada Lovelace"
+        :label="t('auth.fullName')"
+        :placeholder="t('auth.fullNamePlaceholder')"
         autocomplete="name"
         required
         :error="fieldErrors.fullName"
@@ -72,7 +75,7 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.email"
-        label="Email"
+        :label="t('auth.email')"
         type="email"
         placeholder="you@example.com"
         autocomplete="email"
@@ -82,19 +85,19 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.password"
-        label="Password"
+        :label="t('auth.password')"
         type="password"
-        placeholder="At least 8 characters"
+        :placeholder="t('auth.passwordPlaceholder')"
         autocomplete="new-password"
-        hint="Minimum 8 characters."
+        :hint="t('auth.passwordHint')"
         required
         :error="fieldErrors.password"
       />
 
       <BaseInput
         v-model="values.country"
-        label="Country"
-        placeholder="El Salvador"
+        :label="t('auth.country')"
+        :placeholder="t('auth.countryPlaceholder')"
         autocomplete="country-name"
         required
         :error="fieldErrors.country"
@@ -105,21 +108,21 @@ async function onSubmit() {
            later, so it is worth the room. -->
       <BaseSelect
         v-model="values.currency"
-        label="Currency"
+        :label="t('common.currency')"
         :options="CURRENCIES"
         required
-        hint="Every total in WealthMap is shown in this currency."
+        :hint="t('auth.currencyHint')"
         :error="fieldErrors.currency"
       />
 
       <BaseButton type="submit" variant="primary" size="lg" block :loading="submitting">
-        Create account
+        {{ t('auth.signUp') }}
       </BaseButton>
     </form>
 
     <template #footer>
-      Already have an account?
-      <RouterLink :to="{ name: 'login', query: route.query }">Sign in</RouterLink>
+      {{ t('auth.haveAccount') }}
+      <RouterLink :to="{ name: 'login', query: route.query }">{{ t('auth.signIn') }}</RouterLink>
     </template>
   </AuthShell>
 </template>

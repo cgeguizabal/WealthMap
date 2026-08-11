@@ -1,6 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import BaseIcon from './BaseIcon.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   page: { type: Number, required: true },
@@ -43,7 +46,7 @@ function go(page) {
 </script>
 
 <template>
-  <nav v-if="totalPages > 1" class="pagination" aria-label="Pagination">
+  <nav v-if="totalPages > 1" class="pagination" :aria-label="t('common.pagination')">
     <p class="pagination__summary numeric">
       {{ from }}–{{ to }} of {{ totalCount }}
     </p>
@@ -53,7 +56,7 @@ function go(page) {
         class="pagination__btn"
         type="button"
         :disabled="!hasPreviousPage"
-        aria-label="Previous page"
+        :aria-label="t('common.previousPage')"
         @click="go(page - 1)"
       >
         <BaseIcon name="chevron-left" :size="16" />
@@ -77,7 +80,7 @@ function go(page) {
         class="pagination__btn"
         type="button"
         :disabled="!hasNextPage"
-        aria-label="Next page"
+        :aria-label="t('common.nextPage')"
         @click="go(page + 1)"
       >
         <BaseIcon name="chevron-right" :size="16" />

@@ -18,6 +18,9 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import DebtPaymentModal from '../components/DebtPaymentModal.vue'
 import DebtFormModal from '../components/DebtFormModal.vue'
 import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const { format } = useMoney()
@@ -60,11 +63,11 @@ onMounted(() => {
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Debt not found"
-      message="It may have been removed, or it is not yours."
+      :title="t('debts.notFound')"
+      :message="t('common.notFoundHint')"
     >
       <template #action>
-        <BaseButton variant="secondary" @click="$router.push('/debts')">Back to debts</BaseButton>
+        <BaseButton variant="secondary" @click="$router.push('/debts')">{{ t('debts.backToDebts') }}</BaseButton>
       </template>
     </BaseEmptyState>
 
@@ -95,7 +98,7 @@ onMounted(() => {
       <div class="summary">
         <div class="summary__top">
           <div>
-            <span class="summary__label">Remaining</span>
+            <span class="summary__label">{{ t('debts.remaining') }}</span>
             <p class="summary__value numeric">
               {{ format(debt.remainingAmount, { currency: debt.currency }) }}
             </p>
@@ -115,26 +118,26 @@ onMounted(() => {
 
         <dl class="summary__meta">
           <div>
-            <dt>Original</dt>
+            <dt>{{ t('debts.original') }}</dt>
             <dd class="numeric">{{ format(debt.originalAmount, { currency: debt.currency }) }}</dd>
           </div>
           <div>
-            <dt>Monthly payment</dt>
+            <dt>{{ t('debts.monthlyPayment') }}</dt>
             <dd class="numeric">{{ format(debt.monthlyPayment, { currency: debt.currency }) }}</dd>
           </div>
           <div>
-            <dt>Due day</dt>
+            <dt>{{ t('debts.dueDay') }}</dt>
             <dd class="numeric">{{ debt.monthlyDueDay }}</dd>
           </div>
         </dl>
       </div>
 
-      <BaseCard title="Payments" subtitle="From an account or externally" :padded="false">
+      <BaseCard :title="t('debts.payments')" :subtitle="t('debts.paymentsSubtitle')" :padded="false">
         <PaymentsTable
           :payments="payments ?? []"
           :loading="loadingPayments"
           :show-target="false"
-          empty-message="Payments against this debt appear here, including those paid in cash."
+          :empty-message="t('debts.paymentsEmpty')"
         />
       </BaseCard>
 

@@ -16,6 +16,9 @@ import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 
 import PayInstallmentModal from '../components/PayInstallmentModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const { format } = useMoney()
@@ -57,11 +60,11 @@ onMounted(loadPlan)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Plan not found"
-      message="It may have been removed, or it is not yours."
+      :title="t('installments.notFound')"
+      :message="t('common.notFoundHint')"
     >
       <template #action>
-        <BaseButton variant="secondary" @click="$router.push('/installments')">Back to plans</BaseButton>
+        <BaseButton variant="secondary" @click="$router.push('/installments')">{{ t('installments.backToPlans') }}</BaseButton>
       </template>
     </BaseEmptyState>
 
@@ -81,19 +84,19 @@ onMounted(loadPlan)
       <div class="summary">
         <div class="summary__figures">
           <div>
-            <span class="summary__label">Remaining</span>
+            <span class="summary__label">{{ t('installments.remaining') }}</span>
             <p class="summary__value numeric">
               {{ format(plan.remainingBalance, { currency: plan.currency }) }}
             </p>
           </div>
           <div>
-            <span class="summary__label">Monthly</span>
+            <span class="summary__label">{{ t('common.monthly') }}</span>
             <p class="summary__value numeric">
               {{ format(plan.monthlyPayment, { currency: plan.currency }) }}
             </p>
           </div>
           <div>
-            <span class="summary__label">Total price</span>
+            <span class="summary__label">{{ t('installments.totalPrice') }}</span>
             <p class="summary__value numeric">
               {{ format(plan.totalPrice, { currency: plan.currency }) }}
             </p>
@@ -104,11 +107,11 @@ onMounted(loadPlan)
           :value="paidAmount"
           :max="plan.totalPrice"
           :variant="plan.isCompleted ? 'positive' : 'accent'"
-          :label="plan.isCompleted ? 'Fully paid' : `${plan.remainingMonths} of ${plan.monthsCount} left · ends ${plan.endDate}`"
+          :label="plan.isCompleted ? t('installments.fullyPaid') : t('installments.monthsLeft', { remaining: plan.remainingMonths, total: plan.monthsCount, date: plan.endDate })"
         />
       </div>
 
-      <BaseCard title="Schedule" subtitle="Generated when the plan was created" :padded="false">
+      <BaseCard :title="t('installments.schedule')" :subtitle="t('installments.scheduleSubtitle')" :padded="false">
         <ol class="schedule">
           <li
             v-for="item in schedule"
@@ -125,9 +128,9 @@ onMounted(loadPlan)
               <span class="schedule__due">Due {{ item.dueDate }}</span>
             </div>
 
-            <BaseBadge v-if="item.isPaid" variant="positive" size="sm">Paid</BaseBadge>
-            <BaseBadge v-else-if="item.number === nextNumber" variant="warning" size="sm">Next</BaseBadge>
-            <BaseBadge v-else size="sm">Scheduled</BaseBadge>
+            <BaseBadge v-if="item.isPaid" variant="positive" size="sm">{{ t('common.paid') }}</BaseBadge>
+            <BaseBadge v-else-if="item.number === nextNumber" variant="warning" size="sm">{{ t('common.next') }}</BaseBadge>
+            <BaseBadge v-else size="sm">{{ t('installments.scheduled') }}</BaseBadge>
           </li>
         </ol>
       </BaseCard>

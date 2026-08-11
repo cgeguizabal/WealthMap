@@ -3,6 +3,9 @@ import { useMoney } from '@/composables/useMoney'
 import BaseCard from '@/components/base/BaseCard.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 defineProps({
   items: { type: Array, default: () => [] }
@@ -29,12 +32,12 @@ function relativeDay(days) {
 </script>
 
 <template>
-  <BaseCard title="Upcoming" subtitle="Next 30 days" :padded="false">
+  <BaseCard :title="t('dashboard.upcoming')" :subtitle="t('dashboard.next30Days')" :padded="false">
     <BaseEmptyState
       v-if="items.length === 0"
       icon="check-circle"
-      title="Nothing due"
-      message="No card, debt or installment payments in the next 30 days."
+      :title="t('dashboard.nothingDue')"
+      :message="t('dashboard.nothingDueMessage')"
       compact
     />
 

@@ -17,6 +17,9 @@ import CardGridSkeleton from '@/features/shared/components/CardGridSkeleton.vue'
 import PlanCard from '../components/PlanCard.vue'
 import PlanFormModal from '../components/PlanFormModal.vue'
 import PayInstallmentModal from '../components/PayInstallmentModal.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const { format } = useMoney()
 const dashboard = useDashboardStore()
@@ -64,20 +67,20 @@ onMounted(loadPlans)
 <template>
   <div>
     <PageHeader
-      title="Installments"
-      subtitle="Interest-free plans. The full price is charged to the card up front, then repaid month by month."
+      :title="t('installments.title')"
+      :subtitle="t('installments.subtitle')"
     >
       <template #actions>
         <BaseButton variant="primary" @click="formOpen = true">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
-          New plan
+          {{ t('installments.newPlan') }}
         </BaseButton>
       </template>
     </PageHeader>
 
     <div v-if="outstanding.length" class="totals">
       <div v-for="entry in outstanding" :key="entry.currency" class="totals__item">
-        <span class="totals__label">Still to pay</span>
+        <span class="totals__label">{{ t('installments.stillToPay') }}</span>
         <span class="totals__value numeric">{{ format(entry.total, { currency: entry.currency }) }}</span>
       </div>
     </div>
@@ -87,19 +90,19 @@ onMounted(loadPlans)
     <BaseEmptyState
       v-else-if="error"
       icon="alert"
-      title="Could not load your plans"
+      :title="t('installments.loadFailed')"
       :message="error.message"
     >
-      <template #action><BaseButton variant="primary" @click="loadPlans">Try again</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="loadPlans">{{ t('common.tryAgain') }}</BaseButton></template>
     </BaseEmptyState>
 
     <BaseEmptyState
       v-else-if="!plans?.length"
       icon="layers"
-      title="No installment plans"
-      message="Split a purchase across months at no interest. The card is charged in full today."
+      :title="t('installments.emptyTitle')"
+      :message="t('installments.emptyMessage')"
     >
-      <template #action><BaseButton variant="primary" @click="formOpen = true">Create a plan</BaseButton></template>
+      <template #action><BaseButton variant="primary" @click="formOpen = true">{{ t('installments.addFirst') }}</BaseButton></template>
     </BaseEmptyState>
 
     <template v-else>
@@ -108,8 +111,8 @@ onMounted(loadPlans)
       <BaseEmptyState
         v-if="!visible.length"
         :icon="tab === 'active' ? 'check-circle' : 'layers'"
-        :title="tab === 'active' ? 'Nothing outstanding' : 'Nothing completed yet'"
-        :message="tab === 'active' ? 'Every plan is paid off.' : 'Plans appear here once the last installment is paid.'"
+        :title="tab === 'active' ? t('installments.nothingOutstanding') : t('installments.nothingCompleted')"
+        :message="tab === 'active' ? t('installments.allPaidOff') : t('installments.completedHint')"
         compact
       />
 

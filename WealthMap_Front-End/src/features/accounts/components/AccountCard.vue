@@ -4,6 +4,9 @@ import { useMoney } from '@/composables/useMoney'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 defineProps({
   account: { type: Object, required: true }
@@ -27,7 +30,7 @@ const { format } = useMoney()
         </div>
 
         <BaseBadge :variant="account.type === 'Savings' ? 'accent' : 'neutral'" size="sm">
-          {{ account.type }}
+          {{ account.type === 'Savings' ? t('accounts.savings') : t('accounts.checking') }}
         </BaseBadge>
       </header>
 
@@ -36,7 +39,7 @@ const { format } = useMoney()
       </p>
 
       <BaseBadge v-if="account.isBlockedForSaving" variant="warning" size="sm">
-        Blocked for saving
+        {{ t('accounts.blocked') }}
       </BaseBadge>
 
       <p v-if="account.notes" class="account__notes">{{ account.notes }}</p>
@@ -45,18 +48,18 @@ const { format } = useMoney()
     <footer class="account__actions">
       <BaseButton size="sm" variant="secondary" @click="$emit('deposit', account)">
         <template #icon><BaseIcon name="plus" :size="14" /></template>
-        Deposit
+        {{ t('accounts.deposit') }}
       </BaseButton>
 
       <BaseButton
         size="sm"
         variant="secondary"
         :disabled="account.isBlockedForSaving"
-        :title="account.isBlockedForSaving ? 'Unblock the account to withdraw' : undefined"
+        :title="account.isBlockedForSaving ? t('accounts.unblockToWithdraw') : undefined"
         @click="$emit('withdraw', account)"
       >
         <template #icon><BaseIcon name="minus" :size="14" /></template>
-        Withdraw
+        {{ t('accounts.withdraw') }}
       </BaseButton>
 
       <div class="account__spacer" />
@@ -64,8 +67,8 @@ const { format } = useMoney()
       <BaseButton
         size="sm"
         variant="ghost"
-        :title="account.isBlockedForSaving ? 'Unblock' : 'Block for saving'"
-        :aria-label="account.isBlockedForSaving ? 'Unblock account' : 'Block account for saving'"
+        :title="account.isBlockedForSaving ? t('accounts.unblock') : t('accounts.block')"
+        :aria-label="account.isBlockedForSaving ? t('accounts.unblockAria') : t('accounts.blockAria')"
         @click="$emit('toggle-block', account)"
       >
         <template #icon>
@@ -76,8 +79,8 @@ const { format } = useMoney()
       <BaseButton
         size="sm"
         variant="ghost"
-        title="Edit"
-        aria-label="Edit account"
+        :title="t('common.edit')"
+        :aria-label="t('accounts.editAccount')"
         @click="$emit('edit', account)"
       >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
@@ -87,8 +90,8 @@ const { format } = useMoney()
         class="account__delete"
         size="sm"
         variant="ghost"
-        title="Delete"
-        aria-label="Delete account"
+        :title="t('common.delete')"
+        :aria-label="t('accounts.deleteAria')"
         @click="$emit('delete', account)"
       >
         <template #icon><BaseIcon name="trash" :size="14" /></template>

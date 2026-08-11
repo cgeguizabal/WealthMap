@@ -1,6 +1,9 @@
 <script setup>
 import { motion } from 'motion-v'
 import { fadeUp } from '@/composables/useMotionSafe'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 defineProps({
   title: { type: String, required: true },
@@ -31,7 +34,7 @@ defineProps({
       </footer>
     </motion.div>
 
-    <p class="auth__legal">Your money, mapped. Figures are computed, never guessed.</p>
+    <p class="auth__legal">{{ t('auth.brandTagline') }}</p>
   </main>
 </template>
 

@@ -11,6 +11,9 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -97,7 +100,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="Add to goal" size="sm">
+  <BaseModal v-model="open" :title="t('goals.contributeTitle')" size="sm">
     <form id="contribute-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
@@ -114,7 +117,7 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.amount"
-        label="Amount"
+        :label="t('common.amount')"
         type="number"
         step="0.01"
         min="0"
@@ -132,9 +135,9 @@ async function onSubmit() {
       <template v-if="isLinked">
         <BaseSelect
           v-model="values.sourceAccountId"
-          label="Move from"
+          :label="t('goals.moveFrom')"
           :options="sourceOptions"
-          :placeholder="sourceOptions.length ? 'Choose an account' : 'No eligible accounts'"
+          :placeholder="sourceOptions.length ? t('goals.chooseAccount') : t('goals.noEligibleAccounts')"
           required
           :error="fieldError('sourceAccountId')"
         />
@@ -154,7 +157,7 @@ async function onSubmit() {
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="contribute-form" variant="primary" :loading="submitting">
         Contribute
       </BaseButton>

@@ -7,6 +7,9 @@ import { useMoney } from '@/composables/useMoney'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -41,7 +44,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="Update credit limit" size="sm">
+  <BaseModal v-model="open" :title="t('cards.updateLimit')" size="sm">
     <form id="limit-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
@@ -52,12 +55,12 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.newLimit"
-        label="New limit"
+        :label="t('cards.newLimit')"
         type="number"
         step="0.01"
         min="0"
         required
-        hint="Cannot be set below what is currently owed."
+        :hint="t('cards.limitHint')"
         :error="fieldError('newLimit')"
       >
         <template #prefix>{{ card?.currency }}</template>
@@ -65,9 +68,9 @@ async function onSubmit() {
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="limit-form" variant="primary" :loading="submitting">
-        Update limit
+        {{ t('cards.updateLimit') }}
       </BaseButton>
     </template>
   </BaseModal>

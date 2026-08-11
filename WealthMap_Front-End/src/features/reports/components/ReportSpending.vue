@@ -4,6 +4,9 @@ import { useDateTime } from '@/composables/useDateTime'
 import BaseCard from '@/components/base/BaseCard.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 defineProps({
   spending: { type: Object, required: true },
@@ -18,11 +21,11 @@ const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: '
 
 <template>
   <div class="spending">
-    <BaseCard title="Spending by category" :padded="false">
+    <BaseCard :title="t('reports.spendingByCategory')" :padded="false">
       <BaseEmptyState
         v-if="!spending.byCategory.length"
         icon="bag"
-        title="No purchases this month"
+        :title="t('reports.nothingToShow')"
         compact
       />
 
@@ -54,8 +57,8 @@ const METHOD_LABEL = { DebitAccount: 'Debit', CreditCard: 'Credit card', Cash: '
       </template>
     </BaseCard>
 
-    <BaseCard title="Largest expenses" subtitle="The five biggest single purchases" :padded="false">
-      <BaseEmptyState v-if="!spending.topExpenses.length" icon="bag" title="Nothing to show" compact />
+    <BaseCard :title="t('reports.largestExpenses')" :subtitle="t('reports.largestExpensesSubtitle')" :padded="false">
+      <BaseEmptyState v-if="!spending.topExpenses.length" icon="bag" :title="t('reports.nothingToShow')" compact />
 
       <ol v-else class="top">
         <li

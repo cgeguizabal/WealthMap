@@ -8,6 +8,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -83,22 +86,22 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="isEdit ? 'Edit account' : 'New account'">
+  <BaseModal v-model="open" :title="isEdit ? t('accounts.editAccount') : t('accounts.newAccount')">
     <form id="account-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseInput
         v-model="values.name"
-        label="Account name"
-        placeholder="Everyday checking"
+        :label="t('accounts.accountName')"
+        :placeholder="t('accounts.accountNamePlaceholder')"
         required
         :error="fieldError('name')"
       />
 
       <BaseInput
         v-model="values.bankName"
-        label="Bank"
-        placeholder="BBVA"
+        :label="t('accounts.bankName')"
+        :placeholder="t('accounts.bankPlaceholder')"
         required
         :error="fieldError('bankName')"
       />
@@ -107,16 +110,16 @@ async function onSubmit() {
         <div class="form__row">
           <BaseSelect
             v-model="values.type"
-            label="Type"
+            :label="t('common.type')"
             :options="ACCOUNT_TYPE_OPTIONS"
             required
-            hint="Savings accounts can be blocked."
+            :hint="t('accounts.typeHint')"
             :error="fieldError('type')"
           />
 
           <BaseSelect
             v-model="values.currency"
-            label="Currency"
+            :label="t('common.currency')"
             :options="CURRENCIES"
             required
             :error="fieldError('currency')"
@@ -125,12 +128,12 @@ async function onSubmit() {
 
         <BaseInput
           v-model="values.openingBalance"
-          label="Opening balance"
+          :label="t('accounts.openingBalance')"
           type="number"
           step="0.01"
           min="0"
           placeholder="0.00"
-          hint="What is in the account today. Cannot be changed later — use deposits."
+          :hint="t('accounts.openingBalanceHint')"
           :error="fieldError('openingBalance')"
         />
       </template>
@@ -138,14 +141,14 @@ async function onSubmit() {
       <BaseInput
         v-if="isEdit"
         v-model="values.notes"
-        label="Notes"
-        placeholder="Optional"
+        :label="t('common.notes')"
+        :placeholder="t('common.optional')"
         :error="fieldError('notes')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="account-form" variant="primary" :loading="submitting">
         {{ isEdit ? 'Save changes' : 'Create account' }}
       </BaseButton>

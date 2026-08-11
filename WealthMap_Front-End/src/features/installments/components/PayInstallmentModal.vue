@@ -11,6 +11,9 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import PaymentSourcePicker from '@/features/shared/components/PaymentSourcePicker.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -71,7 +74,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="Pay next installment" size="sm">
+  <BaseModal v-model="open" :title="t('installments.payNextTitle')" size="sm">
     <form id="pay-installment-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
@@ -95,14 +98,14 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.notes"
-        label="Notes"
-        placeholder="Optional"
+        :label="t('common.notes')"
+        :placeholder="t('common.optional')"
         :error="fieldError('notes')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="pay-installment-form" variant="primary" :loading="submitting">
         Pay installment
       </BaseButton>

@@ -9,6 +9,9 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseIcon from '@/components/base/BaseIcon.vue'
+import { useI18n } from '@/composables/useI18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -84,15 +87,15 @@ async function onSubmit() {
 </script>
 
 <template>
-  <BaseModal v-model="open" title="Transfer between accounts">
+  <BaseModal v-model="open" :title="t('accounts.transferTitle')">
     <form id="transfer-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <BaseSelect
         v-model="values.fromAccountId"
-        label="From"
+        :label="t('accounts.from')"
         :options="fromOptions"
-        placeholder="Choose an account"
+        :placeholder="t('accounts.chooseAccount')"
         required
         :error="fieldError('fromAccountId')"
       />
@@ -103,18 +106,18 @@ async function onSubmit() {
 
       <BaseSelect
         v-model="values.toAccountId"
-        label="To"
+        :label="t('accounts.to')"
         :options="toOptions"
-        :placeholder="values.fromAccountId ? 'Choose an account' : 'Pick a source first'"
+        :placeholder="values.fromAccountId ? t('accounts.chooseAccount') : t('accounts.pickSourceFirst')"
         :disabled="!values.fromAccountId"
         required
-        :hint="from ? `Only ${from.currency} accounts — there is no conversion.` : ''"
+        :hint="from ? t('accounts.sameCurrencyHint', { currency: from.currency }) : ''"
         :error="fieldError('toAccountId')"
       />
 
       <BaseInput
         v-model="values.amount"
-        label="Amount"
+        :label="t('common.amount')"
         type="number"
         step="0.01"
         min="0"
@@ -127,16 +130,16 @@ async function onSubmit() {
 
       <BaseInput
         v-model="values.description"
-        label="Description"
-        placeholder="Optional"
+        :label="t('common.description')"
+        :placeholder="t('common.optional')"
         :error="fieldError('description')"
       />
     </form>
 
     <template #footer>
-      <BaseButton variant="secondary" @click="open = false">Cancel</BaseButton>
+      <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="transfer-form" variant="primary" :loading="submitting">
-        Transfer
+        {{ t('accounts.transfer') }}
       </BaseButton>
     </template>
   </BaseModal>
