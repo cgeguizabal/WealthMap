@@ -338,9 +338,11 @@ The `paymentMethod` decides which fields are required:
 only cash needs it explicitly. A debit purchase exceeding the balance, or a credit purchase
 exceeding available credit → **400**, with nothing written.
 
-### `GET /api/v1/purchases?year=2026&month=8&category=food&page=1&pageSize=20`
+### `GET /api/v1/purchases?year=2026&month=8&category=food&creditCardId=…&page=1&pageSize=20`
 
-Paged, newest first. `category` is case-insensitive. `month` requires `year` → **400** otherwise.
+Paged, newest first. All filters are optional and compose. `category` is case-insensitive.
+`month` requires `year` → **400** otherwise. `creditCardId` narrows to the purchases charged to one
+card; a malformed GUID → **400**, an unknown one → an empty page.
 
 ```json
 { "id": "...", "productName": "Groceries", "amount": 85.50, "currency": "USD",

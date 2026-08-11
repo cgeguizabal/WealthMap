@@ -76,26 +76,20 @@ history, so archiving is the safer shape).
 
 ---
 
-## 5. Purchases cannot be filtered by the card or account that paid
+## 5. Purchases cannot be filtered by the card or account that paid — ✅ RESOLVED
 
 **Found:** showing, on a credit card's detail screen, the purchases that created its balance.
 
-`GET /api/v1/purchases` filters by `year`, `month` and `category` only. There is no
-`creditCardId` or `accountId` parameter, and no `GET /credit-cards/{id}/purchases`.
+`GET /api/v1/purchases` filtered by `year`, `month` and `category` only, so the card detail had to
+fetch the most recent 100 purchases and filter client-side — incomplete for anyone with a longer
+history.
 
-**Impact:** a card's page can show what has been *paid off* (there is an endpoint for that) but not
-what was *charged to it*, which is the more useful half.
+**Resolved** by adding an optional `creditCardId` filter to `GET /api/v1/purchases`
+(`GetPurchasesQuery` → `PurchaseRepository.Filter`). No schema change was needed: the foreign key to
+`credit_cards` is already indexed. The frontend now asks for exactly the card's purchases.
 
-**Workaround in place:** the card detail fetches the most recent 100 purchases and filters them
-client-side by `creditCardId`. Installment plans are handled properly, because
-`GET /installment-purchases` returns every plan with its `creditCardId`.
-
-**The limitation this leaves:** if a user has more than 100 purchases since a card was charged, older
-charges on that card will not appear. The screen says "recent charges" rather than implying it is
-complete.
-
-**Ideal fix:** add `creditCardId` and `accountId` as optional filters on `GET /api/v1/purchases` —
-both columns are already indexed by user, and the repository already composes optional filters.
+**Still open:** `accountId` was not added. It is the same one-line change in the same three files if
+a debit-purchase view ever wants it.
 
 ---
 

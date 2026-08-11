@@ -9,6 +9,8 @@ public record GetPurchasesQuery(
     int? Year = null,
     int? Month = null,
     string? Category = null,
+    /// <summary>Narrows to purchases charged to one card. Ignored when null.</summary>
+    Guid? CreditCardId = null,
     int Page = 1,
     int PageSize = PagedQueryRules.DefaultPageSize)
     : IQuery<PagedResult<PurchaseDto>>, IPagedQuery;

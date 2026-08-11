@@ -45,10 +45,12 @@ public class PurchasesController : ControllerBase
         [FromQuery] int? year = null,
         [FromQuery] int? month = null,
         [FromQuery] string? category = null,
+        [FromQuery] Guid? creditCardId = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var query = new GetPurchasesQuery(User.GetUserId(), year, month, category, page, pageSize);
+        var query = new GetPurchasesQuery(
+            User.GetUserId(), year, month, category, creditCardId, page, pageSize);
         var result = await _sender.Send(query, ct);
         return Ok(result);
     }

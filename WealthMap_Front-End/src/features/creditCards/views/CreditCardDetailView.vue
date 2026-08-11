@@ -34,13 +34,9 @@ const { data: card, loading, error, run: loadCard } = useAsync(() => creditCards
 const { data: payments, loading: loadingPayments, run: loadPayments } =
   useAsync(() => creditCardsApi.payments(cardId), { initialData: [] })
 
-/**
- * There is no way to ask the API for one card's purchases (see
- * docs/BACKEND_REQUESTS.md #5), so the most recent page is fetched and filtered
- * here. Installment plans carry their card id, so those are exact.
- */
+/** The API filters by card, so this is every purchase charged to it. */
 const { data: purchasePage, loading: loadingCharges, run: loadPurchases } =
-  useAsync(() => purchasesApi.list({ page: 1, pageSize: 100 }))
+  useAsync(() => purchasesApi.list({ creditCardId: cardId, page: 1, pageSize: 100 }))
 const { data: plans, run: loadPlans } = useAsync(installmentsApi.list, { initialData: [] })
 
 const payOpen = ref(false)
@@ -58,7 +54,6 @@ const CHARGE_COLUMNS = [
 /** Purchases and installment plans both put debt on the card, so both belong here. */
 const charges = computed(() => {
   const fromPurchases = (purchasePage.value?.items ?? [])
-    .filter((purchase) => purchase.creditCardId === cardId)
     .map((purchase) => ({
       id: purchase.id,
       kind: 'Purchase',
@@ -227,10 +222,10 @@ onMounted(() => {
           </template>
         </BaseTable>
 
-        <template #footer>
+        <template v-if="purchasePage && purchasePage.totalCount > purchasePage.items.length" #footer>
           <span class="footnote">
-            Recent charges only — the API cannot filter purchases by card, so this covers the
-            latest 100 purchases. Installment plans are complete.
+            Showing the {{ purchasePage.items.length }} most recent of
+            {{ purchasePage.totalCount }} purchases on this card.
           </span>
         </template>
       </BaseCard>

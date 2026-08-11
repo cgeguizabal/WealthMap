@@ -12,9 +12,9 @@ public class PurchaseRepository : Repository<Purchase>, IPurchaseRepository
         await Set.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId, ct);
 
     public async Task<IReadOnlyList<Purchase>> GetPagedForUserAsync(
-        Guid userId, int? year, int? month, string? category,
+        Guid userId, int? year, int? month, string? category, Guid? creditCardId,
         int page, int pageSize, CancellationToken ct = default) =>
-        await Filter(userId, year, month, category)
+        await Filter(userId, year, month, category, creditCardId)
             .OrderByDescending(p => p.OccurredAt)
             .ThenByDescending(p => p.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -23,16 +23,18 @@ public class PurchaseRepository : Repository<Purchase>, IPurchaseRepository
             .ToListAsync(ct);
 
     public async Task<int> CountForUserAsync(
-        Guid userId, int? year, int? month, string? category, CancellationToken ct = default) =>
-        await Filter(userId, year, month, category).CountAsync(ct);
+        Guid userId, int? year, int? month, string? category, Guid? creditCardId,
+        CancellationToken ct = default) =>
+        await Filter(userId, year, month, category, creditCardId).CountAsync(ct);
 
     public async Task<IReadOnlyList<Purchase>> GetForUserInMonthAsync(
         Guid userId, int year, int month, CancellationToken ct = default) =>
-        await Filter(userId, year, month, category: null)
+        await Filter(userId, year, month, category: null, creditCardId: null)
             .AsNoTracking()
             .ToListAsync(ct);
 
-    private IQueryable<Purchase> Filter(Guid userId, int? year, int? month, string? category)
+    private IQueryable<Purchase> Filter(
+        Guid userId, int? year, int? month, string? category, Guid? creditCardId)
     {
         var query = Set.Where(p => p.UserId == userId);
 
@@ -44,6 +46,10 @@ public class PurchaseRepository : Repository<Purchase>, IPurchaseRepository
 
         if (!string.IsNullOrWhiteSpace(category))
             query = query.Where(p => p.Category.ToLower() == category.ToLower());
+
+        // The FK to credit_cards is already indexed, so this needs no new index.
+        if (creditCardId is not null)
+            query = query.Where(p => p.CreditCardId == creditCardId);
 
         return query;
     }

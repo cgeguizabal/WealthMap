@@ -1,7 +1,10 @@
 import client from './client'
 
 export const purchasesApi = {
-  /** `{ year?, month?, category?, page?, pageSize? }` — month requires year. */
+  /**
+   * `{ year?, month?, category?, creditCardId?, page?, pageSize? }`.
+   * Month requires year; `creditCardId` narrows to one card's charges.
+   */
   list: (params = {}) => client.get('/purchases', { params }),
   get: (id) => client.get(`/purchases/${id}`),
   create: (payload) => client.post('/purchases', payload)

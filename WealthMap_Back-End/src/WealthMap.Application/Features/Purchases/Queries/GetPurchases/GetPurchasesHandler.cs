@@ -14,10 +14,10 @@ public class GetPurchasesHandler : IQueryHandler<GetPurchasesQuery, PagedResult<
     public async Task<PagedResult<PurchaseDto>> Handle(GetPurchasesQuery request, CancellationToken ct)
     {
         var totalCount = await _purchases.CountForUserAsync(
-            request.UserId, request.Year, request.Month, request.Category, ct);
+            request.UserId, request.Year, request.Month, request.Category, request.CreditCardId, ct);
 
         var items = await _purchases.GetPagedForUserAsync(
-            request.UserId, request.Year, request.Month, request.Category,
+            request.UserId, request.Year, request.Month, request.Category, request.CreditCardId,
             request.Page, request.PageSize, ct);
 
         return new PagedResult<PurchaseDto>(
