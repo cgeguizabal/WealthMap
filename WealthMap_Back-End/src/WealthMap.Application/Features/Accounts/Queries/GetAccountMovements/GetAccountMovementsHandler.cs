@@ -20,7 +20,9 @@ public class GetAccountMovementsHandler
 
     public async Task<PagedResult<AccountMovementDto>> Handle(GetAccountMovementsQuery request, CancellationToken ct)
     {
-        if (!await _accounts.ExistsForUserAsync(request.AccountId, request.UserId, ct))
+        // Fetched by id rather than ExistsForUserAsync: that check excludes archived
+        // accounts, and archiving one must not take its movement history with it.
+        if (await _accounts.GetByIdForUserAsync(request.AccountId, request.UserId, ct) is null)
             throw new NotFoundException("Account", request.AccountId);
 
         var totalCount = await _movements.CountForAccountAsync(request.AccountId, request.UserId, ct);

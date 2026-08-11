@@ -6,6 +6,7 @@ import { accountsApi } from '@/api/accounts.api'
 import { useAsync } from '@/composables/useAsync'
 import { useToast } from '@/composables/useToast'
 import { useMoney } from '@/composables/useMoney'
+import { useDoubleConfirm } from '@/composables/useDoubleConfirm'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -21,6 +22,7 @@ import TransferModal from '../components/TransferModal.vue'
 
 const toast = useToast()
 const { format } = useMoney()
+const confirmTwice = useDoubleConfirm()
 const dashboard = useDashboardStore()
 
 const { data: accounts, loading, error, run: loadAccounts } = useAsync(accountsApi.list, { initialData: [] })
@@ -68,6 +70,38 @@ async function toggleBlock(account) {
       await accountsApi.block(account.id)
       toast.success(`${account.name} blocked — deposits still work, withdrawals do not.`)
     }
+    refresh()
+  } catch (err) {
+    toast.error(err.message)
+  }
+}
+
+/**
+ * Deleting archives: the account disappears from every list and total, but its
+ * movements stay, and the purchases and payments that reference it are intact.
+ * The copy says so, because "delete" otherwise implies the history goes too.
+ */
+async function remove(account) {
+  const balanceNote = account.balance !== 0
+    ? ` It still holds ${format(account.balance, { currency: account.currency })}.`
+    : ''
+
+  const confirmed = await confirmTwice({
+    title: `Delete ${account.name}?`,
+    message:
+      `${account.name} will be removed from your accounts, balances and totals.` +
+      `${balanceNote} Its movement history is kept, and past purchases and ` +
+      'payments made from it stay on record.',
+    secondMessage:
+      `This removes ${account.name} from WealthMap. You will not be able to ` +
+      'deposit, withdraw or transfer with it again.'
+  })
+
+  if (!confirmed) return
+
+  try {
+    await accountsApi.remove(account.id)
+    toast.success(`${account.name} deleted. Its history was kept.`)
     refresh()
   } catch (err) {
     toast.error(err.message)
@@ -144,6 +178,7 @@ onMounted(loadAccounts)
         @withdraw="openMovement($event, 'withdraw')"
         @edit="openEdit"
         @toggle-block="toggleBlock"
+        @delete="remove"
       />
     </motion.div>
 

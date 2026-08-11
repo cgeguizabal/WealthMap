@@ -59,8 +59,9 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         var monthEnd = monthStart.AddMonths(1);
         var currency = user.Currency;
 
-        // Anything opened after the period ended did not exist during it.
-        var accounts = (await _accounts.GetAllForUserAsync(request.UserId, ct))
+        // Anything opened after the period ended did not exist during it. Archived
+        // accounts are included: they were live during the period being reported.
+        var accounts = (await _accounts.GetAllForUserAsync(request.UserId, includeArchived: true, ct))
             .Where(a => a.Balance.Currency == currency && a.CreatedAt < monthEnd)
             .ToList();
 
@@ -76,7 +77,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
             .Where(p => p.Amount.Currency == currency)
             .ToList();
 
-        var cards = (await _cards.GetAllForUserAsync(request.UserId, ct))
+        var cards = (await _cards.GetAllForUserAsync(request.UserId, includeArchived: true, ct))
             .Where(c => c.CreditLimit.Currency == currency && c.CreatedAt < monthEnd)
             .ToList();
 

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui.store'
 import BaseModal from './BaseModal.vue'
@@ -17,6 +17,24 @@ const isOpen = computed({
   get: () => confirmState.value !== null,
   set: (open) => { if (!open) ui.resolveConfirm(false) }
 })
+
+/**
+ * A dialog opened with `confirmDelayMs` starts disarmed, so a click already in
+ * flight when it mounted cannot confirm it. See the store for why.
+ */
+const armed = ref(true)
+let armTimer = null
+
+watch(confirmState, (state) => {
+  clearTimeout(armTimer)
+
+  const delay = state?.confirmDelayMs ?? 0
+  armed.value = delay === 0
+
+  if (delay > 0) armTimer = setTimeout(() => { armed.value = true }, delay)
+})
+
+onBeforeUnmount(() => clearTimeout(armTimer))
 </script>
 
 <template>
@@ -32,7 +50,11 @@ const isOpen = computed({
       <BaseButton variant="secondary" @click="ui.resolveConfirm(false)">
         {{ confirmState?.cancelLabel }}
       </BaseButton>
-      <BaseButton :variant="confirmState?.variant" @click="ui.resolveConfirm(true)">
+      <BaseButton
+        :variant="confirmState?.variant"
+        :disabled="!armed"
+        @click="ui.resolveConfirm(true)"
+      >
         {{ confirmState?.confirmLabel }}
       </BaseButton>
     </template>

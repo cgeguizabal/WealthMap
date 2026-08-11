@@ -27,6 +27,10 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(a => a.Notes)
             .HasMaxLength(1000);
 
+        builder.Property(a => a.IsArchived)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.ComplexProperty(a => a.Balance, money =>
         {
             money.Property(m => m.Amount)

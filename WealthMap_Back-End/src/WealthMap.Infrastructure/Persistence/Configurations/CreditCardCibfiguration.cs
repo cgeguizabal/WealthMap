@@ -33,6 +33,10 @@ public class CreditCardConfiguration : IEntityTypeConfiguration<CreditCard>
         builder.Property(c => c.Notes)
             .HasMaxLength(1000);
 
+        builder.Property(c => c.IsArchived)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.ComplexProperty(c => c.CreditLimit, money =>
         {
             money.Property(m => m.Amount)

@@ -9,7 +9,7 @@ defineProps({
   account: { type: Object, required: true }
 })
 
-defineEmits(['deposit', 'withdraw', 'edit', 'toggle-block'])
+defineEmits(['deposit', 'withdraw', 'edit', 'toggle-block', 'delete'])
 
 const { format } = useMoney()
 </script>
@@ -81,6 +81,17 @@ const { format } = useMoney()
         @click="$emit('edit', account)"
       >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
+      </BaseButton>
+
+      <BaseButton
+        class="account__delete"
+        size="sm"
+        variant="ghost"
+        title="Delete"
+        aria-label="Delete account"
+        @click="$emit('delete', account)"
+      >
+        <template #icon><BaseIcon name="trash" :size="14" /></template>
       </BaseButton>
     </footer>
   </article>
@@ -157,4 +168,6 @@ const { format } = useMoney()
 }
 
 .account__spacer { flex: 1; }
+
+.account__delete:hover { color: var(--negative); }
 </style>

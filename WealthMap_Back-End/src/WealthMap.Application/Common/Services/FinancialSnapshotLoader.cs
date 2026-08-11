@@ -52,14 +52,14 @@ public class FinancialSnapshotLoader
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var accounts = await _accounts.GetAllForUserAsync(userId, ct);
-        var cards = await _cards.GetAllForUserAsync(userId, ct);
-        var debts = await _debts.GetAllForUserAsync(userId, ct);
-        var installments = await _installments.GetAllForUserAsync(userId, ct);
-        var savingsGoals = await _savingsGoals.GetAllForUserAsync(userId, ct);
-        var productGoals = await _productGoals.GetAllForUserAsync(userId, ct);
-        var jobs = await _jobs.GetAllForUserAsync(userId, ct);
-        var incomes = await _incomes.GetAllForUserAsync(userId, ct);
+        var accounts = await _accounts.GetAllForUserAsync(userId, ct: ct);
+        var cards = await _cards.GetAllForUserAsync(userId, ct: ct);
+        var debts = await _debts.GetAllForUserAsync(userId, ct: ct);
+        var installments = await _installments.GetAllForUserAsync(userId, ct: ct);
+        var savingsGoals = await _savingsGoals.GetAllForUserAsync(userId, ct: ct);
+        var productGoals = await _productGoals.GetAllForUserAsync(userId, ct: ct);
+        var jobs = await _jobs.GetAllForUserAsync(userId, ct: ct);
+        var incomes = await _incomes.GetAllForUserAsync(userId, ct: ct);
         var monthPurchases = await _purchases.GetForUserInMonthAsync(userId, today.Year, today.Month, ct);
 
         return new FinancialSnapshot(

@@ -10,7 +10,7 @@ const props = defineProps({
   card: { type: Object, required: true }
 })
 
-defineEmits(['pay', 'edit', 'limit'])
+defineEmits(['pay', 'edit', 'limit', 'delete'])
 
 const { format } = useMoney()
 
@@ -96,6 +96,17 @@ const variant = computed(() => {
         @click="$emit('edit', card)"
       >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
+      </BaseButton>
+
+      <BaseButton
+        class="card__delete"
+        size="sm"
+        variant="ghost"
+        title="Delete"
+        aria-label="Delete card"
+        @click="$emit('delete', card)"
+      >
+        <template #icon><BaseIcon name="trash" :size="14" /></template>
       </BaseButton>
     </footer>
   </article>
@@ -197,4 +208,6 @@ const variant = computed(() => {
 }
 
 .card__spacer { flex: 1; }
+
+.card__delete:hover { color: var(--negative); }
 </style>

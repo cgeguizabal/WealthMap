@@ -5,6 +5,8 @@ import { fadeUp } from '@/composables/useMotionSafe'
 import { creditCardsApi } from '@/api/creditCards.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
+import { useToast } from '@/composables/useToast'
+import { useDoubleConfirm } from '@/composables/useDoubleConfirm'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -19,6 +21,8 @@ import CardPaymentModal from '../components/CardPaymentModal.vue'
 import LimitModal from '../components/LimitModal.vue'
 
 const { format } = useMoney()
+const toast = useToast()
+const confirmTwice = useDoubleConfirm()
 const dashboard = useDashboardStore()
 
 const { data: cards, loading, error, run: loadCards } = useAsync(creditCardsApi.list, { initialData: [] })
@@ -61,6 +65,38 @@ function openPay(card) {
 function openLimit(card) {
   active.value = card
   limitOpen.value = true
+}
+
+/**
+ * Deleting archives: the card leaves every list and total, but its purchases,
+ * installment plans and payments stay on record. An outstanding balance is
+ * called out by name — archiving it does not settle it.
+ */
+async function remove(card) {
+  const owedNote = card.usedCredit > 0
+    ? ` It still has ${format(card.usedCredit, { currency: card.currency })} owed, ` +
+      'and deleting it will not pay that off.'
+    : ''
+
+  const confirmed = await confirmTwice({
+    title: `Delete ${card.cardName}?`,
+    message:
+      `${card.cardName} will be removed from your cards and your available ` +
+      `credit.${owedNote} Its purchases, installment plans and payments are kept.`,
+    secondMessage:
+      `This removes ${card.cardName} from WealthMap. You will not be able to ` +
+      'charge purchases to it or record payments against it again.'
+  })
+
+  if (!confirmed) return
+
+  try {
+    await creditCardsApi.remove(card.id)
+    toast.success(`${card.cardName} deleted. Its history was kept.`)
+    refresh()
+  } catch (err) {
+    toast.error(err.message)
+  }
 }
 
 function refresh() {
@@ -127,6 +163,7 @@ onMounted(loadCards)
         @pay="openPay"
         @edit="openEdit"
         @limit="openLimit"
+        @delete="remove"
       />
     </motion.div>
 

@@ -50,29 +50,30 @@ initials from the login response, which is enough for navigation but cannot be e
 
 ---
 
-## 3. Deleting is unavailable for several resources
+## 3. Deleting is unavailable for several resources — *resolved for accounts and cards*
 
 **Found:** building list screens with row actions.
 
 | Resource | Delete? |
 |---|---|
-| Accounts | no |
-| Credit cards | no |
+| Accounts | **yes** — `DELETE /api/v1/accounts/{id}`, archives |
+| Credit cards | **yes** — `DELETE /api/v1/credit-cards/{id}`, archives |
 | Purchases | no |
 | Installment plans | no |
 | Stores | no (deliberate — purchases reference them) |
 | Jobs, incomes, debts, goals | yes |
 
-Accounts, cards and purchases have no delete endpoint. For purchases and plans this is arguably
-correct (they are history), but a mistyped account or a card added twice cannot be removed.
+Purchases and plans still have no delete endpoint, which is arguably correct — they are history.
 
-**Impact:** list screens show no delete action for those resources; a user's mistake is permanent.
+**Resolved:** accounts and cards archive rather than delete. The row keeps existing, so movements,
+purchases, installment plans and payments that reference it are untouched; it simply stops appearing
+in lists, dropdowns and totals. A hard delete was rejected: it would either cascade movement history
+away or be refused outright by the `RESTRICT` foreign keys from purchases and payments.
 
-**Workaround in place:** no delete affordance is rendered where the endpoint does not exist, rather
-than showing a button that fails.
+Both endpoints return **204**, and **400** if the item is already archived. `GET /{id}` and
+`GET /accounts/{id}/movements` still resolve for archived items, so links from history keep working.
 
-**Ideal fix:** soft-delete or archive on accounts and cards (a hard delete would orphan movement
-history, so archiving is the safer shape).
+The UI asks twice before calling either one, and says plainly that history is kept.
 
 ---
 

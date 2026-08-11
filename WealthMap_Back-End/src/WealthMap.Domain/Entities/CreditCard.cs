@@ -16,6 +16,14 @@ public class CreditCard : BaseEntity
     public int StatementCutoffDay { get; private set; }
     public string? Notes { get; private set; }
 
+    /// <summary>
+    /// Hidden from the user without destroying anything. Purchases, installment
+    /// plans and payments reference this card, so a hard delete would be refused
+    /// and would take its history with it if it were not.
+    /// </summary>
+    public bool IsArchived { get; private set; }
+    public DateTime? ArchivedAt { get; private set; }
+
     public Money AvailableCredit => CreditLimit - UsedCredit;
 
     private CreditCard()
@@ -72,6 +80,26 @@ public class CreditCard : BaseEntity
                 $"Payment exceeds the balance owed on '{CardName}'. Owed: {UsedCredit}, payment: {amount}.");
 
         UsedCredit = UsedCredit - amount;
+        Touch();
+    }
+
+    public void Archive()
+    {
+        if (IsArchived)
+            throw new DomainException($"Card '{CardName}' is already archived.");
+
+        IsArchived = true;
+        ArchivedAt = DateTime.UtcNow;
+        Touch();
+    }
+
+    public void Restore()
+    {
+        if (!IsArchived)
+            throw new DomainException($"Card '{CardName}' is not archived.");
+
+        IsArchived = false;
+        ArchivedAt = null;
         Touch();
     }
 

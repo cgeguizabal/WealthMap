@@ -130,6 +130,19 @@ the message does not distinguish the two, so it cannot be used to discover which
 Only these three fields are editable. Balance changes only through movements; type and currency are
 immutable because changing them would invalidate the movement history.
 
+### `DELETE /api/v1/accounts/{id}` → **204**
+
+Archives the account rather than deleting the row. It stops appearing in `GET /accounts`, in the
+dashboard totals and in every account dropdown, but its movements stay, and the purchases, payments
+and jobs that reference it are untouched — a hard delete would either cascade that history away or
+be refused by the `RESTRICT` foreign keys pointing at it.
+
+`GET /accounts/{id}` and `GET /accounts/{id}/movements` still resolve afterwards, so links from
+history keep working. Nothing new can be pointed at it: creating a job or income with an archived
+`depositAccountId` → **404**. Archiving an already-archived account → **400**.
+
+The archived balance is simply excluded from totals; archiving does not move or zero the money.
+
 ### `POST /api/v1/accounts/{id}/block` · `POST /api/v1/accounts/{id}/unblock`
 
 No body. A blocked account still accepts deposits but refuses withdrawals. Blocking an
@@ -203,6 +216,16 @@ Paged, newest first. Each item:
 { "cardName": "Gold", "bankName": "BBVA", "annualInterestRate": 39.9,
   "paymentDueDay": 10, "statementCutoffDay": 25, "notes": "main card" }
 ```
+
+### `DELETE /api/v1/credit-cards/{id}` → **204**
+
+Archives the card, on the same terms as an account: it leaves `GET /credit-cards` and the dashboard
+credit totals, while its purchases, installment plans and payments stay on record and
+`GET /credit-cards/{id}` still resolves. Archiving an already-archived card → **400**.
+
+Outstanding debt is not settled or written off — it is only excluded from the totals. Archiving a
+card that still owes money is allowed, and deliberately so: the debt lives in the payment and
+purchase history, which archiving leaves intact.
 
 ### `PUT /api/v1/credit-cards/{id}/limit`
 

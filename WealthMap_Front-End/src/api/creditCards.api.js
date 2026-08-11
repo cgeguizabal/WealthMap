@@ -9,6 +9,12 @@ export const creditCardsApi = {
   /** Limit and used credit are not editable here — the limit has its own endpoint. */
   update: (id, payload) => client.put(`/credit-cards/${id}`, payload),
 
+  /**
+   * Archives rather than destroys: the card leaves every list and total, but its
+   * purchases, installment plans and payments are preserved.
+   */
+  remove: (id) => client.delete(`/credit-cards/${id}`),
+
   /** Rejected if the new limit falls below what is currently owed. */
   updateLimit: (id, newLimit) => client.put(`/credit-cards/${id}/limit`, { newLimit }),
 

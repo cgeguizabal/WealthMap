@@ -31,6 +31,11 @@ export const useUiStore = defineStore('ui', () => {
   /**
    * Opens the confirm dialog and resolves to true/false when the user answers,
    * so callers can `if (await confirm(...))` instead of wiring callbacks.
+   *
+   * `confirmDelayMs` holds the confirm button disabled for that long after the
+   * dialog opens. It exists for confirmations raised immediately after another
+   * one: without it a double-click on the first dialog's button lands on the
+   * second dialog's button, which appears in the same place.
    */
   function confirm(options = {}) {
     return new Promise((resolve) => {
@@ -40,6 +45,7 @@ export const useUiStore = defineStore('ui', () => {
         confirmLabel: options.confirmLabel ?? 'Confirm',
         cancelLabel: options.cancelLabel ?? 'Cancel',
         variant: options.variant ?? 'primary',
+        confirmDelayMs: options.confirmDelayMs ?? 0,
         resolve
       }
     })

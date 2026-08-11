@@ -15,6 +15,15 @@ public class Account : BaseEntity
     public bool IsBlockedForSaving { get; private set; }
     public string? Notes { get; private set; }
 
+    /// <summary>
+    /// Removed from the user's view without destroying anything. A hard delete
+    /// would cascade away this account's movements — the very history the record
+    /// exists to preserve — and would be refused outright by purchases, payments
+    /// and jobs that reference it.
+    /// </summary>
+    public bool IsArchived { get; private set; }
+    public DateTime? ArchivedAt { get; private set; }
+
     private Account()
 {
     Name = null!;
@@ -75,6 +84,26 @@ public class Account : BaseEntity
             throw new DomainException($"Account '{Name}' is not blocked.");
 
         IsBlockedForSaving = false;
+        Touch();
+    }
+
+    public void Archive()
+    {
+        if (IsArchived)
+            throw new DomainException($"Account '{Name}' is already archived.");
+
+        IsArchived = true;
+        ArchivedAt = DateTime.UtcNow;
+        Touch();
+    }
+
+    public void Restore()
+    {
+        if (!IsArchived)
+            throw new DomainException($"Account '{Name}' is not archived.");
+
+        IsArchived = false;
+        ArchivedAt = null;
         Touch();
     }
 

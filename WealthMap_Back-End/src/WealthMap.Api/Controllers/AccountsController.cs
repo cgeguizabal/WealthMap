@@ -8,6 +8,7 @@ using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
 using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
+using WealthMap.Application.Features.Accounts.Commands.ArchiveAccount;
 using WealthMap.Application.Features.Accounts.Commands.DepositToAccount;
 using WealthMap.Application.Features.Accounts.Commands.WithdrawFromAccount;
 using WealthMap.Application.Features.Accounts.Commands.TransferBetweenAccounts;
@@ -74,6 +75,17 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
 
         var result = await _sender.Send(command, ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Archives the account: it leaves the user's lists and totals, but its
+    /// movements and every purchase or payment that references it are preserved.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _sender.Send(new ArchiveAccountCommand(id, User.GetUserId()), ct);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/block")]

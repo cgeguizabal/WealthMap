@@ -10,6 +10,12 @@ export const accountsApi = {
   /** Only name, bankName and notes are editable — balance moves via movements. */
   update: (id, payload) => client.put(`/accounts/${id}`, payload),
 
+  /**
+   * Archives rather than destroys: the account leaves every list and total, but
+   * its movements and the purchases and payments referencing it are preserved.
+   */
+  remove: (id) => client.delete(`/accounts/${id}`),
+
   block: (id) => client.post(`/accounts/${id}/block`),
   unblock: (id) => client.post(`/accounts/${id}/unblock`),
 

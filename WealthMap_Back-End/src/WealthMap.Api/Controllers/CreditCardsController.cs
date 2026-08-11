@@ -6,6 +6,7 @@ using WealthMap.Application.Features.CreditCards.Commands.CreateCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.PayCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCardLimit;
+using WealthMap.Application.Features.CreditCards.Commands.ArchiveCreditCard;
 using WealthMap.Application.Features.CreditCards.Queries.GetCreditCardById;
 using WealthMap.Application.Features.CreditCards.Queries.GetCreditCards;
 using WealthMap.Application.Features.Payments.Queries.GetPaymentsForTarget;
@@ -73,6 +74,17 @@ public class CreditCardsController : ControllerBase
 
         var result = await _sender.Send(command, ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Archives the card: it leaves the user's lists and totals, but the
+    /// purchases, installment plans and payments that reference it are preserved.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _sender.Send(new ArchiveCreditCardCommand(id, User.GetUserId()), ct);
+        return NoContent();
     }
 
     [HttpPut("{id:guid}/limit")]
