@@ -37,6 +37,9 @@ The domain has a spine: **money always lives in an account**. Every balance chan
 immutable `AccountMovement`, so the balance is never a number you have to trust — it is a number
 you can reconstruct. Credit cards, debts, purchases, installments and goals all hang off that spine.
 
+Almost everything is written in response to a request. The one exception is salary, which posts
+itself on each payday (§4.5) — the only place the system moves money without being asked.
+
 ---
 
 ## 2. The architecture, and why layers exist at all
@@ -131,8 +134,14 @@ Adding USD to MXN throws. That single guard is why a whole category of bug canno
 cannot accidentally sum a peso card into a dollar total. The dashboard's currency filtering exists
 *because* `Money` would have thrown otherwise — the type forced an honest design.
 
-Rounding happens once, in the constructor (`MidpointRounding.ToEven`, 2 decimals), so every amount
-in the system is already at cent precision.
+Rounding happens once, in the constructor — 2 decimals, `MidpointRounding.AwayFromZero` — so every
+amount in the system is already at cent precision.
+
+**Away from zero, not to even.** Banker's rounding avoids drift across many roundings and was the
+original choice, but it sends 418.525 to 418.52, and nobody checking a figure against a payslip
+expects that. Every other rounding site in the system now says `AwayFromZero` explicitly, including
+three that were silently inheriting `decimal.Round`'s default — goal progress, the debt ratio and
+category share percentages.
 
 EF Core maps it with `ComplexProperty`, producing two real columns (`balance`, `currency`) — not a
 JSON blob. Values stay queryable and check-constrainable.
@@ -305,13 +314,19 @@ lowercase), PBKDF2 hash, name, country, currency. The profile currency is the re
 used by the dashboard and monthly report.
 
 ### 4.2 Accounts
-`GET|POST /api/v1/accounts`, `GET|PUT /{id}`, `POST /{id}/block`, `POST /{id}/unblock`.
+`GET|POST /api/v1/accounts`, `GET|PUT|DELETE /{id}`, `POST /{id}/block`, `POST /{id}/unblock`.
 
 Checking or Savings. A savings account can be **blocked for saving**: deposits still work,
 withdrawals throw. It is a commitment device, not a security feature.
 
 Balance is not editable through `PUT` — only movements change money. Type and currency are immutable
 after creation, because changing either would invalidate the entire movement history.
+
+**`DELETE` archives; it does not delete** (§6.11). `IsArchived` takes the account out of every list,
+dropdown and total, while its movements — and the purchases, payments and jobs pointing at it — stay
+exactly as they were. `GET /{id}` and `GET /{id}/movements` still resolve afterwards so links from
+history keep working, but `ExistsForUserAsync` excludes archived rows, so nothing new can be pointed
+at one: creating a job or income against an archived account is a 404.
 
 ### 4.3 Movements & transactions
 `POST /{id}/deposit`, `POST /{id}/withdraw`, `POST /accounts/transfer`, `GET /{id}/movements`.
@@ -331,13 +346,18 @@ Request bodies carry no currency: the amount is denominated in the account's own
 mismatch is impossible by construction.
 
 ### 4.4 Credit cards
-`GET|POST /api/v1/credit-cards`, `GET|PUT /{id}`, `PUT /{id}/limit`, `POST /{id}/payments`.
+`GET|POST /api/v1/credit-cards`, `GET|PUT|DELETE /{id}`, `PUT /{id}/limit`, `POST /{id}/payments`.
 
 `AvailableCredit = CreditLimit − UsedCredit`, computed. `Charge` refuses to exceed the limit;
 `RegisterPayment` refuses to exceed the balance owed; `UpdateCreditLimit` refuses to drop below
 current debt. There is no public charge endpoint — purchases and installments call it internally.
 
 **Payments use the source-selection pattern** (§6.5).
+
+**`DELETE` archives, as with accounts** (§6.11). Purchases, installment plans and payments survive.
+A card with an outstanding balance can still be archived, deliberately: archiving is not a way to
+settle debt, and the debt itself remains visible in the payment and purchase history. What changes is
+that the balance stops counting toward the dashboard credit totals.
 
 ### 4.5 Jobs & salary
 `GET|POST /api/v1/jobs`, `GET|PUT|DELETE /{id}`, nested `POST|PUT|DELETE /{jobId}/deductions/{id}`,
@@ -352,12 +372,43 @@ NetMonthly    = gross − Σ(fixed) − gross × Σ(percentage) / 100
 NetPerDeposit = NetMonthly ÷ number of payment days
 ```
 
+**Deductions are monthly, and each payday carries an equal share of them.** A 10% deduction on a job
+paid twice a month takes 5% at each payday — not 10% at both. That falls out of the formula above
+rather than being special-cased, and it is the question people ask first.
+
+`NetPerDeposit` is the nominal share and is what the UI shows. `NetForPayday(date)` is what actually
+gets paid: it settles the month's rounding remainder on the month's **last** payday, because an even
+split does not add up. 1000 across three paydays rounds to 333.33 each and pays 999.99 — a cent lost
+every month, forever, once posting is automatic.
+
 Month-end clamping lives in `PaymentSchedule.ClampToMonth` as a pure function: the "30th" in
 February becomes the 28th or 29th. `Math.Min(day, DateTime.DaysInMonth(year, month))` — one line,
-and the reason `NextPaymentDates` is trivially testable.
+and the reason `NextPaymentDates` is trivially testable. `PaydaysInMonth` is the single source of a
+month's paydays, shared by the split and the posting schedule so the two cannot disagree about how
+many paydays a month has. Two payment days that clamp onto the same date — 30 and 31 in June — are
+one payday, not two, in both.
 
 `Deduction.Value` is a plain `decimal`, not `Money`, with a Fixed/Percentage discriminator. A
 percentage is not money; forcing it into `Money` would mean inventing a currency for "20%".
+
+#### Automatic salary posting
+
+`SalaryPostingService` credits the deposit account on each payment day. `SalaryPostingRunner`, a
+hosted service, runs it on startup and every 24 hours.
+
+It is written as **catch-up, not a clock tick** (§6.12): each run asks which paydays are *due and
+unpaid* and settles all of them, so the app being off on payday delays the deposit rather than
+losing it. A `salary_deposits` row records each settled payday, and a unique index on
+`(job_id, scheduled_date)` makes exactly-once a database guarantee rather than a hope — two
+instances can pass an "already posted?" check at the same instant.
+
+`Job.SalaryPostingStartsOn` stops a new job backfilling months of salary into an account and
+inventing a balance that never existed. Salary is **held, not dropped**, when it cannot be paid —
+archived or missing deposit account, or a job currency the account does not hold, which is never
+converted. Fixing the cause pays the held paydays on the next run.
+
+`IJobRepository.GetAllForPostingAsync` is the one query in the system that is not user-scoped, and
+says so in its own doc comment: the runner has no signed-in user and has to pay everybody.
 
 ### 4.6 Stores
 `GET|POST /api/v1/stores`, `PUT /{id}`.
@@ -381,6 +432,15 @@ credit the inverse, cash forbids both. Then:
 
 Currency comes from the instrument for debit/credit. Cash requires an explicit currency — there is
 no instrument to inherit it from.
+
+`?creditCardId=` narrows to one card's charges, which is what the card detail screen uses.
+
+`PurchaseDto` carries `StoreName` beside `StoreId`, so a list can name where a purchase happened
+without a request per row. It is passed **into** `FromEntity` rather than read off the entity: stores
+are a shared catalogue behind their own repository and a `Purchase` holds only the id. The list
+handler resolves a whole page in one lookup, and create returns the name too — it already had the
+store in hand to prove it existed. `null` stays meaningful: cash purchases frequently name no store,
+and a store leaving the catalogue does not invalidate the purchases that referenced it.
 
 ### 4.8 Installment purchases (tasa 0)
 `GET|POST /api/v1/installment-purchases`, `GET /{id}`, `POST /{id}/pay`.
@@ -456,6 +516,16 @@ goals behind schedule or missed, goals reached.
 re-running never piles up duplicates. Marking one read is an acknowledgement, not a permanent mute —
 if the condition is still true later, it will be raised again.
 
+**An alert carries the parts it was built from, not only the finished sentence** (§6.13). Alongside
+the English `Title` and `Message`, `Params` holds the names, amounts, currency, dates and day counts
+that went into them — raw, as invariant decimals and ISO dates, so a client can format them in its
+own locale. Notifications persist those parts in a `jsonb` column beside the text, which is what lets
+a row raised today be read in a language chosen next month. Rows written before the column exists
+have `{}` and fall back to their stored English.
+
+`GoalDeadlinePassed` is its own `AlertType`. It used to share `GoalBehindSchedule`, which left "is
+trailing its pace" and "missed its deadline" indistinguishable to anything rendering from the type.
+
 ### 4.12 Monthly report
 `GET /api/v1/reports/monthly/{yyyy-MM}` (JSON) and `.../pdf`.
 
@@ -518,10 +588,11 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | Table | Purpose | Notable columns / constraints |
 |---|---|---|
 | `users` | identity + profile | `email` unique, `currency` = reporting currency |
-| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving` |
+| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at` |
 | `account_movements` | immutable audit trail | `type`, `amount`, `balance_after`, `related_entity_id`; indexes `(user_id, occurred_at)`, `(account_id, occurred_at)` |
-| `credit_cards` | cards | `credit_limit`, `used_credit`; CHECK `used_credit <= credit_limit`, day ranges 1–31 |
-| `jobs` | one per user | `gross_monthly_salary`; FK deposit account `RESTRICT` |
+| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`; CHECK `used_credit <= credit_limit`, day ranges 1–31 |
+| `jobs` | one per user | `gross_monthly_salary`, `salary_posting_starts_on`; FK deposit account `RESTRICT` |
+| `salary_deposits` | one row per settled payday | `scheduled_date`, `amount`, `account_movement_id`; **unique `(job_id, scheduled_date)`** — the exactly-once guarantee |
 | `job_payment_days` | 1–3 per job | CHECK `day_of_month BETWEEN 1 AND 31` |
 | `deductions` | payslip deductions | `type` (Fixed/Percentage), CHECK `value > 0` |
 | `additional_incomes` | recurring extras | `frequency` |
@@ -532,7 +603,7 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `debts` | loans | CHECK `remaining_amount <= original_amount` |
 | `savings_goals` | targets | nullable `linked_account_id`, `ON DELETE SET NULL` |
 | `product_goals` | product targets | nullable `deadline` |
-| `notifications` | persisted alerts | `type`, `severity`, `is_read`; index `(user_id, is_read)` |
+| `notifications` | persisted alerts | `type`, `severity`, `is_read`, `params` (`jsonb`); index `(user_id, is_read)` |
 | `payments` | every payment, any source | `target_type` + `target_id` (polymorphic, no FK), `source_type`, nullable `source_account_id` (FK `RESTRICT`); CHECK source and account agree; indexes `(user_id, occurred_at)`, `(target_type, target_id)` |
 
 Twelve migrations, `InitialCreate` through `AddPayments`.
@@ -649,6 +720,46 @@ see the shape of beats a wrong number that looks complete.
 Every route is versioned from day one. Adding `/v2/` later is additive; retrofitting a version
 segment onto live clients is a breaking change. The cost today is five characters.
 
+### 6.11 Archiving instead of deleting
+Accounts and cards had no delete endpoint at all, which meant a mistyped account was permanent. A
+hard delete was never actually available: it would either cascade `account_movements` away or be
+refused outright by the `RESTRICT` foreign keys from purchases, payments and jobs. Both outcomes are
+worse than the problem.
+
+Archiving keeps every referencing row intact and removes the item from lists, dropdowns and totals —
+which is what "delete" means to someone using the app. The wording in the UI says the history is
+kept, because "delete" otherwise implies it goes too.
+
+The one consequence worth naming: an archived item is unreachable from the interface. `Restore()`
+exists on both entities and the data is all still there, but nothing is wired to it.
+
+### 6.12 Salary posting as catch-up, not a clock tick
+A daily timer only works if the process is up on the day. This app is not expected to run
+continuously, so a timer would silently skip any payday the machine slept through — and a missing
+deposit is invisible in a way a duplicate is not.
+
+Each run instead asks which paydays are due and unpaid, and settles all of them. The app being off
+delays the deposit; it does not lose it. That framing makes the run naturally idempotent, which is
+the property that matters, because the alternative to exactly-once here is inventing money.
+
+Exactly-once is enforced by the database, not by the check. The service reads which paydays are
+already settled and skips them, but two instances can pass that check in the same instant; the
+unique index on `(job_id, scheduled_date)` is what actually decides.
+
+### 6.13 Alerts store the parts, not the sentence
+An alert used to ship a finished English sentence with the figures interpolated into it. That is a
+conclusion, and this codebase stores facts (§3.9) — given only the sentence there is nothing to
+rebuild it from, so it could never be said in another language.
+
+Alerts now carry `Params` alongside the text, and notifications persist them. Storing only the
+finished text would have frozen each row in the language it was raised in, no matter what the reader
+later chose. The English stays as the fallback: the PDF needs it, and a client that does not know an
+alert type should say something rather than nothing.
+
+Values go over the wire raw — invariant decimals, ISO dates — so the client formats them in the
+user's locale rather than inheriting the server's culture. Where the server makes a decision the
+wording depends on, it sends the decision: `savingsCover: "true"`, not the suggestion sentence.
+
 ---
 
 ## 7. Running, testing, migrating
@@ -664,6 +775,13 @@ dotnet ef database update --project src/WealthMap.Infrastructure --startup-proje
 
 Migration *generation* is offline and always works. `database update` needs network reach to the
 host; on a network that blocks Postgres (port 5432), generate now and apply later. Nothing is lost.
+
+**Read what EF generates before applying it.** Two of this project's migrations would have been
+wrong as written. `AddArchivingToAccountsAndCards` needed a backfill — the generated default for a
+new `DateOnly` column is `0001-01-01`, which would have made every payday in the catch-up window look
+unpaid and dumped a year of back-salary into accounts on first run. `AddNotificationParams` defaulted
+a `jsonb` column to `""`, which is not valid JSON and would have failed outright on Postgres. Neither
+is exotic; both were caught by reading the file.
 
 **Testing** has been manual through Postman, module by module. The natural next step is automated
 tests, and the architecture is already shaped for them:
@@ -688,11 +806,22 @@ Stated plainly, because knowing the edges is part of knowing the system.
 - **No FX.** Multi-currency holdings are excluded from totals rather than converted (§6.9).
 - **Card balances in the report are current, not month-end.** Reconstructing a historical card
   balance would need charge/payment events on the card itself, which are not recorded as such.
-- **Recurring income is not auto-deposited.** `AdditionalIncome` and salary describe *expected*
-  income; actual money appears only when a deposit movement is created. Nothing runs on a schedule.
+- **Salary posts automatically; other recurring income does not.** `SalaryPostingRunner` credits the
+  deposit account on each payment day (§4.5). `AdditionalIncome` still describes *expected* income
+  only — money appears there when a deposit movement is created by hand.
 - **Notifications are pull-based.** `POST /sync` is called by a client; there is no background job
-  and no email yet, though the entity is shaped for it.
+  and no email yet, though the entity is shaped for it. The salary runner is the only scheduled work.
 - **One job per user.** Enforced at creation. Multiple jobs would make `NetPerDeposit` ambiguous.
+- **Archived accounts and cards cannot be restored from the UI.** `Restore()` exists on both
+  entities and no data is lost, but nothing calls it (§6.11).
+- **The monthly report is UTC throughout.** Its period is bounded in UTC and the PDF prints times in
+  UTC, labelled. The web client shows local time, so the same purchase can read at a different hour
+  in each. Making the report zone-aware means moving the period boundaries too, which changes which
+  purchases fall in which month.
+- **Alert bodies raised before `params` existed stay English.** Those rows have `{}` and fall back to
+  the text they were stored with; only re-raised alerts can be translated (§6.13).
+- **Field-level validation messages are English.** They name specific rules and lengths that a
+  client-side pattern match would mangle rather than translate.
 
 ---
 
@@ -718,3 +847,8 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Safe to spend** | Net monthly income minus committed obligations (loan payments + next installments). |
 | **Clamping** | Snapping a day-of-month to a month's real length — the "30th" in February. |
 | **Snapshot** | `FinancialSnapshot`: the user's whole financial picture loaded once, shared by the dashboard and alerts so they cannot disagree. |
+| **Archiving** | A delete that keeps the row. The item leaves every list and total; everything referencing it is untouched (§6.11). |
+| **Catch-up** | Doing all the work that is due and unpaid, rather than only today's. What makes salary posting survive downtime (§6.12). |
+| **Payday** | One date salary is due, after clamping. Two payment days landing on the same date in a short month are one payday. |
+| **Exactly-once** | Each payday paid once regardless of restarts, retries or concurrent instances. Guaranteed by a unique index, not by a check. |
+| **Alert params** | The names, amounts and dates an alert sentence was built from, stored beside it so it can be re-expressed in another language (§6.13). |

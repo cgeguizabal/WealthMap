@@ -19,8 +19,9 @@ Read it once top to bottom. After that it works as a reference.
 6. [The API integration](#6-the-api-integration)
 7. [The design system](#7-the-design-system)
 8. [The feature modules](#8-the-feature-modules)
-9. [Known limitations](#9-known-limitations)
-10. [Glossary](#10-glossary)
+9. [Language](#9-language)
+10. [Known limitations](#10-known-limitations)
+11. [Glossary](#11-glossary)
 
 ---
 
@@ -34,14 +35,15 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Framework | Vue 3, Composition API, `<script setup>` everywhere |
 | Build | Vite |
 | Language | JavaScript (no TypeScript) |
-| Styling | SCSS + CSS custom properties |
+| Styling | SCSS + CSS custom properties, one stylesheet per component (§7.6) |
 | Routing | Vue Router, lazy-loaded routes, protected by default |
-| State | Pinia (4 stores), composables for everything else |
+| State | Pinia (5 stores), composables for everything else |
 | HTTP | Axios with two interceptors |
 | Animation | motion-v, imported per component |
 | Offline | vite-plugin-pwa |
 
-**17** base components, **8** composables, **4** stores, **15** API modules, **19** routes.
+**18** base components, **13** composables, **5** stores, **15** API modules, **19** routes,
+**79** component stylesheets, **685** translation keys per language.
 
 ---
 
@@ -383,10 +385,16 @@ That is why `useMoney` is a composable even though it reads from a store: it ret
 *functions*, and every caller wants its own. Auth is a store because the token is one thing that
 several unrelated parts of the app must agree on.
 
-**The eight composables**: `useAsync` (one request's three states), `useForm` (values + the API's two
-error shapes), `usePagination` (mirrors the paging envelope), `useMoney` (all currency formatting),
-`useToast` (ergonomics over the UI store), `useMediaQuery` (breakpoints that change *behaviour*, not
-just appearance), `useMotionSafe` (reduced-motion presets), `useOnlineStatus` (offline banner).
+**The composables**: `useAsync` (one request's three states), `useForm` (values + the API's two
+error shapes), `usePagination` (mirrors the paging envelope), `useMoney` (all currency formatting,
+plus `roundCents`), `useToast` (ergonomics over the UI store), `useMediaQuery` (breakpoints that
+change *behaviour*, not just appearance), `useMotionSafe` (reduced-motion presets), `useOnlineStatus`
+(offline banner), `useDateTime` (timestamps, §8.13), `useDoubleConfirm` (two-step destructive
+confirm), and three for language: `useI18n`, `useServerText`, `useAlertText` (§9).
+
+`useServerText` and `useAlertText` also export plain functions, not just composables. The axios
+interceptor has to translate error messages and has no component context, so `serverError` is
+callable from anywhere.
 
 ---
 
@@ -597,12 +605,14 @@ redirect — but a stricter version would assert it starts with `/`.
 ```
 src/
 ├── api/           URLs and payload shapes. No state.
+├── i18n/          en.js, es.js and the lookup. No Vue in it.
 ├── stores/        Shared state. Calls the api layer.
 ├── composables/   Reusable reactive logic. No markup.
 ├── components/
 │   ├── base/      Domain-agnostic. Knows nothing about money.
 │   └── layout/    App chrome: shell, sidebar, header, page header.
-└── features/      One folder per domain area: views/ + components/
+├── features/      One folder per domain area: views/ + components/
+└── assets/styles/ Every stylesheet (§7.6). Components hold no CSS.
 ```
 
 **The dependency direction.**
@@ -857,7 +867,7 @@ on mobile, which is a JavaScript decision.
 
 ### 7.5 Base component API conventions
 
-Consistency across the 17 base components:
+Consistency across the 18 base components:
 
 - **`v-model`** for the primary value (`modelValue` + `update:modelValue`).
 - **`variant`** for appearance, **`size`** for scale, both validated.
@@ -866,6 +876,38 @@ Consistency across the 17 base components:
 - **Scoped slots** for per-item rendering: `#cell-{key}`.
 - **Emits declared explicitly**, always.
 - **Never any domain knowledge.**
+
+### 7.6 Where the styles live
+
+No component holds CSS. Each has a stylesheet under `assets/styles`, grouped the way the components
+are:
+
+```
+assets/styles/
+├── _tokens.scss  _mixins.scss  main.scss   globals, injected or imported once
+├── base/          App.scss — the only deliberately unscoped sheet
+├── components/    the 18 Base* primitives
+├── layout/        shell, header, sidebar, page header
+└── features/      one folder per feature; components and views together
+```
+
+A component points at its sheet and keeps the tag:
+
+```html
+<style scoped lang="scss" src="@/assets/styles/features/accounts/AccountCard.scss"></style>
+```
+
+**The tag stays because it is what carries `scoped`.** Deleting it and importing the SCSS from
+`<script setup>` compiles perfectly and makes every rule global — styles leaking between components,
+which is the kind of breakage you notice somewhere else entirely, much later.
+
+Vite injects the mixins into every SCSS block through `additionalData`, and that still applies
+through `src=`, so no stylesheet needs an `@use` line. Component and view styles share one folder per
+feature rather than nesting further: every basename in the app is unique, so the extra level would
+add depth without saying anything.
+
+The trade is that a stylesheet is now a folder away from its component, so renaming a component does
+not drag its styles along.
 
 ---
 
@@ -935,9 +977,113 @@ excluded from the net result.
 Unread filter, mark-as-read, and "Check now" which distinguishes created / nothing-new / failed.
 Explains that reading is an acknowledgement, not a mute.
 
+### 8.13 Timestamps across the app
+
+History tables show date over time in a stacked cell (`BaseTimestamp`), so the hour fits without
+widening any date column and the date stays the thing you scan down the page. Everything the API
+sends is UTC; `useDateTime` renders in the viewer's own zone, because "when did I spend this?" means
+local time.
+
+One trap worth keeping: **a date-only string is a calendar date, not an instant.**
+`new Date('2026-08-13')` is UTC midnight, which displays as the 12th anywhere west of Greenwich — a
+payment due the 13th reading as due the 12th. `toDate` detects `YYYY-MM-DD` and builds it from local
+parts; real timestamps still convert normally.
+
+The purchase form captures date *and* time. It used to take a date alone, which would have made
+every purchase read `00:00` and the hour column dead weight. The `datetime-local` value is local
+wall-clock with no zone, so it is converted explicitly — `toISOString()` on it would shift what the
+user typed by their offset.
+
 ---
 
-## 9. Known limitations
+## 9. Language
+
+Two languages, English and Spanish, chosen from a selector in the user menu.
+
+### 9.1 The mechanism
+
+Hand-rolled rather than `vue-i18n`: two locales with `{placeholder}` interpolation is about seventy
+lines, and the `t(key, params)` call shape is deliberately vue-i18n's, so swapping later would not
+touch a call site.
+
+- `i18n/en.js`, `i18n/es.js` — the copy. English is the reference; a dev-only check reports keys
+  present in one and not the other, and mismatched placeholders.
+- `stores/locale.store.js` — the chosen language. A **store, not a module-level ref**, so every
+  component re-renders on a change; switching must not need a reload.
+- `useI18n()` — `t`, `tc`, `locale`, `setLocale`.
+
+The choice lives outside `auth.store` on purpose: it belongs to the browser, not the account. It
+survives signing out and applies on the login screen. It persists to `localStorage`, falls back to
+the browser language before English, and sets `document.documentElement.lang`.
+
+`tc(key, count)` picks `key.one` or `key.other`. Deliberately two forms and not CLDR plural rules —
+English and Spanish need exactly that, and a language with a "few" form would want this replaced
+rather than extended.
+
+### 9.2 Three ways to freeze the language by accident
+
+All three compile, run, and look correct until someone switches language.
+
+**A literal in a module evaluated once.** `navigation.js` is imported at load, so a label written
+there freezes in whichever language was active then. Nav items carry `labelKey`, not text.
+
+**A `const` calling `t()` in setup.** `const COLUMNS = [{ label: t('common.date') }]` runs once.
+Table columns, tab strips and option lists are `computed`.
+
+**A default resolved in the wrong layer.** `ui.store` used to default a confirm dialog's buttons to
+English strings; a default resolved there is fixed at whatever language the *caller* ran in. The
+store stores `null` and `BaseConfirmDialog` resolves the fallback, where the locale is reactive.
+
+### 9.3 Copy that wraps a figure
+
+A sentence built around an amount is **one key with a placeholder**, not fragments concatenated
+around a number:
+
+```js
+checkingAndSavings: '{checking} checking · {savings} savings'
+// es: '{checking} en corriente · {savings} en ahorro'
+toGo: '{amount} to go'
+// es: 'faltan {amount}'   ← verb first; fragments would lock English word order
+```
+
+Two keys are used in exactly one situation — where a bolded figure sits inside the sentence and
+splitting is the only way to keep the emphasis. Both languages happen to place the amount
+identically there, and the locale file says so.
+
+### 9.4 What the API sends in English
+
+The server answers in English. Two different problems, solved differently.
+
+**`serverLabel(group, value)`** — enum names and catalogue categories are closed sets, looked up by
+the exact string the server returns: movement types, payment methods and sources, account, goal and
+debt statuses, income frequencies, severities, deduction types, purchase and store categories. An
+unmapped value **falls through to the server's own wording**, so a member added to the API before it
+is added here still reads as something.
+
+Category dropdowns translate only the label; the value stays the English name the API stores and
+filters on, so changing language cannot change what gets submitted. `IncomeFormModal` learned this
+the hard way — it matched the server's frequency against the option *label*, which translating would
+have silently broken into "Monthly" every time. Options carry a stable `name` for lookups now.
+
+**`serverError(message)`** — error prose is not a closed set; the server composes it with names and
+amounts inside. It is matched by shape and re-rendered from the captured parts, so
+`"Insufficient funds in 'Main'. Available: 0.00 USD, requested: 128.40 USD."` keeps both figures in
+Spanish. Anything unrecognised falls through to the server's English — worse than a translation, far
+better than hiding what failed.
+
+Errors are translated **in the axios interceptor**, not at each of the twenty
+`toast.error(err.message)` sites, so none of them has to know and a new one cannot forget.
+Field-level validation messages are deliberately left as sent.
+
+**`useAlertText().render(alert)`** — alerts and notifications ship `params` alongside their English
+text ([why](PROJECT_GUIDE.md#613-alerts-store-the-parts-not-the-sentence)). The sentence is rebuilt
+from the translation for the alert's `type`, with money
+and dates formatted in the viewer's locale. No params, or a type this build does not know, falls back
+to the server's text.
+
+---
+
+## 10. Known limitations
 
 Stated plainly, because knowing the edges is part of knowing the system.
 
@@ -959,16 +1105,27 @@ Stated plainly, because knowing the edges is part of knowing the system.
   PNG rasters and may substitute a generic icon.
 - **No profile or settings screen**, because no endpoint exists to read or update the user
   (BACKEND_REQUESTS #2).
-- **No delete for accounts, cards or purchases**, because those endpoints do not exist. No affordance
-  is rendered rather than showing a button that would fail (BACKEND_REQUESTS #3).
+- **Accounts and cards delete; purchases and plans do not.** The first two archive behind a
+  double confirmation (BACKEND_REQUESTS #3 is resolved for them). Purchases and installment plans
+  still have no endpoint, and no affordance is rendered for them.
+- **Nothing restores an archived account or card.** The data is intact and the backend has
+  `Restore()`, but no screen calls it.
+- **Alert and notification bodies raised before the backend sent `params` stay English.** Those rows
+  fall back to their stored text; only re-raised alerts follow the selector (§9.4).
+- **Field-level validation messages stay English**, deliberately — they name rules and lengths that
+  pattern matching would mangle rather than translate.
+- **The monthly PDF prints times in UTC** while the app shows local time, so the same purchase can
+  read at a different hour in each. The PDF labels its column `Date (UTC)`; the reasoning is in the
+  backend guide.
 - **No automated tests.** The architecture is shaped for them — composables are pure functions of
-  their inputs and the API layer is trivially mockable — but none are written.
+  their inputs and the API layer is trivially mockable — but none are written. The i18n layer is the
+  easiest place to start: `translate`, `roundCents` and `useDateTime.toDate` are pure.
 - **`?redirect=` is not validated.** It cannot leave the app because it goes through
   `router.replace()`, but see §4.5.
 
 ---
 
-## 10. Glossary
+## 11. Glossary
 
 | Term | Meaning |
 |---|---|
@@ -993,3 +1150,9 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Design token** | A CSS custom property naming a design decision, changeable at runtime (§7.2). |
 | **Flat shadow** | A hard offset with zero blur — the app's signature (§7.3). |
 | **Invalidate** | Marking dashboard aggregates stale after a mutation elsewhere. |
+| **Locale** | The chosen language, `en` or `es`. Lives in its own store because it belongs to the browser, not the account (§9.1). |
+| **Translation key** | A dotted path into the locale files. Missing keys fall back to English, then to the key itself, so a gap is visible rather than blank. |
+| **Interpolation** | `{name}` in a string, filled at render. One key with a placeholder, never fragments around a value (§9.3). |
+| **Server label** | A translation of a value the API sends — an enum name or category — looked up by the exact string, falling back to it (§9.4). |
+| **Alert params** | The parts an alert sentence was built from, sent beside the English text so the sentence can be rebuilt in another language. |
+| **Scoped style** | CSS limited to one component by a `data-v` attribute. Carried by the `<style>` tag, which is why the tag survives the move to external files (§7.6). |
