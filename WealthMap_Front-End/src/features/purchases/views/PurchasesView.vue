@@ -45,6 +45,7 @@ const categoryOptions = PURCHASE_CATEGORIES.map((name) => ({ value: name, label:
 const COLUMNS = [
   { key: 'occurredAt', label: 'Date', width: '130px' },
   { key: 'productName', label: 'Item' },
+  { key: 'storeName', label: 'Store', width: '160px' },
   { key: 'category', label: 'Category', width: '150px' },
   { key: 'paymentMethod', label: 'Method', width: '150px' },
   { key: 'amount', label: 'Amount', align: 'right', width: '130px' }
@@ -151,14 +152,18 @@ onMounted(load)
         <template #cell-productName="{ row }">
           <div class="item">
             <span class="item__name">{{ row.productName }}</span>
-            <!-- Where it was bought sits above the note: it identifies the
-                 purchase, whereas the note only elaborates on it. -->
-            <span v-if="row.storeName" class="item__store">
-              <BaseIcon name="store" :size="12" />
-              {{ row.storeName }}
-            </span>
             <span v-if="row.notes" class="item__notes">{{ row.notes }}</span>
           </div>
+        </template>
+
+        <!-- Cash purchases often name no store, so the dash is the normal case
+             here rather than a sign of missing data. -->
+        <template #cell-storeName="{ value }">
+          <span v-if="value" class="store">
+            <BaseIcon name="store" :size="13" />
+            <span class="store__name">{{ value }}</span>
+          </span>
+          <span v-else class="store store--none">—</span>
         </template>
 
         <template #cell-category="{ value }">
@@ -216,19 +221,24 @@ onMounted(load)
 
 .muted { color: var(--text-muted); font-size: var(--fs-sm); }
 
-.item { display: flex; flex-direction: column; align-items: flex-start; }
+.item { display: flex; flex-direction: column; }
 .item__name { font-weight: var(--fw-medium); }
 .item__notes { font-size: var(--fs-xs); color: var(--text-muted); }
 
-.item__store {
+.store {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--sp-2);
   min-width: 0;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--text-muted);
-  @include truncate;
 }
+
+/* The icon must not shrink away when a long store name truncates. */
+.store :deep(svg) { flex: none; }
+.store__name { @include truncate; }
+
+.store--none { color: var(--text-muted); opacity: 0.6; }
 
 .method {
   display: inline-flex;
