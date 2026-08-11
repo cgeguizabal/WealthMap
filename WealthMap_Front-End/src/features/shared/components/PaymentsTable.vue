@@ -73,4 +73,4 @@ const { label: serverLabel } = useServerText()
   </BaseTable>
 </template>
 
-<style scoped lang="scss" src="./PaymentsTable.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/shared/PaymentsTable.scss"></style>

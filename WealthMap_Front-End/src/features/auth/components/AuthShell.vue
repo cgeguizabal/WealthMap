@@ -38,4 +38,4 @@ defineProps({
   </main>
 </template>
 
-<style scoped lang="scss" src="./AuthShell.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/auth/AuthShell.scss"></style>

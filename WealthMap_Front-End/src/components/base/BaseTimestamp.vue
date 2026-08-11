@@ -26,4 +26,4 @@ const time = computed(() => formatTime(props.value))
   </span>
 </template>
 
-<style scoped lang="scss" src="./BaseTimestamp.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseTimestamp.scss"></style>

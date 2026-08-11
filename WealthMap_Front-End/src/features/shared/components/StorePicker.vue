@@ -70,4 +70,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss" src="./StorePicker.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/shared/StorePicker.scss"></style>

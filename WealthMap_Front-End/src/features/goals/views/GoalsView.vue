@@ -179,4 +179,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss" src="./GoalsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/goals/GoalsView.scss"></style>

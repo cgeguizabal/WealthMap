@@ -127,4 +127,4 @@ function logout() {
   </header>
 </template>
 
-<style scoped lang="scss" src="./AppHeader.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/layout/AppHeader.scss"></style>

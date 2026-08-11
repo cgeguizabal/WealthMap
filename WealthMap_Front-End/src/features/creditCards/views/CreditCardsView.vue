@@ -174,4 +174,4 @@ onMounted(loadCards)
   </div>
 </template>
 
-<style scoped lang="scss" src="./CreditCardsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/creditCards/CreditCardsView.scss"></style>

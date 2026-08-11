@@ -165,4 +165,4 @@ onMounted(loadDebts)
   </div>
 </template>
 
-<style scoped lang="scss" src="./DebtsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/debts/DebtsView.scss"></style>

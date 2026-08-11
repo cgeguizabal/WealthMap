@@ -15,4 +15,4 @@ defineProps({
   </span>
 </template>
 
-<style scoped lang="scss" src="./BaseBadge.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseBadge.scss"></style>

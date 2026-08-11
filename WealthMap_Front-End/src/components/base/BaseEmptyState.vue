@@ -24,4 +24,4 @@ defineProps({
   </div>
 </template>
 
-<style scoped lang="scss" src="./BaseEmptyState.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseEmptyState.scss"></style>

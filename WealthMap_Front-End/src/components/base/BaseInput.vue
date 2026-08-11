@@ -77,4 +77,4 @@ function onInput(event) {
   </div>
 </template>
 
-<style scoped lang="scss" src="./BaseInput.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseInput.scss"></style>

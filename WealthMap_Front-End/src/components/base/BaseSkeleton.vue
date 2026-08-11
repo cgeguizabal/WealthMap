@@ -39,4 +39,4 @@ defineProps({
   />
 </template>
 
-<style scoped lang="scss" src="./BaseSkeleton.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseSkeleton.scss"></style>

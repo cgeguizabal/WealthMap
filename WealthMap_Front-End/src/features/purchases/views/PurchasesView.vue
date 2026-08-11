@@ -230,4 +230,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss" src="./PurchasesView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/purchases/PurchasesView.scss"></style>

@@ -107,4 +107,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss" src="./PaymentsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/payments/PaymentsView.scss"></style>

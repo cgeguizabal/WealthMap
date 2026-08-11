@@ -89,4 +89,4 @@ function go(page) {
   </nav>
 </template>
 
-<style scoped lang="scss" src="./BasePagination.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BasePagination.scss"></style>

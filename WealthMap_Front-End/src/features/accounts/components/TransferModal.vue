@@ -145,4 +145,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./TransferModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/accounts/TransferModal.scss"></style>

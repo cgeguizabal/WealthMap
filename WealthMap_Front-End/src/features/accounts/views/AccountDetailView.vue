@@ -189,4 +189,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./AccountDetailView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/accounts/AccountDetailView.scss"></style>

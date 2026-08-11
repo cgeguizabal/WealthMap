@@ -149,4 +149,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./DeductionFormModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/job/DeductionFormModal.scss"></style>

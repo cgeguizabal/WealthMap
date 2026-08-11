@@ -133,4 +133,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./DebtPaymentModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/debts/DebtPaymentModal.scss"></style>

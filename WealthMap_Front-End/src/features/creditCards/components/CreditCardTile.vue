@@ -115,4 +115,4 @@ const variant = computed(() => {
   </article>
 </template>
 
-<style scoped lang="scss" src="./CreditCardTile.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/creditCards/CreditCardTile.scss"></style>

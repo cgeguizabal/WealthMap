@@ -36,4 +36,4 @@ defineEmits(['click'])
   </button>
 </template>
 
-<style scoped lang="scss" src="./BaseButton.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseButton.scss"></style>

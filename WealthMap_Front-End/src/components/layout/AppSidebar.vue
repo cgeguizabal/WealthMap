@@ -71,4 +71,4 @@ function isActive(item) {
   </aside>
 </template>
 
-<style scoped lang="scss" src="./AppSidebar.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/layout/AppSidebar.scss"></style>

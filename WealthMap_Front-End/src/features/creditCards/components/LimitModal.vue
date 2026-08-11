@@ -76,4 +76,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./LimitModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/creditCards/LimitModal.scss"></style>

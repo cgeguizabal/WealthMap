@@ -32,4 +32,4 @@ defineProps({
   </div>
 </template>
 
-<style scoped lang="scss" src="./CardGridSkeleton.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/shared/CardGridSkeleton.scss"></style>

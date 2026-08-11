@@ -79,4 +79,4 @@ const ratioVariant = computed(() => {
   </BaseCard>
 </template>
 
-<style scoped lang="scss" src="./MonthSummaryCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/MonthSummaryCard.scss"></style>

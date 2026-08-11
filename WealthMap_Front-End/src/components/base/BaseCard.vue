@@ -32,4 +32,4 @@ defineProps({
   </section>
 </template>
 
-<style scoped lang="scss" src="./BaseCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseCard.scss"></style>

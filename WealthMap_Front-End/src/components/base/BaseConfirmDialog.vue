@@ -68,4 +68,4 @@ onBeforeUnmount(() => clearTimeout(armTimer))
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./BaseConfirmDialog.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseConfirmDialog.scss"></style>

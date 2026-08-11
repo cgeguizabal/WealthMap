@@ -117,4 +117,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./StoreFormModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/stores/StoreFormModal.scss"></style>

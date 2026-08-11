@@ -77,4 +77,4 @@ const percent = computed(() => {
   </BaseCard>
 </template>
 
-<style scoped lang="scss" src="./GoalsSummaryCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/GoalsSummaryCard.scss"></style>

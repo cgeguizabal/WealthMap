@@ -76,4 +76,4 @@ function onChange(event) {
   </div>
 </template>
 
-<style scoped lang="scss" src="./BaseSelect.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseSelect.scss"></style>

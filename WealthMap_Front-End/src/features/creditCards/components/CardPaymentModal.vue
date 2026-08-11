@@ -129,4 +129,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./CardPaymentModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/creditCards/CardPaymentModal.scss"></style>

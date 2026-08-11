@@ -76,4 +76,4 @@ async function onSubmit() {
   </AuthShell>
 </template>
 
-<style scoped lang="scss" src="./LoginView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/auth/LoginView.scss"></style>

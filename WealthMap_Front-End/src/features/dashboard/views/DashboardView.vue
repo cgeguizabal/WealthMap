@@ -158,4 +158,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./DashboardView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/DashboardView.scss"></style>

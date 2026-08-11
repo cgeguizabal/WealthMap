@@ -277,4 +277,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./CreditCardDetailView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/creditCards/CreditCardDetailView.scss"></style>

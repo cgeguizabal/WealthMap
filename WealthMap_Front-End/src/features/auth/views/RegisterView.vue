@@ -139,4 +139,4 @@ async function onSubmit() {
   </AuthShell>
 </template>
 
-<style scoped lang="scss" src="./RegisterView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/auth/RegisterView.scss"></style>

@@ -103,4 +103,4 @@ function isRowClickable(row) {
   </div>
 </template>
 
-<style scoped lang="scss" src="./BaseTable.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseTable.scss"></style>

@@ -39,4 +39,4 @@ const useShell = computed(() => route.meta.layout !== 'blank')
   <BaseConfirmDialog />
 </template>
 
-<style lang="scss" src="./App.scss"></style>
+<style lang="scss" src="@/assets/styles/base/App.scss"></style>

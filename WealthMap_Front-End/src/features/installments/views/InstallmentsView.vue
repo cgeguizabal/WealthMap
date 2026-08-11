@@ -130,4 +130,4 @@ onMounted(loadPlans)
   </div>
 </template>
 
-<style scoped lang="scss" src="./InstallmentsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/installments/InstallmentsView.scss"></style>

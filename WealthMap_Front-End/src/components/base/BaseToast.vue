@@ -40,4 +40,4 @@ const ICON_BY_TYPE = {
   </Teleport>
 </template>
 
-<style scoped lang="scss" src="./BaseToast.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseToast.scss"></style>

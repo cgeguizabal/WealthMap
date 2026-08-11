@@ -282,4 +282,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss" src="./ReportsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/reports/ReportsView.scss"></style>

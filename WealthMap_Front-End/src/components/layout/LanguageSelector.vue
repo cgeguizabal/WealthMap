@@ -32,4 +32,4 @@ const { t, locale, setLocale, locales } = useI18n()
   </div>
 </template>
 
-<style scoped lang="scss" src="./LanguageSelector.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/layout/LanguageSelector.scss"></style>

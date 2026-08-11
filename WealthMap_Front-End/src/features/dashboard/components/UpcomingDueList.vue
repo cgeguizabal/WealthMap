@@ -66,4 +66,4 @@ function relativeDay(days) {
   </BaseCard>
 </template>
 
-<style scoped lang="scss" src="./UpcomingDueList.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/UpcomingDueList.scss"></style>

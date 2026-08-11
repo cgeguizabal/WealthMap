@@ -39,4 +39,4 @@ const percent = computed(() => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./BaseProgress.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseProgress.scss"></style>

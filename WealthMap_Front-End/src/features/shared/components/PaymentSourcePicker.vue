@@ -96,4 +96,4 @@ watch(() => props.currency, () => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./PaymentSourcePicker.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/shared/PaymentSourcePicker.scss"></style>

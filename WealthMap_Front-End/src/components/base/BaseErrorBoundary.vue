@@ -50,4 +50,4 @@ function retry() {
   <slot v-else />
 </template>
 
-<style scoped lang="scss" src="./BaseErrorBoundary.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseErrorBoundary.scss"></style>

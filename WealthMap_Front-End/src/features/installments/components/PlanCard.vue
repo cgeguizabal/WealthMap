@@ -84,4 +84,4 @@ const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBa
   </article>
 </template>
 
-<style scoped lang="scss" src="./PlanCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/installments/PlanCard.scss"></style>

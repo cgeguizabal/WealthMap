@@ -17,4 +17,4 @@ const { isOnline } = useOnlineStatus()
   </Transition>
 </template>
 
-<style scoped lang="scss" src="./OfflineBanner.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/layout/OfflineBanner.scss"></style>

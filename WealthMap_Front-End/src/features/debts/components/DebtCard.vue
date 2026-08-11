@@ -116,4 +116,4 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
   </article>
 </template>
 
-<style scoped lang="scss" src="./DebtCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/debts/DebtCard.scss"></style>

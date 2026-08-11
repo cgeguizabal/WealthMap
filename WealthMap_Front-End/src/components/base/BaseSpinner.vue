@@ -11,4 +11,4 @@ defineProps({
   </span>
 </template>
 
-<style scoped lang="scss" src="./BaseSpinner.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseSpinner.scss"></style>

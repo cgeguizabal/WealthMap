@@ -98,4 +98,4 @@ const { label: serverLabel } = useServerText()
   </div>
 </template>
 
-<style scoped lang="scss" src="./MovementsTable.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/accounts/MovementsTable.scss"></style>

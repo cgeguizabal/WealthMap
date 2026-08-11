@@ -119,4 +119,4 @@ onUnmounted(() => lockScroll(false))
   </Teleport>
 </template>
 
-<style scoped lang="scss" src="./BaseModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseModal.scss"></style>

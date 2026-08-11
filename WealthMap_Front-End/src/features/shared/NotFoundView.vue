@@ -13,4 +13,4 @@ const { t } = useI18n()
   </div>
 </template>
 
-<style scoped src="./NotFoundView.scss"></style>
+<style scoped src="@/assets/styles/features/shared/NotFoundView.scss"></style>

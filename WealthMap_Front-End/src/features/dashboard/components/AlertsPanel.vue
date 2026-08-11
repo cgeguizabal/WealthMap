@@ -83,4 +83,4 @@ const overflow = computed(() => Math.max(0, props.alerts.length - visible.value.
   </section>
 </template>
 
-<style scoped lang="scss" src="./AlertsPanel.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/AlertsPanel.scss"></style>

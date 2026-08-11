@@ -28,4 +28,4 @@ defineProps({
   </article>
 </template>
 
-<style scoped lang="scss" src="./StatTile.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/StatTile.scss"></style>

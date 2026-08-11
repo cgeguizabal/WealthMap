@@ -69,4 +69,4 @@ watch(drawerOpen, (open) => {
   </div>
 </template>
 
-<style scoped lang="scss" src="./AppShell.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/layout/AppShell.scss"></style>

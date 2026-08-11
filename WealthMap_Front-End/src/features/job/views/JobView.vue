@@ -391,4 +391,4 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss" src="./JobView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/job/JobView.scss"></style>

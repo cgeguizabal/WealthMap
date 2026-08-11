@@ -179,4 +179,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./IncomeFormModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/job/IncomeFormModal.scss"></style>

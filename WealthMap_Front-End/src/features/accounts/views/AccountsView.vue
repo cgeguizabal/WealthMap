@@ -194,4 +194,4 @@ onMounted(loadAccounts)
   </div>
 </template>
 
-<style scoped lang="scss" src="./AccountsView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/accounts/AccountsView.scss"></style>

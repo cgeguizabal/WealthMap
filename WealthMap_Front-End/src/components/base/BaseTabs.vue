@@ -26,4 +26,4 @@ defineEmits(['update:modelValue'])
   </div>
 </template>
 
-<style scoped lang="scss" src="./BaseTabs.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/components/BaseTabs.scss"></style>

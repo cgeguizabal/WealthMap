@@ -144,4 +144,4 @@ onMounted(loadStores)
   </div>
 </template>
 
-<style scoped lang="scss" src="./StoresView.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/stores/StoresView.scss"></style>

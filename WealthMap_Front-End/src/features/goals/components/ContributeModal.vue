@@ -163,4 +163,4 @@ async function onSubmit() {
   </BaseModal>
 </template>
 
-<style scoped lang="scss" src="./ContributeModal.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/goals/ContributeModal.scss"></style>

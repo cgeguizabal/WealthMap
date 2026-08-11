@@ -28,4 +28,4 @@ defineProps({
   </aside>
 </template>
 
-<style scoped lang="scss" src="./ExcludedCurrenciesNotice.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/dashboard/ExcludedCurrenciesNotice.scss"></style>

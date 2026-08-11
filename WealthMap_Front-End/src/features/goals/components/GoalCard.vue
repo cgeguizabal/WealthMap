@@ -133,4 +133,4 @@ const hasRequired = computed(() =>
   </article>
 </template>
 
-<style scoped lang="scss" src="./GoalCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/goals/GoalCard.scss"></style>

@@ -102,4 +102,4 @@ const { format } = useMoney()
   </article>
 </template>
 
-<style scoped lang="scss" src="./AccountCard.scss"></style>
+<style scoped lang="scss" src="@/assets/styles/features/accounts/AccountCard.scss"></style>
