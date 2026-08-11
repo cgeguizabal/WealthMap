@@ -86,14 +86,24 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
 
       <div class="debt__spacer" />
 
-      <BaseButton size="sm" variant="ghost" title="Edit" @click="$emit('edit', debt)">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        title="Edit"
+        aria-label="Edit debt"
+        @click="$emit('edit', debt)"
+      >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
-        <span class="sr-only">Edit</span>
       </BaseButton>
 
-      <BaseButton size="sm" variant="ghost" title="Delete" @click="$emit('delete', debt)">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        title="Delete"
+        aria-label="Delete debt"
+        @click="$emit('delete', debt)"
+      >
         <template #icon><BaseIcon name="trash" :size="14" /></template>
-        <span class="sr-only">Delete</span>
       </BaseButton>
     </footer>
   </article>

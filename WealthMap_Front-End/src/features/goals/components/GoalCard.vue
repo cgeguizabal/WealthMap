@@ -103,14 +103,24 @@ const hasRequired = computed(() =>
 
       <div class="goal__spacer" />
 
-      <BaseButton size="sm" variant="ghost" title="Edit" @click="$emit('edit', goal)">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        title="Edit"
+        aria-label="Edit goal"
+        @click="$emit('edit', goal)"
+      >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
-        <span class="sr-only">Edit</span>
       </BaseButton>
 
-      <BaseButton size="sm" variant="ghost" title="Delete" @click="$emit('delete', goal)">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        title="Delete"
+        aria-label="Delete goal"
+        @click="$emit('delete', goal)"
+      >
         <template #icon><BaseIcon name="trash" :size="14" /></template>
-        <span class="sr-only">Delete</span>
       </BaseButton>
     </footer>
   </article>

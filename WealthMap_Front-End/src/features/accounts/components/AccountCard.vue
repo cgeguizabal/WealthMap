@@ -65,17 +65,22 @@ const { format } = useMoney()
         size="sm"
         variant="ghost"
         :title="account.isBlockedForSaving ? 'Unblock' : 'Block for saving'"
+        :aria-label="account.isBlockedForSaving ? 'Unblock account' : 'Block account for saving'"
         @click="$emit('toggle-block', account)"
       >
         <template #icon>
           <BaseIcon :name="account.isBlockedForSaving ? 'unlock' : 'lock'" :size="14" />
         </template>
-        <span class="sr-only">{{ account.isBlockedForSaving ? 'Unblock' : 'Block' }}</span>
       </BaseButton>
 
-      <BaseButton size="sm" variant="ghost" title="Edit" @click="$emit('edit', account)">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        title="Edit"
+        aria-label="Edit account"
+        @click="$emit('edit', account)"
+      >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
-        <span class="sr-only">Edit</span>
       </BaseButton>
     </footer>
   </article>

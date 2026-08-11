@@ -100,5 +100,10 @@ defineEmits(['click'])
 
 .btn__icon { display: inline-flex; }
 .btn__label { display: inline-flex; align-items: center; }
+
+/* An icon-only button still renders the label wrapper, and an empty flex item
+   silently claims the container's `gap`. Removing it keeps icon buttons the
+   width of their icon — which is what makes them fit in tight card footers. */
+.btn__label:empty { display: none; }
 .btn--loading .btn__label { opacity: 0.85; }
 </style>

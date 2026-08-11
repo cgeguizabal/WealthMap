@@ -88,9 +88,14 @@ const variant = computed(() => {
 
       <div class="card__spacer" />
 
-      <BaseButton size="sm" variant="ghost" title="Edit" @click="$emit('edit', card)">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        title="Edit"
+        aria-label="Edit card"
+        @click="$emit('edit', card)"
+      >
         <template #icon><BaseIcon name="pencil" :size="14" /></template>
-        <span class="sr-only">Edit</span>
       </BaseButton>
     </footer>
   </article>
