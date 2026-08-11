@@ -709,6 +709,55 @@ export default {
     currencyMismatch: 'The currencies do not match, and WealthMap does not convert between them.'
   },
 
+/**
+   * Alerts, keyed by the AlertType the API sends. Placeholders are filled from
+   * the parts the server sends alongside the sentence, so the figures survive
+   * translation. An alert whose type is missing here falls back to the English
+   * the server composed.
+   */
+  alert: {
+    CardPaymentDueSoon: {
+      title: "'{name}' payment due in {daysUntil} day(s)",
+      message: "You owe {amount} on '{name}', due {dueDate}."
+    },
+    DebtPaymentDueSoon: {
+      title: "'{name}' payment due in {daysUntil} day(s)",
+      message: "{amount} is due on {dueDate} for '{name}'."
+    },
+    InstallmentDueSoon: {
+      title: "'{name}' payment due in {daysUntil} day(s)",
+      message: "{amount} is due on {dueDate} for '{name}'."
+    },
+    InsufficientBalanceForCardPayment: {
+      title: 'Checking balance will not cover upcoming card payments',
+      message: '{owed} is due within {days} days but checking holds {checking}.',
+      canCover: ' You could move {shortfall} from savings to cover it.',
+      cannotCover: ' Savings would not cover the gap either.'
+    },
+    HighDebtRatio: {
+      title: 'Debt payments take {ratio}% of your income',
+      message:
+        'Committed payments of {obligations} against a net income of {income}. ' +
+        'Anything above {threshold}% leaves little room.'
+    },
+    OverspendingVsIncome: {
+      title: 'Spending exceeds income this month',
+      message: 'You have spent {spent} this month against a net income of {income}.'
+    },
+    GoalBehindSchedule: {
+      title: "'{name}' is behind schedule",
+      message: "'{name}' is {progress}% funded and trailing the pace needed to hit its deadline."
+    },
+    GoalDeadlinePassed: {
+      title: "'{name}' missed its deadline",
+      message: "'{name}' reached its deadline at {progress}% funded. Set a new deadline or adjust the target."
+    },
+    GoalReached: {
+      title: "'{name}' is fully funded",
+      message: "You have reached the target for '{name}'."
+    }
+  },
+
   offline: {
     message: 'You are offline. Changes will fail until the connection is back.'
   }

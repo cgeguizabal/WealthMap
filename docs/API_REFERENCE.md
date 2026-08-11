@@ -636,8 +636,19 @@ Computed live, ordered Critical → Warning → Info. Nothing is stored by this 
 [ { "type": "InsufficientBalanceForCardPayment", "severity": "Critical",
     "title": "Checking balance will not cover upcoming card payments",
     "message": "1,800.00 USD is due within 7 days but checking holds 1,200.00 USD. You could move 600.00 USD from savings to cover it.",
-    "relatedEntityId": null } ]
+    "relatedEntityId": null,
+    "params": { "owed": "1800.00", "checking": "1200.00", "shortfall": "600.00",
+                "currency": "USD", "days": "7", "savingsCover": "true" } } ]
 ```
+
+`title` and `message` are composed in English. `params` carries the parts they were
+built from, so a client can say the same thing in another language — given only the
+sentence there is nothing to rebuild it from. Keys vary by `type`; values are raw, not
+pre-formatted (amounts as invariant decimals, dates as ISO), so the client formats them
+in its own locale. `savingsCover` is a decision, not a sentence: the server chooses which
+suggestion applies and the client words it.
+
+A client that does not know a `type` should fall back to `title` and `message`.
 
 | `type` | Fires when |
 |---|---|
@@ -646,7 +657,8 @@ Computed live, ordered Critical → Warning → Info. Nothing is stored by this 
 | `InsufficientBalanceForCardPayment` | checking will not cover cards due within 7 days |
 | `HighDebtRatio` | obligations above 40% of net income (Critical above 60%) |
 | `OverspendingVsIncome` | this month's purchases exceed net monthly income |
-| `GoalBehindSchedule` | a goal trails its pace, or missed its deadline (Critical) |
+| `GoalBehindSchedule` | a goal trails the pace needed for its deadline |
+| `GoalDeadlinePassed` | a goal reached its deadline unfunded (Critical) |
 | `GoalReached` | a goal is fully funded |
 
 ### Notifications
@@ -659,6 +671,11 @@ and returns only what it created. Calling it twice in a row returns `[]`.
 `POST /api/v1/notifications/{id}/read` — marks one read; calling it twice is harmless. Marking read
 is an acknowledgement, not a mute: if the condition is still true at the next sync, it is raised
 again.
+
+A notification carries the same `params` as the alert it was raised from, alongside the stored
+English `title` and `message`. That is what lets an old notification be shown in a language chosen
+long after it was raised — storing only the finished sentence would freeze each row in the language
+it was written in. Rows created before `params` existed have `{}` and fall back to their English.
 
 ---
 

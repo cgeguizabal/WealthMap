@@ -11,7 +11,13 @@ public record NotificationDto(
     Guid? RelatedEntityId,
     bool IsRead,
     DateTime? ReadAt,
-    DateTime CreatedAt)
+    DateTime CreatedAt,
+    /// <summary>
+    /// The parts Title and Message were built from, so a client can say the same
+    /// thing in another language. Empty for rows raised before this existed —
+    /// those fall back to their stored English.
+    /// </summary>
+    IReadOnlyDictionary<string, string> Params)
 {
     public static NotificationDto FromEntity(Notification notification) => new(
         notification.Id,
@@ -22,5 +28,6 @@ public record NotificationDto(
         notification.RelatedEntityId,
         notification.IsRead,
         notification.ReadAt,
-        notification.CreatedAt);
+        notification.CreatedAt,
+        notification.Params);
 }

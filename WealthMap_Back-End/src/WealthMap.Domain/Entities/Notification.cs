@@ -15,6 +15,19 @@ public class Notification : BaseEntity
     public AlertSeverity Severity { get; private set; }
     public string Title { get; private set; }
     public string Message { get; private set; }
+
+    /// <summary>
+    /// The parts the sentence was built from — amounts, names, dates.
+    /// </summary>
+    /// <remarks>
+    /// Stored alongside the finished text so the notification can be said in
+    /// another language later. Keeping only Title and Message would freeze each
+    /// row in the language it was raised in, because there would be nothing left
+    /// to rebuild it from. Rows written before this existed have none, and fall
+    /// back to their stored English.
+    /// </remarks>
+    public IReadOnlyDictionary<string, string> Params { get; private set; }
+
     public Guid? RelatedEntityId { get; private set; }
     public bool IsRead { get; private set; }
     public DateTime? ReadAt { get; private set; }
@@ -23,6 +36,7 @@ public class Notification : BaseEntity
     {
         Title = null!;
         Message = null!;
+        Params = new Dictionary<string, string>();
     }
 
     public Notification(
@@ -31,7 +45,8 @@ public class Notification : BaseEntity
         AlertSeverity severity,
         string title,
         string message,
-        Guid? relatedEntityId)
+        Guid? relatedEntityId,
+        IReadOnlyDictionary<string, string>? parameters = null)
     {
         if (userId == Guid.Empty)
             throw new DomainException("Notification must belong to a user.");
@@ -41,6 +56,7 @@ public class Notification : BaseEntity
         Severity = severity;
         Title = ValidateText(title, "Title");
         Message = ValidateText(message, "Message");
+        Params = parameters ?? new Dictionary<string, string>();
         RelatedEntityId = relatedEntityId;
         IsRead = false;
     }

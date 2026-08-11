@@ -6,9 +6,11 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
+import { useAlertText } from '@/composables/useAlertText'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
+const { render: renderAlert } = useAlertText()
 
 const props = defineProps({
   alerts: { type: Array, default: () => [] }
@@ -61,8 +63,10 @@ const overflow = computed(() => Math.max(0, props.alerts.length - visible.value.
             <BaseIcon :name="ICON_BY_SEVERITY[alert.severity] ?? 'info'" :size="17" class="alert__icon" />
 
             <div class="alert__body">
-              <p class="alert__title">{{ alert.title }}</p>
-              <p class="alert__message">{{ alert.message }}</p>
+              <!-- Rebuilt from the parts the API sends, so the figures survive
+                   translation. Falls back to the server's English sentence. -->
+              <p class="alert__title">{{ renderAlert(alert).title }}</p>
+              <p class="alert__message">{{ renderAlert(alert).message }}</p>
             </div>
 
             <BaseBadge :variant="VARIANT_BY_SEVERITY[alert.severity]" size="sm" class="alert__severity">

@@ -51,7 +51,10 @@ public class SyncAlertsHandler : ICommandHandler<SyncAlertsCommand, IReadOnlyLis
                 alert.SeverityValue,
                 alert.Title,
                 alert.Message,
-                alert.RelatedEntityId);
+                alert.RelatedEntityId,
+                // Persisted with the text: without them the row could never be
+                // rendered in another language.
+                alert.Params);
 
             await _notifications.AddAsync(notification, ct);
             created.Add(notification);

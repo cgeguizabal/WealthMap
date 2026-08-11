@@ -17,9 +17,11 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BasePagination from '@/components/base/BasePagination.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
+import { useAlertText } from '@/composables/useAlertText'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
+const { render: renderAlert } = useAlertText()
 
 const notifications = useNotificationsStore()
 const { items, unreadCount, loading, pagination } = storeToRefs(notifications)
@@ -148,13 +150,13 @@ onMounted(() => {
 
           <div class="note__body">
             <div class="note__head">
-              <span class="note__title">{{ item.title }}</span>
+              <span class="note__title">{{ renderAlert(item).title }}</span>
               <BaseBadge :variant="VARIANT_BY_SEVERITY[item.severity]" size="sm">
                 {{ serverLabel('severity', item.severity) }}
               </BaseBadge>
             </div>
 
-            <p class="note__message">{{ item.message }}</p>
+            <p class="note__message">{{ renderAlert(item).message }}</p>
 
             <span class="note__time">
               {{ relativeTime(item.createdAt) }}

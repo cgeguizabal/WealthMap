@@ -709,6 +709,54 @@ export default {
     currencyMismatch: 'Las monedas no coinciden, y WealthMap no convierte entre ellas.'
   },
 
+/**
+   * Alertas, con la clave del AlertType que envía la API. Los marcadores se
+   * llenan con las partes que el servidor manda junto a la frase, así las cifras
+   * sobreviven a la traducción. Un tipo que falte aquí cae al inglés del servidor.
+   */
+  alert: {
+    CardPaymentDueSoon: {
+      title: "El pago de '{name}' vence en {daysUntil} día(s)",
+      message: "Debes {amount} en '{name}', con vencimiento {dueDate}."
+    },
+    DebtPaymentDueSoon: {
+      title: "El pago de '{name}' vence en {daysUntil} día(s)",
+      message: "Vencen {amount} el {dueDate} por '{name}'."
+    },
+    InstallmentDueSoon: {
+      title: "El pago de '{name}' vence en {daysUntil} día(s)",
+      message: "Vencen {amount} el {dueDate} por '{name}'."
+    },
+    InsufficientBalanceForCardPayment: {
+      title: 'El saldo en cuenta corriente no cubrirá los próximos pagos de tarjeta',
+      message: 'Vencen {owed} en {days} días pero la cuenta corriente tiene {checking}.',
+      canCover: ' Podrías mover {shortfall} desde ahorro para cubrirlo.',
+      cannotCover: ' El ahorro tampoco cubriría la diferencia.'
+    },
+    HighDebtRatio: {
+      title: 'Los pagos de deuda toman el {ratio}% de tus ingresos',
+      message:
+        'Pagos comprometidos de {obligations} frente a un ingreso neto de {income}. ' +
+        'Por encima del {threshold}% queda poco margen.'
+    },
+    OverspendingVsIncome: {
+      title: 'Los gastos superan los ingresos este mes',
+      message: 'Has gastado {spent} este mes frente a un ingreso neto de {income}.'
+    },
+    GoalBehindSchedule: {
+      title: "'{name}' va atrasada",
+      message: "'{name}' está financiada al {progress}% y no lleva el ritmo necesario para su fecha límite."
+    },
+    GoalDeadlinePassed: {
+      title: "'{name}' pasó su fecha límite",
+      message: "'{name}' llegó a su fecha límite con {progress}% financiado. Define una nueva fecha o ajusta el objetivo."
+    },
+    GoalReached: {
+      title: "'{name}' está totalmente financiada",
+      message: "Alcanzaste el objetivo de '{name}'."
+    }
+  },
+
   offline: {
     message: 'Estás sin conexión. Los cambios fallarán hasta que vuelva.'
   }

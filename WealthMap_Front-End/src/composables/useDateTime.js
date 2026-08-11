@@ -6,9 +6,24 @@
  * should read 8pm, not the 02:00 UTC it was stored as.
  */
 export function useDateTime() {
+  /** Matches a bare calendar date, with no time and no zone. */
+  const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
+
   function toDate(value) {
     if (!value) return null
-    const date = value instanceof Date ? value : new Date(value)
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value
+
+    // A date-only string is a calendar date, not an instant. `new Date('2026-08-13')`
+    // reads it as UTC midnight, which then displays as the 12th anywhere west of
+    // Greenwich — a payment due the 13th would show as due the 12th. Building it
+    // from local parts keeps the day the day.
+    if (typeof value === 'string' && DATE_ONLY.test(value)) {
+      const [year, month, day] = value.split('-').map(Number)
+      const local = new Date(year, month - 1, day)
+      return Number.isNaN(local.getTime()) ? null : local
+    }
+
+    const date = new Date(value)
     return Number.isNaN(date.getTime()) ? null : date
   }
 
