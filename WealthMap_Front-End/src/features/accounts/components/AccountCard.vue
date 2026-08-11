@@ -96,6 +96,7 @@ const { format } = useMoney()
 .account__main {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: var(--sp-2);
   padding: var(--sp-4) var(--sp-5);
   color: inherit;

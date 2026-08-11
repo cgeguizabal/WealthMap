@@ -193,7 +193,10 @@ const hasRequired = computed(() =>
   flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
-  margin-top: var(--sp-1);
+  /* auto, not a fixed value: grid stretches cards in a row to equal height, and
+     this keeps the actions pinned to the bottom instead of leaving a gap under
+     them when a neighbouring card is taller. */
+  margin-top: auto;
   padding-top: var(--sp-3);
   border-top: var(--border-subtle);
 }

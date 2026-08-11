@@ -93,6 +93,7 @@ const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBa
 .plan__main {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: var(--sp-3);
   padding: var(--sp-4) var(--sp-5);
   color: inherit;
