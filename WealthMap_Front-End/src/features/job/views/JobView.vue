@@ -68,6 +68,21 @@ function onJobMutated(updated) {
   dashboard.invalidate()
 }
 
+/** What this deduction costs over the whole month, whatever type it is. */
+function monthlyCost(deduction) {
+  if (!job.value) return 0
+
+  return deduction.type === 'Percentage'
+    ? (job.value.grossMonthlySalary * Number(deduction.value)) / 100
+    : Number(deduction.value)
+}
+
+/** Deductions are monthly; each payday carries an equal share of them. */
+function perPaydayCost(deduction) {
+  const days = job.value?.paymentDays?.length || 1
+  return monthlyCost(deduction) / days
+}
+
 function openDeduction(deduction = null) {
   editingDeduction.value = deduction
   deductionOpen.value = true
@@ -220,7 +235,7 @@ onMounted(load)
             </div>
 
             <div class="job__figure">
-              <span class="job__label">Per deposit</span>
+              <span class="job__label">Per deposit (after deductions)</span>
               <p class="numeric">{{ format(job.netPerDeposit, { currency: job.currency }) }}</p>
             </div>
           </div>
@@ -262,6 +277,18 @@ onMounted(load)
                 <span class="deduction__name">{{ deduction.name }}</span>
                 <span class="deduction__type">
                   {{ deduction.type === 'Percentage' ? 'Percentage of gross' : 'Fixed amount' }}
+                </span>
+                <!--
+                  Spelling out the monthly total and the per-payday share, because a
+                  rate alone leaves it ambiguous whether it is charged once a month
+                  or again at every payday. It is once a month, split evenly.
+                -->
+                <span class="deduction__split">
+                  {{ format(monthlyCost(deduction), { currency: job.currency }) }} a month
+                  <template v-if="job.paymentDays.length > 1">
+                    · {{ format(perPaydayCost(deduction), { currency: job.currency }) }}
+                    at each of {{ job.paymentDays.length }} paydays
+                  </template>
                 </span>
               </div>
 
@@ -435,6 +462,12 @@ onMounted(load)
 .deduction__body, .income__body { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .deduction__name, .income__name { font-weight: var(--fw-medium); }
 .deduction__type, .income__meta { font-size: var(--fs-xs); color: var(--text-muted); }
+
+.deduction__split {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  opacity: 0.8;
+}
 .deduction__value, .income__amount { font-weight: var(--fw-semibold); }
 .deduction__actions, .income__actions { display: flex; gap: var(--sp-1); flex: none; }
 

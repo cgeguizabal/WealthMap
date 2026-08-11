@@ -43,10 +43,59 @@ public class Job : BaseEntity
         }
     }
 
+    /// <summary>
+    /// The even share of net pay per payday — the headline figure. Deductions are
+    /// monthly and each payday carries an equal part of them, so a 10% deduction
+    /// paid twice a month takes 5% at each payday, not 10% at both.
+    /// </summary>
+    /// <remarks>
+    /// Rounded, so it is the nominal share rather than what is literally paid on
+    /// the final payday. Use <see cref="NetForPayday"/> to pay money.
+    /// </remarks>
     public Money NetPerDeposit =>
         _paymentDays.Count == 0
             ? NetMonthly
             : new Money(NetMonthly.Amount / _paymentDays.Count, GrossMonthlySalary.Currency);
+
+    /// <summary>
+    /// What is actually deposited on one payday, with the rounding remainder for
+    /// the month settled on its last payday.
+    /// </summary>
+    /// <remarks>
+    /// An even share alone does not add up: 1000 across three paydays rounds to
+    /// 333.33 each and pays 999.99, losing a cent every month for as long as the
+    /// job exists. The last payday absorbs the difference so the deposits sum to
+    /// <see cref="NetMonthly"/> exactly.
+    /// </remarks>
+    public Money NetForPayday(DateOnly payday)
+    {
+        var paydays = PaydaysInMonth(payday.Year, payday.Month);
+        var index = paydays.ToList().IndexOf(payday);
+
+        if (paydays.Count == 0 || index < 0)
+            return NetPerDeposit;
+
+        var currency = GrossMonthlySalary.Currency;
+        var monthly = NetMonthly.Amount;
+        var share = decimal.Round(monthly / paydays.Count, 2, MidpointRounding.ToEven);
+
+        return index == paydays.Count - 1
+            ? new Money(monthly - share * (paydays.Count - 1), currency)
+            : new Money(share, currency);
+    }
+
+    /// <summary>
+    /// Every payday in the month, clamped and de-duplicated, oldest first.
+    /// Unlike <see cref="ScheduledDatesBetween"/> this ignores the posting anchor,
+    /// because splitting a month's pay depends on how many paydays the month has,
+    /// not on which of them are still owed.
+    /// </summary>
+    public IReadOnlyList<DateOnly> PaydaysInMonth(int year, int month) =>
+        _paymentDays
+            .Select(d => PaymentSchedule.ClampToMonth(year, month, d.DayOfMonth))
+            .Distinct()
+            .Order()
+            .ToList();
 
     private Job()
     {
@@ -97,20 +146,16 @@ public class Job : BaseEntity
 
         while (month <= lastMonth)
         {
-            foreach (var paymentDay in _paymentDays)
-            {
-                var date = PaymentSchedule.ClampToMonth(month.Year, month.Month, paymentDay.DayOfMonth);
-
-                if (date >= effectiveFrom && date <= to)
-                    dates.Add(date);
-            }
+            // PaydaysInMonth already clamps and de-duplicates: two payment days can
+            // land on the same date in a short month (30 and 31 in June), and that
+            // is one payday, not two.
+            dates.AddRange(PaydaysInMonth(month.Year, month.Month)
+                .Where(date => date >= effectiveFrom && date <= to));
 
             month = month.AddMonths(1);
         }
 
-        // Two payment days can clamp onto the same date in a short month (30 and 31
-        // in June, say). That is one payday, not two.
-        return dates.Distinct().Order().ToList();
+        return dates;
     }
 
     public void UpdateDetails(string title, string employer, Money grossMonthlySalary, Guid depositAccountId)

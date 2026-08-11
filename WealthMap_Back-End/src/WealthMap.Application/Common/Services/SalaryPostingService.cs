@@ -107,6 +107,9 @@ public class SalaryPostingService
             return 0;
         }
 
+        // Nominal share, used only for the currency and "is there anything to pay?"
+        // checks. Each payday's real amount comes from NetForPayday below, so the
+        // month's rounding remainder is not silently dropped.
         var amount = job.NetPerDeposit;
 
         if (amount.Currency != account.Balance.Currency)
@@ -133,15 +136,19 @@ public class SalaryPostingService
 
             // One transaction per payday: an outage midway through a catch-up
             // leaves earlier paydays settled instead of rolling all of them back.
+            // The month's rounding remainder settles on its last payday, so the
+            // deposits add up to the net monthly instead of losing a cent a month.
+            var paydayAmount = job.NetForPayday(payday);
+
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
-                account.Deposit(amount);
+                account.Deposit(paydayAmount);
 
                 var movement = new AccountMovement(
                     account.Id,
                     job.UserId,
                     MovementType.SalaryDeposit,
-                    amount,
+                    paydayAmount,
                     account.Balance,
                     $"Salary — {job.Employer}",
                     payday.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
@@ -150,14 +157,14 @@ public class SalaryPostingService
                 await _movements.AddAsync(movement, ct);
 
                 await _salaryDeposits.AddAsync(
-                    new SalaryDeposit(job.Id, job.UserId, account.Id, payday, amount, movement.Id), ct);
+                    new SalaryDeposit(job.Id, job.UserId, account.Id, payday, paydayAmount, movement.Id), ct);
             }, ct);
 
             posted++;
 
             _logger.LogInformation(
                 "Posted salary {Amount} to account {AccountId} for payday {Payday}.",
-                amount, account.Id, payday);
+                paydayAmount, account.Id, payday);
         }
 
         return posted;
