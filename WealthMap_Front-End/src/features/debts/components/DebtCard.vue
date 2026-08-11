@@ -171,6 +171,7 @@ const isPaidOff = computed(() => props.debt.status === 'PaidOff')
 
 .debt__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-4);

@@ -190,6 +190,7 @@ const hasRequired = computed(() =>
 
 .goal__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--sp-2);
   margin-top: var(--sp-1);
