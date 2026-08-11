@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { creditCardsApi } from '@/api/creditCards.api'
 import { purchasesApi } from '@/api/purchases.api'
 import { installmentsApi } from '@/api/installments.api'
@@ -25,6 +25,7 @@ import LimitModal from '../components/LimitModal.vue'
 import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
 
 const route = useRoute()
+const router = useRouter()
 const { format, formatPercent } = useMoney()
 const dashboard = useDashboardStore()
 
@@ -96,6 +97,15 @@ const variant = computed(() => {
   if (utilisation.value >= 50) return 'warning'
   return 'accent'
 })
+
+/** Purchases have no detail screen, so only plans are navigable. */
+function isPlan(row) {
+  return row.kind === 'Installment plan'
+}
+
+function openCharge(row) {
+  if (isPlan(row)) router.push(`/installments/${row.id}`)
+}
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -197,8 +207,10 @@ onMounted(() => {
           :columns="CHARGE_COLUMNS"
           :rows="charges"
           :loading="loadingCharges"
+          :clickable="isPlan"
           empty-title="Nothing charged to this card"
           empty-message="Purchases paid with this card, and installment plans on it, appear here."
+          @row-click="openCharge"
         >
           <template #cell-occurredAt="{ value }">
             <span class="numeric muted">{{ formatDate(value) }}</span>
@@ -211,10 +223,13 @@ onMounted(() => {
           -->
           <template #cell-name="{ row }">
             <div class="cell-stack">
+              <!-- The row handles the click; the link keeps it reachable by keyboard.
+                   `.stop` prevents both firing for the same activation. -->
               <RouterLink
-                v-if="row.kind === 'Installment plan'"
+                v-if="isPlan(row)"
                 :to="`/installments/${row.id}`"
                 class="cell-stack__link"
+                @click.stop
               >
                 {{ row.name }}
                 <BaseIcon name="arrow-up-right" :size="13" />

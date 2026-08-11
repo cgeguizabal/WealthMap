@@ -8,7 +8,12 @@ const props = defineProps({
   rows: { type: Array, default: () => [] },
   rowKey: { type: String, default: 'id' },
   loading: { type: Boolean, default: false },
-  clickable: { type: Boolean, default: false },
+  /**
+   * `true` makes every row clickable. A predicate `(row) => boolean` makes only
+   * some clickable — for tables that mix rows which have a destination with
+   * rows that do not.
+   */
+  clickable: { type: [Boolean, Function], default: false },
   emptyTitle: { type: String, default: 'Nothing here yet' },
   emptyMessage: { type: String, default: '' }
 })
@@ -17,6 +22,10 @@ defineEmits(['row-click'])
 
 function valueOf(row, key) {
   return key.split('.').reduce((acc, part) => acc?.[part], row)
+}
+
+function isRowClickable(row) {
+  return typeof props.clickable === 'function' ? props.clickable(row) : props.clickable
 }
 </script>
 
@@ -55,8 +64,8 @@ function valueOf(row, key) {
           <tr
             v-for="row in rows"
             :key="row[rowKey]"
-            :class="{ 'is-clickable': clickable }"
-            @click="clickable && $emit('row-click', row)"
+            :class="{ 'is-clickable': isRowClickable(row) }"
+            @click="isRowClickable(row) && $emit('row-click', row)"
           >
             <td
               v-for="column in columns"
@@ -77,8 +86,8 @@ function valueOf(row, key) {
           v-for="row in rows"
           :key="row[rowKey]"
           class="cards__item"
-          :class="{ 'is-clickable': clickable }"
-          @click="clickable && $emit('row-click', row)"
+          :class="{ 'is-clickable': isRowClickable(row) }"
+          @click="isRowClickable(row) && $emit('row-click', row)"
         >
           <div v-for="column in columns" :key="column.key" class="cards__row">
             <span class="cards__label">{{ column.label }}</span>
