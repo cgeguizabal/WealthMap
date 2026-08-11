@@ -7,6 +7,10 @@ import { useAuthStore } from '@/stores/auth.store'
  * Shared because the dashboard figures are read by more than the dashboard
  * screen, and because re-fetching the user's whole financial picture on every
  * visit to `/` is wasteful when nothing has changed.
+ *
+ * Cached state that outlives a session is dangerous: it is one person's money.
+ * Everything below is therefore tied to the user it was loaded for, and is
+ * never served to anyone else.
  */
 export const useDashboardStore = defineStore('dashboard', () => {
   const auth = useAuthStore()
@@ -17,7 +21,22 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const error = ref(null)
   const loadedAt = ref(null)
 
-  const hasData = computed(() => data.value !== null)
+  /** Which user this data belongs to. Guards against showing it to another. */
+  const ownerId = ref(null)
+  const stale = ref(false)
+
+  /**
+   * Safe to render without re-fetching. Requires data that belongs to the
+   * *current* user and has not been invalidated by a mutation elsewhere.
+   */
+  const isFresh = computed(() =>
+    data.value !== null &&
+    ownerId.value !== null &&
+    ownerId.value === auth.user?.id &&
+    !stale.value
+  )
+
+  const hasData = computed(() => isFresh.value)
   const criticalAlerts = computed(() => alerts.value.filter((a) => a.severity === 'Critical'))
 
   /**
@@ -38,6 +57,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       data.value = dashboard
       alerts.value = alertList ?? []
       loadedAt.value = new Date()
+      ownerId.value = auth.user?.id ?? null
+      stale.value = false
 
       // The auth response omits the profile currency; this is where it is corrected.
       auth.setCurrency(dashboard.currency)
@@ -51,8 +72,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
-  /** Anything that moves money invalidates these figures. */
+  /** Anything that moves money makes these figures wrong until reloaded. */
   function invalidate() {
+    stale.value = true
     loadedAt.value = null
   }
 
@@ -61,7 +83,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
     alerts.value = []
     error.value = null
     loadedAt.value = null
+    ownerId.value = null
+    stale.value = false
   }
 
-  return { data, alerts, loading, error, loadedAt, hasData, criticalAlerts, load, invalidate, reset }
+  return {
+    data, alerts, loading, error, loadedAt,
+    isFresh, hasData, criticalAlerts,
+    load, invalidate, reset
+  }
 })

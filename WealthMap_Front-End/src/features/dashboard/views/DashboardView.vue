@@ -32,8 +32,10 @@ const utilisation = computed(() => {
   return (data.value.totalUsedCredit / data.value.totalCreditLimit) * 100
 })
 
+// Re-fetches whenever the cached figures belong to someone else or a mutation
+// elsewhere invalidated them.
 onMounted(() => {
-  if (!dashboard.hasData) dashboard.load()
+  if (!dashboard.isFresh) dashboard.load()
 })
 </script>
 

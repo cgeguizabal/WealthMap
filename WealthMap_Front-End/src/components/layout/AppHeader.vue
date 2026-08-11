@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotificationsStore } from '@/stores/notifications.store'
+import { useDashboardStore } from '@/stores/dashboard.store'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 
 defineProps({
@@ -13,9 +14,9 @@ defineProps({
 
 const emit = defineEmits(['toggle-drawer'])
 
-const router = useRouter()
 const auth = useAuthStore()
 const notifications = useNotificationsStore()
+const dashboard = useDashboardStore()
 const { unreadCount } = storeToRefs(notifications)
 
 const menuOpen = ref(false)
@@ -44,11 +45,21 @@ onUnmounted(() => {
   document.removeEventListener('keydown', onEscape)
 })
 
+/**
+ * Clears credentials, then leaves via a full page load rather than a router
+ * navigation. A router navigation keeps the JavaScript heap alive, so every
+ * Pinia store survives — and the next person to sign in on this browser would
+ * be shown the previous user's cached figures. Reloading discards all in-memory
+ * state by construction, and cannot be forgotten when a new store is added.
+ * The 401 interceptor in api/client.js exits the same way.
+ */
 function logout() {
   menuOpen.value = false
   notifications.reset()
+  dashboard.reset()
   auth.logout()
-  router.replace({ name: 'login' })
+
+  window.location.assign('/login')
 }
 </script>
 
