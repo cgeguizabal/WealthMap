@@ -142,7 +142,7 @@ onUnmounted(() => lockScroll(false))
   background: var(--surface);
   border: var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-raised);
 
   &:focus { outline: none; }
 }

@@ -41,6 +41,10 @@
   --shadow-lg:     6px 6px 0 var(--shadow-color);
   --shadow-accent: 4px 4px 0 var(--accent);
 
+  /* Surfaces that float above the dimmed page need a shadow dark enough to read
+     against the scrim — the page-level grey disappears on it. */
+  --shadow-raised:  8px 8px 0 var(--ink);
+
   /* ── Spacing (4px scale) ──────────────────── */
   --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;  --sp-4: 16px;
   --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px;  --sp-10: 40px;
