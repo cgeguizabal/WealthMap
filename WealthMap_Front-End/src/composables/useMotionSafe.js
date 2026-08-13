@@ -22,7 +22,7 @@ const prefersReduced = () =>
  * while the element is still settling, rather than the element sitting in place
  * half-transparent waiting for a long fade to catch up.
  */
-const MOVE = { type: 'spring', visualDuration: 0.32, bounce: 0.15 }
+const MOVE = { type: 'spring', visualDuration: 0.8, bounce: 0.15 }
 const MOVE_ROW = { type: 'spring', visualDuration: 0.26, bounce: 0.1 }
 const FADE = { duration: 0.2, ease: 'easeOut' }
 
