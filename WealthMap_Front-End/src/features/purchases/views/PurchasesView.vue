@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { purchasesApi, PURCHASE_CATEGORIES } from '@/api/purchases.api'
 import { usePagination } from '@/composables/usePagination'
 import { useMoney } from '@/composables/useMoney'
@@ -121,7 +123,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div>
+  <motion.div v-bind="fadeUp()">
     <PageHeader :title="t('purchases.title')" :subtitle="t('purchases.subtitle')">
       <template #actions>
         <BaseButton variant="primary" @click="formOpen = true">
@@ -227,7 +229,7 @@ onMounted(load)
     />
 
     <PurchaseFormModal v-model="formOpen" @saved="onSaved" />
-  </div>
+  </motion.div>
 </template>
 
 <style scoped lang="scss" src="@/assets/styles/features/purchases/PurchasesView.scss"></style>

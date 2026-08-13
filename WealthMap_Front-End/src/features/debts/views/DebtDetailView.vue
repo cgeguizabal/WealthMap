@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { debtsApi, DEBT_STATUS_VARIANT } from '@/api/debts.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
@@ -73,7 +75,7 @@ onMounted(() => {
       </template>
     </BaseEmptyState>
 
-    <template v-else-if="debt">
+    <motion.div v-else-if="debt" v-bind="fadeUp()">
       <PageHeader :title="debt.name">
         <template #subtitle>
           {{ t('composed.dueOnDay', { day: debt.monthlyDueDay }) }}
@@ -148,7 +150,7 @@ onMounted(() => {
 
       <DebtPaymentModal v-model="payOpen" :debt="debt" @saved="refresh" />
       <DebtFormModal v-model="editOpen" :debt="debt" @saved="refresh" />
-    </template>
+    </motion.div>
   </div>
 </template>
 

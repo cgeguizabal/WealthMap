@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
@@ -68,7 +70,7 @@ onMounted(loadPlan)
       </template>
     </BaseEmptyState>
 
-    <template v-else-if="plan">
+    <motion.div v-else-if="plan" v-bind="fadeUp()">
       <PageHeader
         :title="plan.productName"
         :subtitle="t('installments.planSubtitle', { count: plan.monthsCount, date: plan.purchasedAt })"
@@ -136,7 +138,7 @@ onMounted(loadPlan)
       </BaseCard>
 
       <PayInstallmentModal v-model="payOpen" :plan="plan" @saved="refresh" />
-    </template>
+    </motion.div>
   </div>
 </template>
 

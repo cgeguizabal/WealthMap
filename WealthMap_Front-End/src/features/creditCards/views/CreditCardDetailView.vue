@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { creditCardsApi } from '@/api/creditCards.api'
 import { purchasesApi } from '@/api/purchases.api'
 import { installmentsApi } from '@/api/installments.api'
@@ -148,7 +150,7 @@ onMounted(() => {
       </template>
     </BaseEmptyState>
 
-    <template v-else-if="card">
+    <motion.div v-else-if="card" v-bind="fadeUp()">
       <PageHeader :title="card.cardName" :subtitle="card.bankName">
         <template #actions>
           <BaseButton variant="primary" :disabled="card.usedCredit <= 0" @click="payOpen = true">
@@ -273,7 +275,7 @@ onMounted(() => {
       <CardPaymentModal v-model="payOpen" :card="card" @saved="refresh" />
       <CardFormModal v-model="editOpen" :card="card" @saved="refresh" />
       <LimitModal v-model="limitOpen" :card="card" @saved="refresh" />
-    </template>
+    </motion.div>
   </div>
 </template>
 
