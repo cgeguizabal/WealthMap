@@ -279,7 +279,7 @@ caller's perspective, other users' data does not merely refuse access — it doe
 | `ValidationException` | 400 | field-keyed error dictionary |
 | `DomainException` | 400 | the rule's message |
 | `NotFoundException` | 404 | resource + id |
-| anything else | 500 | generic message; details logged server-side |
+| anything else | 500 | generic message; details logged server-side |0.
 
 Handlers never touch `IActionResult`, and controllers contain no try/catch. The last case matters
 for security: an unexpected exception is logged in full but the client gets only "An unexpected
