@@ -25,6 +25,33 @@ builder.Services.AddHostedService<WealthMap.Api.BackgroundServices.SalaryPosting
 
 
 
+// In development the frontend reaches the API through Vite's proxy, which makes
+// the call same-origin — nothing here applies. A deployed frontend is a genuinely
+// different origin, so its exact URL has to be listed in Cors:AllowedOrigins.
+//
+// Origins are configuration rather than constants because they differ per
+// environment, and the list is deliberately explicit: AllowAnyOrigin would let
+// any site on the internet call the API with a token it had somehow obtained.
+const string CorsPolicy = "WealthMapFrontend";
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy =>
+    {
+        // No AllowCredentials: the JWT travels in the Authorization header, not a
+        // cookie, so the browser never needs to send credentials cross-origin.
+        // Adding it would also make the wildcard-origin mistake impossible to fix
+        // quietly, since browsers reject that pair outright.
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -54,7 +81,11 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
+// Before authentication: a rejected pre-flight must come back as a CORS failure
+// the browser can explain, not as a 401 the frontend would misread as a bad token.
+app.UseCors(CorsPolicy);
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
