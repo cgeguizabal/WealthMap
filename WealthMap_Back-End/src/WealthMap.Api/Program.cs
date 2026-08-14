@@ -42,13 +42,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(CorsPolicy, policy =>
     {
-        // No AllowCredentials: the JWT travels in the Authorization header, not a
-        // cookie, so the browser never needs to send credentials cross-origin.
-        // Adding it would also make the wildcard-origin mistake impossible to fix
-        // quietly, since browsers reject that pair outright.
+        // AllowCredentials is required for the refresh cookie to travel at all on a
+        // cross-origin call. It is also why the origin list must stay explicit:
+        // browsers reject credentials combined with a wildcard origin outright, so
+        // there is no way to loosen this by accident without CORS breaking loudly.
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -72,6 +73,10 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<WealthMap.Api.Auth.CookieSettings>(
+    builder.Configuration.GetSection(WealthMap.Api.Auth.CookieSettings.SectionName));
+builder.Services.AddScoped<WealthMap.Api.Auth.RefreshTokenCookie>();
 
 var app = builder.Build();
 

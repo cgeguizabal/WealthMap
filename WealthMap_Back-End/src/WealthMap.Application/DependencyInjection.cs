@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped<Common.Services.FinancialSnapshotLoader>();
         services.AddScoped<Common.Services.SalaryPostingService>();
+        services.AddScoped<Common.Services.SessionIssuer>();
 
         services.RegisterImplementationsOf(assembly, typeof(IRequestHandler<,>));
         services.RegisterImplementationsOf(assembly, typeof(IValidator<>));
