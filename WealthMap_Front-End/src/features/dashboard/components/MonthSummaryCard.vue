@@ -30,36 +30,33 @@ const ratioVariant = computed(() => {
 
 <template>
   <BaseCard :title="t('dashboard.thisMonth')">
+    <!-- These four rows are the safe-to-spend subtraction itself, so they must
+         add up on screen. Card balances already include installment plans (a
+         plan charges the card in full on day one), which is why committed
+         payments here are loans only. -->
     <dl class="month">
       <div class="month__row">
-        <dt>{{ t('dashboard.netIncome') }}</dt>
-        <dd class="numeric">{{ format(data.monthlyNetIncome) }}</dd>
-      </div>
-
-      <!-- Only when there is some: a permanent zero row would suggest the user
-           had forgotten to record something. -->
-      <div v-if="data.extraIncome > 0" class="month__row">
         <dt>
-          {{ t('dashboard.extraIncome') }}
-          <span class="month__note">{{ t('composed.extraIncomeNote') }}</span>
+          {{ t('dashboard.spendableCash') }}
+          <span class="month__note">{{ t('composed.spendableCashNote') }}</span>
         </dt>
-        <dd class="numeric is-positive">{{ format(data.extraIncome) }}</dd>
+        <dd class="numeric">{{ format(data.spendableCash) }}</dd>
       </div>
 
       <div class="month__row">
         <dt>
-          {{ t('dashboard.committed') }}
-          <span class="month__note">{{ t('composed.committedNote') }}</span>
+          {{ t('dashboard.cardBalances') }}
+          <span class="month__note">{{ t('composed.cardBalancesNote') }}</span>
         </dt>
-        <dd class="numeric">{{ format(data.monthlyObligations) }}</dd>
+        <dd class="numeric">{{ format(data.totalUsedCredit) }}</dd>
       </div>
 
-      <!-- Listed as its own subtraction: without it the three rows read as
-           income − committed = safe to spend, which stopped being true once
-           spending was taken out of the total. -->
       <div class="month__row">
-        <dt>{{ t('dashboard.spentSoFar') }}</dt>
-        <dd class="numeric">{{ format(data.monthSpending) }}</dd>
+        <dt>
+          {{ t('dashboard.loanPayments') }}
+          <span class="month__note">{{ t('composed.loanPaymentsNote') }}</span>
+        </dt>
+        <dd class="numeric">{{ format(data.loanPaymentsDue) }}</dd>
       </div>
 
       <div class="month__row month__row--total">

@@ -20,7 +20,6 @@ public class FinancialSnapshotLoader
     private readonly IJobRepository _jobs;
     private readonly IAdditionalIncomeRepository _incomes;
     private readonly IPurchaseRepository _purchases;
-    private readonly IAccountMovementRepository _movements;
 
     public FinancialSnapshotLoader(
         IUserRepository users,
@@ -32,8 +31,7 @@ public class FinancialSnapshotLoader
         IProductGoalRepository productGoals,
         IJobRepository jobs,
         IAdditionalIncomeRepository incomes,
-        IPurchaseRepository purchases,
-        IAccountMovementRepository movements)
+        IPurchaseRepository purchases)
     {
         _users = users;
         _accounts = accounts;
@@ -45,7 +43,6 @@ public class FinancialSnapshotLoader
         _jobs = jobs;
         _incomes = incomes;
         _purchases = purchases;
-        _movements = movements;
     }
 
     public async Task<FinancialSnapshot> LoadAsync(Guid userId, CancellationToken ct)
@@ -65,11 +62,6 @@ public class FinancialSnapshotLoader
         var incomes = await _incomes.GetAllForUserAsync(userId, ct: ct);
         var monthPurchases = await _purchases.GetForUserInMonthAsync(userId, today.Year, today.Month, ct);
 
-        // From the first of the month, so deposits made this month lift the amount
-        // still safe to spend. Movements before that are already reflected in the
-        // account balances and would double-count if included.
-        var monthStart = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var monthMovements = await _movements.GetForUserFromAsync(userId, monthStart, ct);
 
         return new FinancialSnapshot(
             user.Currency,
@@ -82,7 +74,6 @@ public class FinancialSnapshotLoader
             productGoals,
             jobs.FirstOrDefault(),
             incomes,
-            monthPurchases,
-            monthMovements);
+            monthPurchases);
     }
 }
