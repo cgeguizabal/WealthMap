@@ -36,6 +36,16 @@ const ratioVariant = computed(() => {
         <dd class="numeric">{{ format(data.monthlyNetIncome) }}</dd>
       </div>
 
+      <!-- Only when there is some: a permanent zero row would suggest the user
+           had forgotten to record something. -->
+      <div v-if="data.extraIncome > 0" class="month__row">
+        <dt>
+          {{ t('dashboard.extraIncome') }}
+          <span class="month__note">{{ t('composed.extraIncomeNote') }}</span>
+        </dt>
+        <dd class="numeric is-positive">{{ format(data.extraIncome) }}</dd>
+      </div>
+
       <div class="month__row">
         <dt>
           {{ t('dashboard.committed') }}

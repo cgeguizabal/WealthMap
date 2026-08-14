@@ -30,6 +30,7 @@ public sealed class FinancialSnapshot
     private readonly IReadOnlyList<Debt> _debts;
     private readonly IReadOnlyList<InstallmentPurchase> _installments;
     private readonly IReadOnlyList<Purchase> _monthPurchases;
+    private readonly IReadOnlyList<AccountMovement> _monthMovements;
 
     public IReadOnlyList<SavingsGoal> SavingsGoals { get; }
     public IReadOnlyList<ProductGoal> ProductGoals { get; }
@@ -51,7 +52,8 @@ public sealed class FinancialSnapshot
         IReadOnlyList<ProductGoal> productGoals,
         Job? job,
         IReadOnlyList<AdditionalIncome> additionalIncomes,
-        IReadOnlyList<Purchase> monthPurchases)
+        IReadOnlyList<Purchase> monthPurchases,
+        IReadOnlyList<AccountMovement> monthMovements)
     {
         Currency = currency;
         Today = today;
@@ -62,6 +64,7 @@ public sealed class FinancialSnapshot
         _debts = debts.Where(d => d.OriginalAmount.Currency == currency).ToList();
         _installments = installments.Where(i => i.TotalPrice.Currency == currency).ToList();
         _monthPurchases = monthPurchases.Where(p => p.Amount.Currency == currency).ToList();
+        _monthMovements = monthMovements.Where(m => m.Amount.Currency == currency).ToList();
         SavingsGoals = savingsGoals.Where(g => g.TargetAmount.Currency == currency).ToList();
         ProductGoals = productGoals.Where(g => g.TargetAmount.Currency == currency).ToList();
         _job = job?.GrossMonthlySalary.Currency == currency ? job : null;
@@ -135,20 +138,43 @@ public sealed class FinancialSnapshot
     }
 
     /// <summary>
-    /// What is left to spend this month: income, less the payments already
-    /// committed, less what has been spent so far.
+    /// Money that arrived in an account this month on top of the expected income:
+    /// manual deposits and bonuses.
+    /// </summary>
+    /// <remarks>
+    /// Two movement types are deliberately absent. <c>SalaryDeposit</c> is what the
+    /// posting service writes on payday, and that money is already counted in
+    /// <see cref="MonthlyNetIncome"/> — adding it here would count the salary twice,
+    /// growing the figure every payday for no reason. <c>TransferIn</c> is the user
+    /// moving their own money between their own accounts, which is not new money at
+    /// all; counting it would let anyone inflate the number by shuffling funds back
+    /// and forth.
+    /// </remarks>
+    public Money ExtraIncome => Sum(_monthMovements
+        .Where(m => m.Type is MovementType.Deposit or MovementType.Bonus)
+        .Select(m => m.Amount));
+
+    /// <summary>
+    /// What is left to spend this month: expected income plus whatever extra
+    /// actually landed, less the payments already committed, less what has been
+    /// spent so far.
     /// </summary>
     /// <remarks>
     /// Subtracting <see cref="MonthSpending"/> is what makes this a remaining
     /// budget rather than a starting one — without it the figure never moved as
     /// the month was spent, which is precisely when it needs to.
     ///
+    /// Adding <see cref="ExtraIncome"/> is what makes a deposit register. Income
+    /// alone describes a typical month; a windfall, a refund, or a transfer from
+    /// outside is real spendable money that no salary figure knows about.
+    ///
     /// Nothing is counted twice. Installment plans never produce a Purchase row,
     /// so the next installment appears only in <see cref="MonthlyObligations"/>.
-    /// Card purchases appear only here, since revolving balances are deliberately
-    /// left out of obligations.
+    /// Card purchases appear only in spending, since revolving balances are
+    /// deliberately left out of obligations.
     /// </remarks>
-    public Money SafeToSpend => MonthlyNetIncome - MonthlyObligations - MonthSpending;
+    public Money SafeToSpend =>
+        MonthlyNetIncome + ExtraIncome - MonthlyObligations - MonthSpending;
 
     public Money MonthSpending => Sum(_monthPurchases.Select(p => p.Amount));
 
