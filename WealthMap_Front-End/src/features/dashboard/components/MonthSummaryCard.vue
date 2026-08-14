@@ -48,6 +48,16 @@ const ratioVariant = computed(() => {
         <dd class="numeric">{{ format(data.spendableCash) }}</dd>
       </div>
 
+      <!-- Shown because the total can exceed cash: a card charged today is not
+           settled until its statement falls due. -->
+      <div v-if="data.totalAvailableCredit > 0" class="month__row">
+        <dt>
+          {{ t('dashboard.availableCredit') }}
+          <span class="month__note">{{ t('composed.spendableOnCards') }}</span>
+        </dt>
+        <dd class="numeric">{{ format(data.totalAvailableCredit) }}</dd>
+      </div>
+
       <div v-if="data.incomingBeforeHorizon > 0" class="month__row">
         <dt>
           {{ t('dashboard.incomingSalary') }}

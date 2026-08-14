@@ -26,8 +26,8 @@ public readonly record struct LiquidityForecast(
     IReadOnlyList<CashEvent> Events);
 
 /// <summary>
-/// Works out how much can be spent today without leaving the user short when a
-/// card or loan actually falls due.
+/// Works out how much can be spent today — across accounts and cards together —
+/// without leaving the user short when a card or loan actually falls due.
 /// </summary>
 /// <remarks>
 /// A single subtraction cannot answer this, because money and bills do not arrive
@@ -35,9 +35,15 @@ public readonly record struct LiquidityForecast(
 /// two $500 paydays land before the due date — and looks fine if the bill is due
 /// tomorrow. The order of the dates is the whole answer, so this walks them.
 ///
-/// The figure is the *minimum* running balance rather than the closing one. A
-/// balance that dips below zero in the middle and recovers by the end is still a
-/// missed payment on the day it dipped.
+/// Spending capacity is not capped at cash on hand. A card charged today is not
+/// settled until its statement falls due, so the real question is whether the
+/// balance can be cleared *then*, out of everything that has arrived by then.
+/// That is what makes this a spending limit for cards and accounts together
+/// rather than a cash balance.
+///
+/// The figure is the *minimum* running balance from that settlement date onward,
+/// not the closing one. A balance that dips below zero in the middle and recovers
+/// by the end is still a missed payment on the day it dipped.
 /// </remarks>
 public static class LiquidityProjection
 {
@@ -82,14 +88,23 @@ public static class LiquidityProjection
         IReadOnlyList<InstallmentPurchase> installments)
     {
         var zero = Money.Zero(spendableCash.Currency);
-        var outflows = BuildOutflows(today, zero, cards, debts, installments);
+        var live = cards.Where(c => !c.IsArchived).ToList();
 
-        // No bills means nothing to reserve for: every cent on hand is spendable.
-        if (outflows.Count == 0)
-            return new LiquidityForecast(
-                spendableCash, today, today, zero, zero, []);
+        // When money spent today actually has to be paid. On a card that is the
+        // statement due date, which is why spending capacity is not limited to cash
+        // on hand: a purchase now is settled weeks later, out of salary that has
+        // landed in the meantime. Cash is due immediately, so with no card the date
+        // is today and the answer collapses back to "what you hold".
+        var spendDueOn = live.Count == 0
+            ? today
+            : live.Max(c => StatementDueDate(today, c.StatementCutoffDay, c.PaymentDueDay));
 
-        var horizon = outflows.Max(e => e.Date);
+        var outflows = BuildOutflows(today, zero, live, debts, installments);
+
+        var horizon = outflows.Count == 0
+            ? spendDueOn
+            : Max(outflows.Max(e => e.Date), spendDueOn);
+
         var latestAllowed = today.AddDays(MaxHorizonDays);
 
         if (horizon > latestAllowed)
@@ -106,27 +121,52 @@ public static class LiquidityProjection
             .ThenBy(e => e.Amount.Amount)
             .ToList();
 
+        // Only the stretch from spendDueOn onward constrains new spending. A dip
+        // before then is money already committed and already accounted for — it
+        // cannot be made worse by a purchase that is not billed until later.
         var running = spendableCash;
-        var lowest = spendableCash;
+        Money? lowest = today >= spendDueOn ? spendableCash : null;
         var lowestOn = today;
 
         foreach (var e in events)
         {
             running += e.Amount;
 
-            if (running.Amount < lowest.Amount)
+            if (e.Date < spendDueOn) continue;
+
+            if (lowest is null || running.Amount < lowest.Value.Amount)
             {
                 lowest = running;
                 lowestOn = e.Date;
             }
         }
 
+        // Nothing happens between now and the day new spending falls due, so the
+        // balance then is simply the balance now.
+        var headroom = lowest ?? running;
+
+        // Capacity is still bounded by the instruments themselves: a card cannot be
+        // charged past its limit however comfortably it could be repaid.
+        var ceiling = spendableCash + AvailableCredit(zero, live);
+
+        if (headroom.Amount > ceiling.Amount)
+        {
+            headroom = ceiling;
+            lowestOn = today;
+        }
+
         var incoming = Sum(zero, events.Where(e => e.Amount.Amount > 0));
         var committed = Sum(zero, events.Where(e => e.Amount.Amount < 0));
 
         return new LiquidityForecast(
-            lowest, horizon, lowestOn, incoming, -committed, events);
+            headroom, horizon, lowestOn, incoming, -committed, events);
     }
+
+    private static Money AvailableCredit(Money zero, IEnumerable<CreditCard> cards) =>
+        cards.Aggregate(zero, (sum, c) =>
+            c.CreditLimit.Amount > c.UsedCredit.Amount ? sum + (c.CreditLimit - c.UsedCredit) : sum);
+
+    private static DateOnly Max(DateOnly a, DateOnly b) => a > b ? a : b;
 
     private static List<CashEvent> BuildOutflows(
         DateOnly today,
