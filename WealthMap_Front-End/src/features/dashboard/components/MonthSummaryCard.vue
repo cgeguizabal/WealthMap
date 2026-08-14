@@ -5,14 +5,19 @@ import BaseCard from '@/components/base/BaseCard.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useDateTime } from '@/composables/useDateTime'
 
 const { t } = useI18n()
+const { formatDate } = useDateTime()
 
 const props = defineProps({
   data: { type: Object, required: true }
 })
 
 const { format, formatPercent } = useMoney()
+
+/** The date the figure is safe until — the furthest bill the projection covers. */
+const horizon = computed(() => formatDate(props.data.safeToSpendHorizon))
 
 const overspending = computed(() =>
   props.data.monthlyNetIncome > 0 && props.data.monthSpending > props.data.monthlyNetIncome
@@ -30,10 +35,10 @@ const ratioVariant = computed(() => {
 
 <template>
   <BaseCard :title="t('dashboard.thisMonth')">
-    <!-- These four rows are the safe-to-spend subtraction itself, so they must
-         add up on screen. Card balances already include installment plans (a
-         plan charges the card in full on day one), which is why committed
-         payments here are loans only. -->
+    <!-- Not a subtraction: the total is the lowest point the balance reaches on
+         the way to the horizon, so these rows are the inputs to that walk rather
+         than terms that add up to it. The horizon line is what makes the figure
+         readable — "safe until this date" is the actual claim. -->
     <dl class="month">
       <div class="month__row">
         <dt>
@@ -43,24 +48,27 @@ const ratioVariant = computed(() => {
         <dd class="numeric">{{ format(data.spendableCash) }}</dd>
       </div>
 
-      <div class="month__row">
+      <div v-if="data.incomingBeforeHorizon > 0" class="month__row">
         <dt>
-          {{ t('dashboard.cardBalances') }}
-          <span class="month__note">{{ t('composed.cardBalancesNote') }}</span>
+          {{ t('dashboard.incomingSalary') }}
+          <span class="month__note">{{ t('composed.beforeDate', { date: horizon }) }}</span>
         </dt>
-        <dd class="numeric">{{ format(data.totalUsedCredit) }}</dd>
+        <dd class="numeric is-positive">{{ format(data.incomingBeforeHorizon) }}</dd>
       </div>
 
       <div class="month__row">
         <dt>
-          {{ t('dashboard.loanPayments') }}
-          <span class="month__note">{{ t('composed.loanPaymentsNote') }}</span>
+          {{ t('dashboard.fallingDue') }}
+          <span class="month__note">{{ t('composed.cardsLoansInstallments') }}</span>
         </dt>
-        <dd class="numeric">{{ format(data.loanPaymentsDue) }}</dd>
+        <dd class="numeric">{{ format(data.committedBeforeHorizon) }}</dd>
       </div>
 
       <div class="month__row month__row--total">
-        <dt>{{ t('dashboard.safeToSpend') }}</dt>
+        <dt>
+          {{ t('dashboard.safeToSpend') }}
+          <span class="month__note">{{ t('composed.safeUntil', { date: horizon }) }}</span>
+        </dt>
         <dd class="numeric" :class="{ 'is-negative': data.safeToSpend < 0 }">
           {{ format(data.safeToSpend) }}
         </dd>

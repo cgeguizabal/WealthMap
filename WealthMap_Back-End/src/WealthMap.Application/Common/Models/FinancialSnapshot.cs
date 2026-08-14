@@ -143,29 +143,37 @@ public sealed class FinancialSnapshot
         Sum(_accounts.Where(a => !a.IsBlockedForSaving).Select(a => a.Balance));
 
     /// <summary>
-    /// This month's loan payments. Installments are deliberately absent — a plan
-    /// charges the card in full on day one, so its remaining balance is already
-    /// inside <see cref="TotalUsedCredit"/>.
-    /// </summary>
-    public Money LoanPaymentsDue =>
-        Sum(_debts.Where(d => d.Status != DebtStatus.PaidOff).Select(d => d.MonthlyPayment));
-
-    /// <summary>
-    /// What can be spent without leaving the user short for their card balances
-    /// and loan payments: the cash they hold, less everything they owe.
+    /// Walks the calendar forward to the furthest upcoming due date, adding salary
+    /// as it lands and subtracting bills as they fall due.
     /// </summary>
     /// <remarks>
-    /// This is a position, not a monthly budget, which is why neither income nor
-    /// this month's spending appears. Both are already in the figures: salary
-    /// raises a balance when it posts, a debit purchase lowers one, and a card
-    /// purchase raises <see cref="TotalUsedCredit"/>. Subtracting spending again
-    /// would count every purchase twice.
-    ///
-    /// The test that shows the model is right: paying a card moves money from cash
-    /// to used credit, and this figure does not move — because paying a bill you
-    /// were always going to pay never changed what you could safely spend.
+    /// Computed once and reused: every figure below reads from it, and rebuilding
+    /// the timeline per property would repeat the same date arithmetic four times.
     /// </remarks>
-    public Money SafeToSpend => SpendableCash - TotalUsedCredit - LoanPaymentsDue;
+    private LiquidityForecast? _forecast;
+
+    public LiquidityForecast Forecast => _forecast ??= LiquidityProjection.Forecast(
+        Today, SpendableCash, _job, _cards, _debts, _installments);
+
+    /// <summary>
+    /// What can be spent today without being short when a bill actually falls due.
+    /// </summary>
+    /// <remarks>
+    /// The lowest point of the projected balance, not a subtraction of today's
+    /// figures. Holding $500 against a $1,400 card bill is fine if two $500 paydays
+    /// land first, and is not fine if the bill is due tomorrow — same balance, same
+    /// bill, opposite answers. Only the dates separate them.
+    /// </remarks>
+    public Money SafeToSpend => Forecast.SafeToSpend;
+
+    /// <summary>The date the projection has to reach: the furthest bill it covers.</summary>
+    public DateOnly SafeToSpendHorizon => Forecast.Horizon;
+
+    /// <summary>Salary expected to land before the horizon.</summary>
+    public Money IncomingBeforeHorizon => Forecast.IncomingBeforeHorizon;
+
+    /// <summary>Everything falling due before the horizon.</summary>
+    public Money CommittedBeforeHorizon => Forecast.CommittedBeforeHorizon;
 
     public Money MonthSpending => Sum(_monthPurchases.Select(p => p.Amount));
 

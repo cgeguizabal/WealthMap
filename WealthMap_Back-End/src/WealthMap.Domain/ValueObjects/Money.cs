@@ -37,6 +37,12 @@ public readonly record struct Money
         return new Money(a.Amount - b.Amount, a.Currency);
     }
 
+    /// <summary>
+    /// Flips the sign, keeping the currency. Lets an outflow be written as the
+    /// negative of an amount rather than as a subtraction from zero.
+    /// </summary>
+    public static Money operator -(Money value) => new(-value.Amount, value.Currency);
+
     public static bool operator >(Money a, Money b)
     {
         EnsureSameCurrency(a, b);
