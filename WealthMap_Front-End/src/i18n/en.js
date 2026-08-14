@@ -145,7 +145,7 @@ export default {
     availableCredit: 'Available credit',
     totalDebt: 'Total debt',
     safeToSpend: 'Safe to spend',
-    safeToSpendHint: 'Net income less committed payments this month',
+    safeToSpendHint: 'Net income less committed payments and what you have spent',
     netWorth: 'Net worth',
     netWorthNote: 'available minus everything owed',
     needsAttention: 'Needs attention',

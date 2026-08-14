@@ -44,6 +44,14 @@ const ratioVariant = computed(() => {
         <dd class="numeric">{{ format(data.monthlyObligations) }}</dd>
       </div>
 
+      <!-- Listed as its own subtraction: without it the three rows read as
+           income − committed = safe to spend, which stopped being true once
+           spending was taken out of the total. -->
+      <div class="month__row">
+        <dt>{{ t('dashboard.spentSoFar') }}</dt>
+        <dd class="numeric">{{ format(data.monthSpending) }}</dd>
+      </div>
+
       <div class="month__row month__row--total">
         <dt>{{ t('dashboard.safeToSpend') }}</dt>
         <dd class="numeric" :class="{ 'is-negative': data.safeToSpend < 0 }">

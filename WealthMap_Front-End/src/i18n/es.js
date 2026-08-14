@@ -145,7 +145,7 @@ export default {
     availableCredit: 'Crédito disponible',
     totalDebt: 'Deuda total',
     safeToSpend: 'Puedes gastar',
-    safeToSpendHint: 'Ingreso neto menos los pagos comprometidos de este mes',
+    safeToSpendHint: 'Ingreso neto menos los pagos comprometidos y lo que ya gastaste',
     netWorth: 'Patrimonio neto',
     netWorthNote: 'lo disponible menos todo lo que debes',
     needsAttention: 'Requiere atención',

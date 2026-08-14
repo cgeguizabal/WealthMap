@@ -134,7 +134,21 @@ public sealed class FinancialSnapshot
         }
     }
 
-    public Money SafeToSpend => MonthlyNetIncome - MonthlyObligations;
+    /// <summary>
+    /// What is left to spend this month: income, less the payments already
+    /// committed, less what has been spent so far.
+    /// </summary>
+    /// <remarks>
+    /// Subtracting <see cref="MonthSpending"/> is what makes this a remaining
+    /// budget rather than a starting one — without it the figure never moved as
+    /// the month was spent, which is precisely when it needs to.
+    ///
+    /// Nothing is counted twice. Installment plans never produce a Purchase row,
+    /// so the next installment appears only in <see cref="MonthlyObligations"/>.
+    /// Card purchases appear only here, since revolving balances are deliberately
+    /// left out of obligations.
+    /// </remarks>
+    public Money SafeToSpend => MonthlyNetIncome - MonthlyObligations - MonthSpending;
 
     public Money MonthSpending => Sum(_monthPurchases.Select(p => p.Amount));
 
