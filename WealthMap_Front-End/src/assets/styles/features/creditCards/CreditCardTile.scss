@@ -95,3 +95,27 @@
 .card__spacer { flex: 1; }
 
 .card__delete:hover { color: var(--negative); }
+
+// The billing cycle, spelled out as dates. Two columns so the pair reads as one
+// fact — what closes when, and what that means for the payment date.
+.card__cycle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: var(--border-subtle);
+}
+
+.card__cycle-item dt {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.card__cycle-item dd {
+  margin: 2px 0 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.card__due--soon { color: var(--warning); font-weight: var(--fw-semibold); }

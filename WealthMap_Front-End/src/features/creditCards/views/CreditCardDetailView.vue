@@ -8,6 +8,7 @@ import { purchasesApi } from '@/api/purchases.api'
 import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -33,6 +34,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { format, formatPercent } = useMoney()
+const { formatDate, relativeDay } = useDateTime()
 const dashboard = useDashboardStore()
 
 const cardId = route.params.id
@@ -192,9 +194,17 @@ onMounted(() => {
           :label="t('cards.limitInUse', { percent: utilisation.toFixed(0) })"
         />
 
+        <!-- Dates rather than day numbers: "the 17th" leaves the reader to work
+             out which 17th, and after the cutoff has passed it is not the next one. -->
         <dl class="summary__meta">
-          <div><dt>{{ t('cards.dueDay') }}</dt><dd class="numeric">{{ card.paymentDueDay }}</dd></div>
-          <div><dt>{{ t('cards.statementCutoff') }}</dt><dd class="numeric">{{ card.statementCutoffDay }}</dd></div>
+          <div>
+            <dt>{{ t('cards.statementCloses') }}</dt>
+            <dd>{{ formatDate(card.nextCutoffDate) }} · {{ relativeDay(card.daysUntilCutoff) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('cards.paymentDue') }}</dt>
+            <dd>{{ formatDate(card.nextDueDate) }} · {{ relativeDay(card.daysUntilDue) }}</dd>
+          </div>
           <div><dt>{{ t('cards.interest') }}</dt><dd class="numeric">{{ formatPercent(card.annualInterestRate, 2) }}</dd></div>
         </dl>
 

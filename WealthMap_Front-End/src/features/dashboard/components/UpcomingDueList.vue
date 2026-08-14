@@ -5,9 +5,11 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
+import { useDateTime } from '@/composables/useDateTime'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
+const { relativeDay } = useDateTime()
 
 defineProps({
   items: { type: Array, default: () => [] }
@@ -22,13 +24,6 @@ function toneFor(daysUntil) {
   if (daysUntil <= 2) return 'critical'
   if (daysUntil <= 7) return 'soon'
   return 'later'
-}
-
-function relativeDay(days) {
-  if (days < 0) return 'overdue'
-  if (days === 0) return 'today'
-  if (days === 1) return 'tomorrow'
-  return `in ${days} days`
 }
 </script>
 

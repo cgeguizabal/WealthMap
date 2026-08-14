@@ -5,7 +5,11 @@
  * which is what "when did I spend this?" actually means — a purchase made at 8pm
  * should read 8pm, not the 02:00 UTC it was stored as.
  */
+import { useI18n } from '@/composables/useI18n'
+
 export function useDateTime() {
+  const { t, tc } = useI18n()
+
   /** Matches a bare calendar date, with no time and no zone. */
   const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
 
@@ -78,5 +82,24 @@ export function useDateTime() {
     return Number.isNaN(date.getTime()) ? null : date.toISOString()
   }
 
-  return { formatDate, formatTime, formatDateTime, toLocalInputValue, fromLocalInputValue }
+  /**
+   * "in 12 days", "tomorrow", "overdue" — translated.
+   *
+   * Lives here rather than in the components that need it because it was
+   * previously written inline and returned English regardless of locale, which
+   * is exactly the kind of string that survives an i18n pass unnoticed.
+   */
+  function relativeDay(days) {
+    if (days < 0) return t('common.overdue')
+    if (days === 0) return t('common.today')
+    if (days === 1) return t('common.tomorrow')
+
+    return tc('composed.inDays', days)
+  }
+
+  return {
+    formatDate, formatTime, formatDateTime,
+    toLocalInputValue, fromLocalInputValue,
+    relativeDay
+  }
 }

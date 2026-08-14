@@ -6,8 +6,10 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useDateTime } from '@/composables/useDateTime'
 
 const { t } = useI18n()
+const { formatDate, relativeDay } = useDateTime()
 
 const props = defineProps({
   card: { type: Object, required: true }
@@ -42,7 +44,9 @@ const variant = computed(() => {
           </div>
         </div>
 
-        <span class="card__due">{{ t('cards.dueDayWithNumber', { day: card.paymentDueDay }) }}</span>
+        <span :class="['card__due', { 'card__due--soon': card.daysUntilDue <= 7 }]">
+          {{ relativeDay(card.daysUntilDue) }}
+        </span>
       </header>
 
       <div class="card__figures">
@@ -71,6 +75,20 @@ const variant = computed(() => {
           </span>
         </template>
       </BaseProgress>
+
+      <!-- Both dates, because one explains the other: what is spent before the
+           cutoff lands on the statement that is due on the second date. -->
+      <dl class="card__cycle">
+        <div class="card__cycle-item">
+          <dt>{{ t('cards.statementCloses') }}</dt>
+          <dd>{{ formatDate(card.nextCutoffDate) }}</dd>
+        </div>
+
+        <div class="card__cycle-item">
+          <dt>{{ t('cards.paymentDue') }}</dt>
+          <dd>{{ formatDate(card.nextDueDate) }}</dd>
+        </div>
+      </dl>
     </RouterLink>
 
     <footer class="card__actions">
