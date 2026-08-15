@@ -70,3 +70,11 @@
 .account__spacer { flex: 1; }
 
 .account__delete:hover { color: var(--negative); }
+
+// Muted and monospaced: identifying data, not a figure to read.
+.account__last-four {
+  margin-left: var(--sp-2);
+  color: var(--text-subtle);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+}

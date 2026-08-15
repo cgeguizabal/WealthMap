@@ -31,6 +31,7 @@ export default {
     job: 'Job & income',
     reports: 'Reports',
     notifications: 'Notifications',
+    settings: 'Settings',
     expand: 'Expand navigation',
     collapse: 'Collapse navigation',
     main: 'Main',
@@ -825,6 +826,49 @@ export default {
     reportPeriod: '{start} → {end} · all amounts in {currency}',
     reportDueDay: 'Due day {day}',
     generatedNote: 'Generated {when} · figures cover {currency} holdings only'
+  },
+
+  settings: {
+    title: 'Settings',
+    subtitle: 'How WealthMap treats your accounts and cards.'
+  },
+
+  tracking: {
+    lastFour: 'Last 4 digits',
+    lastFourHint:
+      "The last 4 digits shown on your bank's transaction emails. Used for future automatic transaction sync.",
+    mode: 'Tracking mode',
+    manual: 'Manual',
+    manualHint: "I'll enter transactions myself.",
+    automatic: 'Automatic',
+    automaticHint: 'Reserved for automatic bank email sync. Not yet available.',
+    comingSoon: 'Coming soon'
+  },
+
+  bankDefaults: {
+    title: 'Bank defaults',
+    explain:
+      "Some banks don't say which account a transfer came from. These defaults will be used when automatic sync is enabled.",
+    add: 'Add default',
+    newTitle: 'New bank default',
+    editTitle: 'Edit bank default',
+    bankName: 'Bank',
+    bankNamePlaceholder: 'Banco Agricola',
+    direction: 'Direction',
+    directionHint: 'Inbound and outbound are set separately.',
+    inbound: 'Inbound',
+    outbound: 'Outbound',
+    account: 'Account',
+    chooseAccount: 'Choose an account',
+    saved: 'Bank default saved.',
+    deleted: 'Bank default removed.',
+    deleteTitle: 'Remove this default?',
+    deleteMessage:
+      'Transfers from {bank} will no longer have a fallback account when sync is enabled.',
+    deleteSecond: 'This cannot be undone, but you can add it again at any time.',
+    emptyTitle: 'No bank defaults yet',
+    emptyMessage:
+      'Nothing is wrong. Add one only if your bank sends transfer emails that never name the account.'
   },
 
   offline: {

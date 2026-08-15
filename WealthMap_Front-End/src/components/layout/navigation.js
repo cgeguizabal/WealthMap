@@ -44,5 +44,11 @@ export const NAV_GROUPS = [
       { path: '/reports', labelKey: 'nav.reports', icon: 'report' },
       { path: '/notifications', labelKey: 'nav.notifications', icon: 'bell' }
     ]
+  },
+  {
+    labelKey: '',
+    items: [
+      { path: '/settings', labelKey: 'nav.settings', icon: 'settings' }
+    ]
   }
 ]

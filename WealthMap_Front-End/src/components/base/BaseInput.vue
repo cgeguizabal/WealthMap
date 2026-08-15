@@ -15,7 +15,12 @@ const props = defineProps({
   min: { type: [String, Number], default: undefined },
   max: { type: [String, Number], default: undefined },
   step: { type: [String, Number], default: undefined },
-  inputmode: { type: String, default: undefined }
+  inputmode: { type: String, default: undefined },
+  /**
+   * Declared rather than left to attribute fallthrough: this component's root is
+   * the wrapping div, so a bare `maxlength` would land on the div and do nothing.
+   */
+  maxlength: { type: [String, Number], default: undefined }
 })
 
 const emit = defineEmits(['update:modelValue', 'blur'])
@@ -63,6 +68,7 @@ function onInput(event) {
         :max="max"
         :step="step"
         :inputmode="inputmode"
+        :maxlength="maxlength"
         :aria-invalid="hasError"
         :aria-describedby="hasError ? `${id}-error` : hint ? `${id}-hint` : undefined"
         @input="onInput"

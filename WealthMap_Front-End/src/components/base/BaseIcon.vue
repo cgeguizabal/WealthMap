@@ -85,6 +85,10 @@ const ICONS = {
     'M7.5 11V7a4.5 4.5 0 0 1 8.6-1.8'
   ],
 
+  // Sliders rather than a cog: it reads at 16px, where a cog's teeth blur.
+  settings: ['M4 6h10', 'M18 6h2', 'M4 12h4', 'M12 12h8', 'M4 18h10', 'M18 18h2',
+             'M16 6a2 2 0 1 0 0-.01', 'M10 12a2 2 0 1 0 0-.01', 'M16 18a2 2 0 1 0 0-.01'],
+
   // ── Status & direction ────────────────────────
   alert: ['m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3', 'M12 9v4', 'M12 17h.01'],
   info: ['M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0', 'M12 16v-4', 'M12 8h.01'],

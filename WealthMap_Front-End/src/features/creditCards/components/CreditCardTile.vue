@@ -40,7 +40,11 @@ const variant = computed(() => {
           <BaseIcon name="card" :size="16" />
           <div>
             <h3 class="card__name">{{ card.cardName }}</h3>
-            <p class="card__bank">{{ card.bankName }}</p>
+            <p class="card__bank">
+              {{ card.bankName }}
+              <!-- Only when set: a placeholder would imply data that is simply absent. -->
+              <span v-if="card.lastFour" class="numeric card__last-four">••••{{ card.lastFour }}</span>
+            </p>
           </div>
         </div>
 

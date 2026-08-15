@@ -27,7 +27,11 @@ const { format } = useMoney()
           <BaseIcon :name="account.type === 'Savings' ? 'lock' : 'wallet'" :size="16" />
           <div>
             <h3 class="account__name">{{ account.name }}</h3>
-            <p class="account__bank">{{ account.bankName }}</p>
+            <p class="account__bank">
+              {{ account.bankName }}
+              <!-- Only when set: a placeholder would imply data that is simply absent. -->
+              <span v-if="account.lastFour" class="numeric account__last-four">••••{{ account.lastFour }}</span>
+            </p>
           </div>
         </div>
 

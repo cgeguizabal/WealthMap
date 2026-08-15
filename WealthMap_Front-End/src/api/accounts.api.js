@@ -27,7 +27,14 @@ export const accountsApi = {
 
   transfer: (payload) => client.post('/accounts/transfer', payload),
 
-  movements: (id, params = {}) => client.get(`/accounts/${id}/movements`, { params })
+  movements: (id, params = {}) => client.get(`/accounts/${id}/movements`, { params }),
+
+  /**
+   * Identifying digits and tracking mode. Separate from `update` because the two
+   * constrain each other and the server writes them in the order that keeps the
+   * invariant satisfied.
+   */
+  updateTracking: (id, payload) => client.put(`/accounts/${id}/tracking`, payload)
 }
 
 export const ACCOUNT_TYPE = { CHECKING: 1, SAVINGS: 2 }

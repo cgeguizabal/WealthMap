@@ -119,3 +119,11 @@
 }
 
 .card__due--soon { color: var(--warning); font-weight: var(--fw-semibold); }
+
+// Muted and monospaced: identifying data, not a figure to read.
+.card__last-four {
+  margin-left: var(--sp-2);
+  color: var(--text-subtle);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+}

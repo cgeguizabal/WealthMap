@@ -9,6 +9,8 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import TrackingFields from '@/features/shared/components/TrackingFields.vue'
+import { TRACKING_MODE, trackingModeValue } from '@/api/tracking'
 import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
@@ -45,18 +47,34 @@ function blank() {
     type: 1,
     openingBalance: null,
     currency: auth.currency,
+    lastFour: '',
+    trackingMode: TRACKING_MODE.MANUAL,
     notes: ''
   }
 }
 
 const { values, submitting, formError, submit, reset, fieldError } = useForm(blank(), async (payload) => {
+  const tracking = {
+    trackingMode: payload.trackingMode,
+    lastFour: payload.lastFour || null
+  }
+
   if (isEdit.value) {
     // Balance, type and currency are immutable after creation.
-    return accountsApi.update(props.account.id, {
+    const updated = await accountsApi.update(props.account.id, {
       name: payload.name,
       bankName: payload.bankName,
       notes: payload.notes || null
     })
+
+    // A second call only when something actually changed. Tracking has its own
+    // endpoint because the two fields constrain each other, and sending an
+    // unchanged pair on every save would be a write for nothing.
+    const changed =
+      tracking.lastFour !== (props.account.lastFour ?? null) ||
+      tracking.trackingMode !== trackingModeValue(props.account.trackingMode)
+
+    return changed ? accountsApi.updateTracking(props.account.id, tracking) : updated
   }
 
   return accountsApi.create({
@@ -64,7 +82,8 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
     bankName: payload.bankName,
     type: payload.type,
     openingBalance: payload.openingBalance ?? 0,
-    currency: payload.currency
+    currency: payload.currency,
+    ...tracking
   })
 })
 
@@ -78,6 +97,8 @@ watch(() => props.modelValue, (value) => {
           ...blank(),
           name: props.account.name,
           bankName: props.account.bankName,
+          lastFour: props.account.lastFour ?? '',
+          trackingMode: trackingModeValue(props.account.trackingMode),
           notes: props.account.notes ?? ''
         }
       : blank())
@@ -147,6 +168,12 @@ async function onSubmit() {
           :error="fieldError('openingBalance')"
         />
       </template>
+
+      <TrackingFields
+        v-model:last-four="values.lastFour"
+        v-model:tracking-mode="values.trackingMode"
+        :error="fieldError('lastFour')"
+      />
 
       <BaseInput
         v-if="isEdit"

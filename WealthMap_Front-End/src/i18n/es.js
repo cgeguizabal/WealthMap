@@ -30,6 +30,7 @@ export default {
     job: 'Trabajo e ingresos',
     reports: 'Informes',
     notifications: 'Notificaciones',
+    settings: 'Ajustes',
     expand: 'Expandir navegación',
     collapse: 'Contraer navegación',
     main: 'Principal',
@@ -821,6 +822,49 @@ export default {
     reportPeriod: '{start} → {end} · todos los montos en {currency}',
     reportDueDay: 'Vence el día {day}',
     generatedNote: 'Generado {when} · las cifras cubren solo lo que está en {currency}'
+  },
+
+  settings: {
+    title: 'Ajustes',
+    subtitle: 'Cómo WealthMap trata tus cuentas y tarjetas.'
+  },
+
+  tracking: {
+    lastFour: 'Últimos 4 dígitos',
+    lastFourHint:
+      'Los últimos 4 dígitos que aparecen en los correos de transacciones de tu banco. Se usarán para la sincronización automática futura.',
+    mode: 'Modo de seguimiento',
+    manual: 'Manual',
+    manualHint: 'Yo registro las transacciones.',
+    automatic: 'Automático',
+    automaticHint: 'Reservado para la sincronización por correo del banco. Aún no disponible.',
+    comingSoon: 'Próximamente'
+  },
+
+  bankDefaults: {
+    title: 'Cuentas por defecto',
+    explain:
+      'Algunos bancos no indican de qué cuenta salió una transferencia. Estos valores se usarán cuando se active la sincronización automática.',
+    add: 'Agregar',
+    newTitle: 'Nueva cuenta por defecto',
+    editTitle: 'Editar cuenta por defecto',
+    bankName: 'Banco',
+    bankNamePlaceholder: 'Banco Agrícola',
+    direction: 'Dirección',
+    directionHint: 'Entrada y salida se configuran por separado.',
+    inbound: 'Entrada',
+    outbound: 'Salida',
+    account: 'Cuenta',
+    chooseAccount: 'Elige una cuenta',
+    saved: 'Cuenta por defecto guardada.',
+    deleted: 'Cuenta por defecto eliminada.',
+    deleteTitle: '¿Eliminar este valor por defecto?',
+    deleteMessage:
+      'Las transferencias de {bank} ya no tendrán una cuenta de respaldo cuando se active la sincronización.',
+    deleteSecond: 'No se puede deshacer, pero puedes volver a agregarlo cuando quieras.',
+    emptyTitle: 'Aún no hay valores por defecto',
+    emptyMessage:
+      'No pasa nada. Agrega uno solo si tu banco envía correos de transferencia que nunca nombran la cuenta.'
   },
 
   offline: {
