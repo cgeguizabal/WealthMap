@@ -236,6 +236,8 @@ Paged, newest first. Each item:
   "lastFour": "7765", "trackingMode": "Manual",
   "nextCutoffDate": "2026-08-28", "nextDueDate": "2026-09-17",
   "daysUntilCutoff": 14, "daysUntilDue": 34,
+  "lastCutoffDate": "2026-07-28",
+  "statementBalance": 50.00, "currentCycleCharges": 50.00, "futureInstallments": 0.00,
   "notes": null, "createdAt": "..." }
 ```
 
@@ -244,6 +246,24 @@ Paged, newest first. Each item:
 `nextDueDate` is when **today's balance** must be paid — the first due day *after* the next cutoff,
 not simply the next occurrence of `paymentDueDay`. It is the same date the dashboard's safe-to-spend
 projection reserves against.
+
+**`usedCredit` splits three ways**, and the parts sum back to it:
+
+| Field | Meaning | Deadline |
+|---|---|---|
+| `statementBalance` | closed on `lastCutoffDate` | due `nextDueDate` |
+| `currentCycleCharges` | spent since then | billed at `nextCutoffDate` |
+| `futureInstallments` | plan balance beyond this cycle | on no statement yet |
+
+Owing 100 with 50 due on the 15th and 50 not billed for another month is a different obligation from
+owing 100 at once, which is why the total alone is not enough.
+
+There is no statement history, so the split is reconstructed from charge dates. Payments are not
+read — what is still owed *is* the unpaid part, and payments settle the oldest debt first, so the
+open cycle is the smaller of "charged since the cutoff" and "still owed". A balance the purchase
+records cannot explain falls into `statementBalance`, the older and more urgent reading.
+
+These fields appear on **every** response carrying a card, reads and writes alike.
 
 ### `PUT /api/v1/credit-cards/{id}/tracking`
 

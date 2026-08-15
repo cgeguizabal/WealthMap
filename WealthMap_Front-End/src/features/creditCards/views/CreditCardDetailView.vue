@@ -176,6 +176,9 @@ onMounted(() => {
             </p>
           </div>
 
+          <!-- Owed in full, then broken down below: the total answers "how deep am
+               I in?", the split answers "what do I have to pay, and when?" — and
+               only the second one is actionable. -->
           <div class="summary__figure">
             <span class="summary__label">{{ t('cards.owed') }}</span>
             <p class="summary__value numeric">{{ format(card.usedCredit, { currency: card.currency }) }}</p>
@@ -193,6 +196,39 @@ onMounted(() => {
           :variant="variant"
           :label="t('cards.limitInUse', { percent: utilisation.toFixed(0) })"
         />
+
+        <!-- The three parts of what is owed, each with the date that makes it
+             actionable. They sum to `usedCredit` above, so the reader can check. -->
+        <dl class="summary__split">
+          <div class="summary__split-item summary__split-item--due">
+            <dt>
+              {{ t('cards.dueThisStatement') }}
+              <span class="summary__split-note">
+                {{ t('composed.closedOn', { date: formatDate(card.lastCutoffDate) }) }} ·
+                {{ t('composed.payBy', { date: formatDate(card.nextDueDate) }) }}
+              </span>
+            </dt>
+            <dd class="numeric">{{ format(card.statementBalance, { currency: card.currency }) }}</dd>
+          </div>
+
+          <div class="summary__split-item">
+            <dt>
+              {{ t('cards.nextStatement') }}
+              <span class="summary__split-note">
+                {{ t('composed.closesOn', { date: formatDate(card.nextCutoffDate) }) }}
+              </span>
+            </dt>
+            <dd class="numeric">{{ format(card.currentCycleCharges, { currency: card.currency }) }}</dd>
+          </div>
+
+          <div v-if="card.futureInstallments > 0" class="summary__split-item">
+            <dt>
+              {{ t('cards.futureInstallments') }}
+              <span class="summary__split-note">{{ t('composed.notYetBilled') }}</span>
+            </dt>
+            <dd class="numeric">{{ format(card.futureInstallments, { currency: card.currency }) }}</dd>
+          </div>
+        </dl>
 
         <!-- Dates rather than day numbers: "the 17th" leaves the reader to work
              out which 17th, and after the cutoff has passed it is not the next one. -->

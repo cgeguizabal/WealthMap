@@ -43,7 +43,7 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Offline | vite-plugin-pwa |
 
 **18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
-**82** component stylesheets, **728** translation keys per language.
+**82** component stylesheets, **736** translation keys per language.
 
 ---
 
@@ -936,10 +936,19 @@ running balance is a recorded fact from the API, never recomputed in the browser
 Utilisation bars (amber at 50%, red at 80%). Limit updates have their own endpoint and their own
 modal. Payments use the shared `PaymentSourcePicker`; "Pay" is disabled at zero balance.
 
-Tiles show the billing cycle as **dates**, not day numbers: when the statement closes and when the
-balance from it is due. The due date comes from the server's `nextDueDate` — the first due day
-*after* the next cutoff — so the card screen and the dashboard's safe-to-spend figure cannot
-disagree about the same money. Tracking fields on this form are covered in §8.14.
+Tiles show the billing cycle as **dates**, not day numbers, and split what is owed rather than
+showing one total. "Owed $100" is not actionable; "$50 due Aug 15, $50 not billed until Sep" is.
+The tile carries `statementBalance` and `currentCycleCharges` with their deadlines beside them, plus
+a line for `futureInstallments` when a plan is running — shown only then, because otherwise the
+figures would not visibly add up to the total and the reader would hunt for the gap. The detail view
+shows all three as a grid under the progress bar.
+
+Every figure is computed server-side (`StatementCycle.Split`) and arrives on the DTO. The client
+does no arithmetic on money here — same rule as `balanceAfter` in §8.3.
+
+The due date comes from the server's `nextDueDate` — the first due day *after* the next cutoff — so
+the card screen and the dashboard's safe-to-spend figure cannot disagree about the same money.
+Tracking fields on this form are covered in §8.14.
 
 ### 8.5 Payments — `/payments`
 User-wide ledger across cards, debts and installments, with date and target-type filters. Source is

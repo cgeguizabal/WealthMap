@@ -87,3 +87,36 @@
   .summary__figures { grid-template-columns: 1fr; gap: var(--sp-3); }
   .summary__value { font-size: var(--fs-lg); }
 }
+
+// The three parts of what is owed. Grid rather than a table: at narrow widths the
+// rows stack without a horizontal scroller.
+.summary__split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-3);
+  margin: 0;
+  padding: var(--sp-4);
+  border: var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--canvas-alt);
+}
+
+.summary__split-item dt {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.summary__split-item dd {
+  margin: var(--sp-1) 0 0;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+// The only one with a deadline attached, so it carries the emphasis.
+.summary__split-item--due dd { color: var(--negative); }
+
+.summary__split-note {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-subtle);
+}

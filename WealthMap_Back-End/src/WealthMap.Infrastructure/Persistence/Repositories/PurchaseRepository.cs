@@ -33,6 +33,13 @@ public class PurchaseRepository : Repository<Purchase>, IPurchaseRepository
             .AsNoTracking()
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<Purchase>> GetCardPurchasesSinceAsync(
+        Guid userId, DateTime since, CancellationToken ct = default) =>
+        await Set
+            .Where(p => p.UserId == userId && p.CreditCardId != null && p.OccurredAt >= since)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
     private IQueryable<Purchase> Filter(
         Guid userId, int? year, int? month, string? category, Guid? creditCardId)
     {

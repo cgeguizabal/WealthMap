@@ -80,19 +80,39 @@ const variant = computed(() => {
         </template>
       </BaseProgress>
 
-      <!-- Both dates, because one explains the other: what is spent before the
-           cutoff lands on the statement that is due on the second date. -->
+      <!-- The split, not just the total: owing 100 with 50 due on the 15th and 50
+           not billed for another month is a different obligation from owing 100
+           all at once. The dates are shown beside each figure because each is
+           only meaningful with its deadline. -->
       <dl class="card__cycle">
         <div class="card__cycle-item">
-          <dt>{{ t('cards.statementCloses') }}</dt>
-          <dd>{{ formatDate(card.nextCutoffDate) }}</dd>
+          <dt>
+            {{ t('cards.dueThisStatement') }}
+            <span class="card__cycle-when">{{ formatDate(card.nextDueDate) }}</span>
+          </dt>
+          <dd :class="['numeric', { 'is-negative': card.statementBalance > 0 }]">
+            {{ format(card.statementBalance, { currency: card.currency }) }}
+          </dd>
         </div>
 
         <div class="card__cycle-item">
-          <dt>{{ t('cards.paymentDue') }}</dt>
-          <dd>{{ formatDate(card.nextDueDate) }}</dd>
+          <dt>
+            {{ t('cards.nextStatement') }}
+            <span class="card__cycle-when">{{ t('composed.closesOn', { date: formatDate(card.nextCutoffDate) }) }}</span>
+          </dt>
+          <dd class="numeric">
+            {{ format(card.currentCycleCharges, { currency: card.currency }) }}
+          </dd>
         </div>
       </dl>
+
+      <!-- Only when a plan is running: otherwise the three figures would not add
+           up to the total and the reader would be left hunting for the gap. -->
+      <p v-if="card.futureInstallments > 0" class="card__future">
+        {{ t('composed.plusFutureInstallments', {
+          amount: format(card.futureInstallments, { currency: card.currency })
+        }) }}
+      </p>
     </RouterLink>
 
     <footer class="card__actions">

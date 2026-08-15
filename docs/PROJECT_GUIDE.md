@@ -376,6 +376,30 @@ that the balance stops counting toward the dashboard credit totals.
 identifies a card and an account the same way, so the two must fail with the same wording.
 `InstrumentTracking` holds the check once for both.
 
+**The statement split.** `UsedCredit` is one running total, which is not an actionable number: owing
+$100 where $50 closed on the last statement and $50 was spent yesterday means $50 is due on the 15th
+and the rest is not due for another month. `StatementCycle.Split` divides the balance three ways —
+`StatementBalance` (due on `NextDueDate`), `CurrentCycleCharges` (spent since the cutoff, billed
+next), and `FutureInstallments` — and the three sum back to `UsedCredit`.
+
+The card stores no statement history, so the division is reconstructed from the dates on the charges
+that produced the balance. **Payments are never read.** They are inferred: whatever is still owed
+*is* the unpaid part, and money pays the oldest debt first, so the current cycle is the smaller of
+"charged since the cutoff" and "still owed". Paying the statement off therefore leaves exactly the
+new spending behind, with no payment ledger consulted.
+
+That inference is also what makes an incomplete history safe. A balance the purchase records cannot
+explain — an opening balance, a charge predating the app — falls into the statement rather than the
+open cycle, which is the older and more urgent reading.
+
+Installments are held apart, as in §6.14's projection: a plan charges the card in full on day one but
+is repaid monthly, so its outstanding balance belongs to no single statement. Only the installment
+falling due on or before the payment date joins `StatementBalance`.
+
+`CardStatementLoader` computes this for every handler that returns a card. Seven of them do, and if
+each loaded its own history they would drift — one screen saying $50 is due and another $100 for the
+same card is worse than not showing the figure at all.
+
 ### 4.5 Jobs & salary
 `GET|POST /api/v1/jobs`, `GET|PUT|DELETE /{id}`, nested `POST|PUT|DELETE /{jobId}/deductions/{id}`,
 and `/api/v1/additional-incomes` CRUD.

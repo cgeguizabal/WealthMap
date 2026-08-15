@@ -127,3 +127,19 @@
   font-size: var(--fs-xs);
   letter-spacing: 0.04em;
 }
+
+.card__cycle-when {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+  font-weight: var(--fw-normal);
+}
+
+.card__cycle-item dd.numeric { text-align: left; }
+
+.card__future {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
