@@ -34,7 +34,10 @@ export const accountsApi = {
    * constrain each other and the server writes them in the order that keeps the
    * invariant satisfied.
    */
-  updateTracking: (id, payload) => client.put(`/accounts/${id}/tracking`, payload)
+  updateTracking: (id, payload) => client.put(`/accounts/${id}/tracking`, payload),
+
+  /** Type governs digits: sending None clears any stored card number. */
+  updateDebitCard: (id, payload) => client.put(`/accounts/${id}/debit-card`, payload)
 }
 
 export const ACCOUNT_TYPE = { CHECKING: 1, SAVINGS: 2 }

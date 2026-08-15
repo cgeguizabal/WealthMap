@@ -71,10 +71,36 @@
 
 .account__delete:hover { color: var(--negative); }
 
-// Muted and monospaced: identifying data, not a figure to read.
-.account__last-four {
-  margin-left: var(--sp-2);
-  color: var(--text-subtle);
+// How the user recognises this account on a statement, so it gets its own
+// labelled row rather than trailing the bank name.
+.account__numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin: var(--sp-3) 0 0;
+  padding-top: var(--sp-3);
+  border-top: var(--border-subtle);
+
+  dt {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
+  }
+}
+
+// A card whose number the user has not supplied: the card is still a fact.
+.account__unknown {
   font-size: var(--fs-xs);
-  letter-spacing: 0.04em;
+  font-weight: var(--fw-normal);
+  color: var(--text-subtle);
+  letter-spacing: normal;
 }

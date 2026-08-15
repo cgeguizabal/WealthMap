@@ -23,3 +23,16 @@ export const TRANSFER_DIRECTION = {
 export function directionValue(name) {
   return name === 'Outbound' ? TRANSFER_DIRECTION.OUTBOUND : TRANSFER_DIRECTION.INBOUND
 }
+
+/** Whether a debit card reaches an account, and of what kind. */
+export const DEBIT_CARD_TYPE = {
+  NONE: 1,
+  PHYSICAL: 2,
+  DIGITAL: 3
+}
+
+export function debitCardTypeValue(name) {
+  if (name === 'Physical') return DEBIT_CARD_TYPE.PHYSICAL
+  if (name === 'Digital') return DEBIT_CARD_TYPE.DIGITAL
+  return DEBIT_CARD_TYPE.NONE
+}

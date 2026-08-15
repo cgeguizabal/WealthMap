@@ -37,6 +37,9 @@ public class CreateAccountHandler : ICommandHandler<CreateAccountCommand, Accoun
         if (request.TrackingMode is { } mode)
             account.SetTrackingMode((TrackingMode)mode);
 
+        if (request.DebitCardType is { } debitCard)
+            account.SetDebitCard((DebitCardType)debitCard, request.DebitCardLastFour);
+
         await _accounts.AddAsync(account, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 

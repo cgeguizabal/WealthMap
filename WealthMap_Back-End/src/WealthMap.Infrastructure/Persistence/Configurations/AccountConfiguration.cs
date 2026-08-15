@@ -48,14 +48,31 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasDefaultValue(TrackingMode.Manual)
             .HasSentinel(default(TrackingMode));
 
-        // Defence in depth behind Account.SetLastFour / SetTrackingMode. The entity
-        // gives the readable error; the constraint means a row claiming to be synced
-        // without identifying digits cannot exist even if written by a script or a
-        // future migration that forgets the rule.
+        builder.Property(a => a.DebitCardLastFour)
+            .HasMaxLength(4)
+            .IsFixedLength();
+
+        builder.Property(a => a.DebitCardType)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(DebitCardType.None)
+            .HasSentinel(default(DebitCardType));
+
         builder.ToTable(t =>
+        {
+            // Defence in depth behind Account.SetLastFour / SetTrackingMode. The
+            // entity gives the readable error; the constraint means a row claiming to
+            // be synced without identifying digits cannot exist even if written by a
+            // script or a future migration that forgets the rule.
             t.HasCheckConstraint(
                 "ck_accounts_sync_requires_last_four",
-                "(tracking_mode = 1) OR (last_four IS NOT NULL)"));
+                "(tracking_mode = 1) OR (last_four IS NOT NULL)");
+
+            // The mirror of SetDebitCard: no card, no card number.
+            t.HasCheckConstraint(
+                "ck_accounts_no_card_no_digits",
+                "(debit_card_type <> 1) OR (debit_card_last_four IS NULL)");
+        });
 
         builder.ComplexProperty(a => a.Balance, money =>
         {

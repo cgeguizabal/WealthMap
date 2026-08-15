@@ -13,4 +13,6 @@ public record CreateAccountCommand(
     decimal OpeningBalance,
     string Currency,
     string? LastFour = null,
-    int? TrackingMode = null) : ICommand<AccountDto>;
+    int? TrackingMode = null,
+    int? DebitCardType = null,
+    string? DebitCardLastFour = null) : ICommand<AccountDto>;

@@ -77,6 +77,7 @@ is a string both ways (`"Account"` / `"External"`, case-insensitive on input).
 | Payment `targetType` | `CreditCard` · `Debt` · `Installment` |
 | Payment `sourceType` | `Account` · `External` |
 | `trackingMode` | `1` Manual · `2` EmailSync |
+| `debitCardType` | `1` None · `2` Physical · `3` Digital |
 | Bank default `direction` | `1` Inbound · `2` Outbound |
 
 ---
@@ -113,10 +114,12 @@ the message does not distinguish the two, so it cannot be used to discover which
 ```json
 { "name": "Checking", "bankName": "BBVA", "type": 1,
   "openingBalance": 1000, "currency": "USD",
-  "lastFour": "6868", "trackingMode": 1 }
+  "lastFour": "6868", "trackingMode": 1,
+  "debitCardType": 2, "debitCardLastFour": "4417" }
 ```
 
-`lastFour` and `trackingMode` are optional; omitted, they default to `null` and `1` (Manual).
+All four identifying fields are optional. Omitted, they default to `null`, `1` (Manual), `1` (None)
+and `null`.
 
 ### `GET /api/v1/accounts` · `GET /api/v1/accounts/{id}`
 
@@ -124,6 +127,7 @@ the message does not distinguish the two, so it cannot be used to discover which
 { "id": "...", "name": "Checking", "bankName": "BBVA", "type": "Checking",
   "balance": 1000.00, "currency": "USD", "isBlockedForSaving": false,
   "lastFour": "6868", "trackingMode": "Manual",
+  "debitCardType": "Physical", "debitCardLastFour": "4417",
   "notes": null, "createdAt": "2026-08-01T12:00:00Z" }
 ```
 
@@ -167,6 +171,23 @@ instrument already in `EmailSync` — an instrument can never be synced without 
 
 Nothing consumes these fields yet; see "Planned: automatic transaction sync" (§6.14 of the project
 guide).
+
+### `PUT /api/v1/accounts/{id}/debit-card`
+
+```json
+{ "debitCardType": 2, "debitCardLastFour": "4417" }
+```
+
+**200** → the full account DTO.
+
+The card's own last four, **not** the account's — `lastFour` is the account number. A notification
+about a card purchase quotes the card; one about a transfer quotes the account.
+
+The type governs the digits: sending `1` (None) **clears** `debitCardLastFour` whatever was passed,
+so a number cannot outlive the card it belonged to. The digits stay optional for a card that does
+exist — a user may know they have one without knowing its number.
+
+An undefined type or digits that are not exactly four → **400**.
 
 ### `POST /api/v1/accounts/{id}/block` · `POST /api/v1/accounts/{id}/unblock`
 
@@ -225,7 +246,8 @@ Paged, newest first. Each item:
   "lastFour": "7765", "trackingMode": 1 }
 ```
 
-`lastFour` and `trackingMode` are optional; omitted, they default to `null` and `1` (Manual).
+`lastFour` and `trackingMode` are optional; omitted, they default to `null` and `1` (Manual). A card
+has no debit-card fields — those belong to an account.
 
 ### `GET /api/v1/credit-cards` · `GET /api/v1/credit-cards/{id}`
 

@@ -16,6 +16,7 @@ public static partial class TrackingRules
     public const string LastFourMessage = "Last four digits must be exactly 4 numbers.";
     public const string SyncNeedsLastFourMessage = "Last 4 digits are required to enable email sync.";
     public const string TrackingModeMessage = "Tracking mode must be 1 (Manual) or 2 (EmailSync).";
+    public const string DebitCardTypeMessage = "Debit card must be 1 (None), 2 (Physical) or 3 (Digital).";
 
     [GeneratedRegex(@"^\d{4}$")]
     private static partial Regex FourDigits();

@@ -9,6 +9,7 @@ using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccountTracking;
+using WealthMap.Application.Features.Accounts.Commands.UpdateAccountDebitCard;
 using WealthMap.Application.Features.Accounts.Commands.ArchiveAccount;
 using WealthMap.Application.Features.Accounts.Commands.DepositToAccount;
 using WealthMap.Application.Features.Accounts.Commands.WithdrawFromAccount;
@@ -43,7 +44,9 @@ public class AccountsController : ControllerBase
             request.OpeningBalance,
             request.Currency,
             request.LastFour,
-            request.TrackingMode);
+            request.TrackingMode,
+            request.DebitCardType,
+            request.DebitCardLastFour);
 
         var result = await _sender.Send(command, ct);
 
@@ -121,6 +124,19 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
         return Ok(await _sender.Send(command, ct));
     }
 
+    /// <summary>Whether a debit card reaches this account, and its digits.</summary>
+    [HttpPut("{id:guid}/debit-card")]
+    public async Task<IActionResult> UpdateDebitCard(
+        Guid id,
+        [FromBody] UpdateDebitCardRequest request,
+        CancellationToken ct)
+    {
+        var command = new UpdateAccountDebitCardCommand(
+            id, User.GetUserId(), request.DebitCardType, request.DebitCardLastFour);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
     [HttpPost("{id:guid}/deposit")]
     public async Task<IActionResult> Deposit(
         Guid id,
@@ -192,12 +208,19 @@ public record CreateAccountRequest(
     decimal OpeningBalance,
     string Currency,
     string? LastFour = null,
-    int? TrackingMode = null);
+    int? TrackingMode = null,
+    int? DebitCardType = null,
+    string? DebitCardLastFour = null);
 
 /// <summary>Both tracking fields at once — they constrain each other.</summary>
 public record UpdateTrackingRequest(
     int TrackingMode,
     string? LastFour);
+
+/// <summary>Type governs digits: None clears them.</summary>
+public record UpdateDebitCardRequest(
+    int DebitCardType,
+    string? DebitCardLastFour);
 
 public record UpdateAccountRequest(
     string Name,

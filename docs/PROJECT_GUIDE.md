@@ -334,6 +334,15 @@ email. They are set through `PUT /{id}/tracking` rather than the ordinary `PUT`,
 constrain each other and the order they are written in decides whether a valid pair is accepted.
 Both are inert today — see §6.14.
 
+**The debit card.** `PUT /{id}/debit-card` records whether a card reaches the account —
+`None`, `Physical` or `Digital` — and its own last four. That is a **different number** from
+`LastFour`, which is the account's: a notification about a card purchase quotes the card, one about a
+transfer quotes the account, and a single field for both would match the wrong message about half the
+time. The type governs the digits, so choosing `None` clears them rather than leaving an orphan
+number for a card that does not exist; a check constraint repeats that in the database. The digits
+stay optional for a card that does exist — a user may know they have one without having it to hand,
+and refusing the answer they can give in order to demand one they cannot is a bad trade.
+
 **The invariant: an instrument can never be in `EmailSync` without a `LastFour`.** Enforced on both
 transitions, not only when switching mode. `SetTrackingMode(EmailSync)` with no digits throws, and
 `SetLastFour(null)` on a synced account throws the same message, because clearing the digits would
@@ -649,7 +658,7 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | Table | Purpose | Notable columns / constraints |
 |---|---|---|
 | `users` | identity + profile | `email` unique, `currency` = reporting currency |
-| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` (`char(4)`, nullable) + `tracking_mode`; CHECK `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
+| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` + `tracking_mode`, `debit_card_type` + `debit_card_last_four`; CHECKs `(tracking_mode = 1) OR (last_four IS NOT NULL)` and `(debit_card_type <> 1) OR (debit_card_last_four IS NULL)` |
 | `account_movements` | immutable audit trail | `type`, `amount`, `balance_after`, `related_entity_id`; indexes `(user_id, occurred_at)`, `(account_id, occurred_at)` |
 | `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`char(4)`, nullable) + `tracking_mode`; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
 | `jobs` | one per user | `gross_monthly_salary`, `salary_posting_starts_on`; FK deposit account `RESTRICT` |
@@ -669,7 +678,7 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `refresh_tokens` | one row per issued refresh token | `token_hash` (SHA-256 hex, **unique**), `expires_at`, `revoked_at`, `replaced_by_token_hash`; FK `users` cascade |
 | `bank_defaults` | fallback account per bank, per direction | `bank_name`, `direction`, `default_account_id`; **unique `(user_id, bank_name, direction)`**; FK `users` cascade, FK `accounts` **`RESTRICT`** (§6.14) |
 
-Seventeen migrations, `InitialCreate` through `AddInstrumentTrackingAndBankDefaults`.
+Eighteen migrations, `InitialCreate` through `AddAccountDebitCard`.
 
 `AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
 new table would have silently zeroed the report's historical figures — a regression introduced by an
@@ -943,4 +952,5 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Alert params** | The names, amounts and dates an alert sentence was built from, stored beside it so it can be re-expressed in another language (§6.13). |
 | **Tracking mode** | Per-instrument opt-in for automatic transaction sync: `Manual` (the only working mode) or `EmailSync` (reserved, unselectable). Never `EmailSync` without a **last four** (§4.2, §6.14). |
 | **Last four** | The four digits a bank prints when it names an account or card in a notification email. Identifying data, stored as `char(4)`; nothing reads it yet (§6.14). |
+| **Debit card** | Whether a card reaches an account — `None`, `Physical` or `Digital` — and its own last four, which is a *different* number from the account's. No card means no digits, enforced by the entity and by a check constraint (§4.2). |
 | **Bank default** | The account to assume when a bank's transfer notification names none. One per bank per direction; the foreign key is `RESTRICT` so it cannot vanish with the account it points at (§6.14). |

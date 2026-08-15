@@ -43,7 +43,7 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Offline | vite-plugin-pwa |
 
 **18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
-**82** component stylesheets, **755** translation keys per language.
+**82** component stylesheets, **780** translation keys per language.
 
 ---
 
@@ -1052,9 +1052,20 @@ requires digits), and two copies would drift the moment that rule or the disable
 **Editing sends the tracking pair only when it changed.** It has its own endpoint, separate from the
 ordinary update, so an unchanged pair would otherwise be a second request that writes nothing.
 
-Where accounts and cards are listed, a present `lastFour` renders as `••••7765` in muted `.numeric`
-text beside the bank name. Absent, nothing is shown — a placeholder would imply data that is simply
-not there.
+The account form additionally asks whether a **debit card** reaches the account — None, Physical or
+Digital — and, once one exists, that card's own last four. Choosing None clears the digits on screen
+as well as on the server, so the user never sees a number that is about to be dropped. The digits are
+optional for a card that does exist: someone may know they have one without having it to hand.
+
+The account labels its `lastFour` **"Account number"** rather than "Last 4". On a card the same field
+means the card's digits, and calling both by the same name would make two different numbers look
+interchangeable — `TrackingFields` takes a `lastFourLabel` for exactly this.
+
+On the account card the numbers get their **own labelled row** under the balance, not a muted suffix
+after the bank name: this is how a user recognises the account on a statement, so it has to be
+findable at a glance. Each half appears only when known, and a card whose number was never supplied
+says so rather than vanishing — the card is still a fact. Card tiles keep the compact `••••7765`
+beside the bank name, since a card has only one number.
 
 `BaseInput` gained a `maxlength` prop for this. The component's root is the wrapping `div`, so a
 bare `maxlength` attribute would have fallen through onto the div and done nothing.

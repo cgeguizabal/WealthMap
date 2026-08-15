@@ -41,5 +41,15 @@ public class CreateAccountValidator : AbstractValidator<CreateAccountCommand>
             .Must((command, lastFour) =>
                 command.TrackingMode is null || TrackingRules.IsIdentifiable(command.TrackingMode.Value, lastFour))
             .WithMessage(TrackingRules.SyncNeedsLastFourMessage);
+
+        RuleFor(x => x.DebitCardType)
+            .Must(t => t is null || Enum.IsDefined(typeof(DebitCardType), t.Value))
+            .WithMessage(TrackingRules.DebitCardTypeMessage);
+
+        // Optional even when a card exists: a user may know they have one without
+        // knowing its number, and the digits are only ever identifying data.
+        RuleFor(x => x.DebitCardLastFour)
+            .Must(TrackingRules.IsValidLastFour)
+            .WithMessage(TrackingRules.LastFourMessage);
     }
 }

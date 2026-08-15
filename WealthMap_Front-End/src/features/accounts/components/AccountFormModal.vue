@@ -10,7 +10,8 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import TrackingFields from '@/features/shared/components/TrackingFields.vue'
-import { TRACKING_MODE, trackingModeValue } from '@/api/tracking'
+import DebitCardFields from './DebitCardFields.vue'
+import { TRACKING_MODE, trackingModeValue, DEBIT_CARD_TYPE, debitCardTypeValue } from '@/api/tracking'
 import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
@@ -49,6 +50,8 @@ function blank() {
     currency: auth.currency,
     lastFour: '',
     trackingMode: TRACKING_MODE.MANUAL,
+    debitCardType: DEBIT_CARD_TYPE.NONE,
+    debitCardLastFour: '',
     notes: ''
   }
 }
@@ -59,22 +62,38 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
     lastFour: payload.lastFour || null
   }
 
+  const debitCard = {
+    debitCardType: payload.debitCardType,
+    // The server clears these for "no card" anyway; sending null keeps the two
+    // ends saying the same thing rather than relying on that.
+    debitCardLastFour:
+      payload.debitCardType === DEBIT_CARD_TYPE.NONE ? null : payload.debitCardLastFour || null
+  }
+
   if (isEdit.value) {
     // Balance, type and currency are immutable after creation.
-    const updated = await accountsApi.update(props.account.id, {
+    let result = await accountsApi.update(props.account.id, {
       name: payload.name,
       bankName: payload.bankName,
       notes: payload.notes || null
     })
 
-    // A second call only when something actually changed. Tracking has its own
-    // endpoint because the two fields constrain each other, and sending an
+    // Each extra call only when that pair actually changed. Both have their own
+    // endpoint because their two fields constrain each other, and sending an
     // unchanged pair on every save would be a write for nothing.
-    const changed =
+    const trackingChanged =
       tracking.lastFour !== (props.account.lastFour ?? null) ||
       tracking.trackingMode !== trackingModeValue(props.account.trackingMode)
 
-    return changed ? accountsApi.updateTracking(props.account.id, tracking) : updated
+    if (trackingChanged) result = await accountsApi.updateTracking(props.account.id, tracking)
+
+    const debitCardChanged =
+      debitCard.debitCardLastFour !== (props.account.debitCardLastFour ?? null) ||
+      debitCard.debitCardType !== debitCardTypeValue(props.account.debitCardType)
+
+    if (debitCardChanged) result = await accountsApi.updateDebitCard(props.account.id, debitCard)
+
+    return result
   }
 
   return accountsApi.create({
@@ -83,7 +102,8 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
     type: payload.type,
     openingBalance: payload.openingBalance ?? 0,
     currency: payload.currency,
-    ...tracking
+    ...tracking,
+    ...debitCard
   })
 })
 
@@ -99,6 +119,8 @@ watch(() => props.modelValue, (value) => {
           bankName: props.account.bankName,
           lastFour: props.account.lastFour ?? '',
           trackingMode: trackingModeValue(props.account.trackingMode),
+          debitCardType: debitCardTypeValue(props.account.debitCardType),
+          debitCardLastFour: props.account.debitCardLastFour ?? '',
           notes: props.account.notes ?? ''
         }
       : blank())
@@ -110,7 +132,9 @@ async function onSubmit() {
   const result = await submit()
   if (!result) return
 
-  toast.success(isEdit.value ? 'Account updated.' : `${result.name} is ready.`)
+  toast.success(
+    isEdit.value ? t('accounts.updatedToast') : t('accounts.createdToast', { name: result.name })
+  )
   emit('saved', result)
   open.value = false
 }
@@ -169,10 +193,19 @@ async function onSubmit() {
         />
       </template>
 
+      <!-- Named "account number" here: on a card the same field means the card's
+           digits, and calling both "last 4" would make them look interchangeable. -->
       <TrackingFields
         v-model:last-four="values.lastFour"
         v-model:tracking-mode="values.trackingMode"
+        :last-four-label="t('accounts.accountNumber')"
         :error="fieldError('lastFour')"
+      />
+
+      <DebitCardFields
+        v-model:debit-card-type="values.debitCardType"
+        v-model:debit-card-last-four="values.debitCardLastFour"
+        :error="fieldError('debitCardLastFour')"
       />
 
       <BaseInput

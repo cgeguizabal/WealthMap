@@ -17,6 +17,8 @@ const { t } = useI18n()
 
 const props = defineProps({
   lastFour: { type: String, default: '' },
+  /** Named by the caller: an account's number and a card's number are not the same thing. */
+  lastFourLabel: { type: String, default: '' },
   trackingMode: { type: Number, default: TRACKING_MODE.MANUAL },
   error: { type: [Array, String], default: null }
 })
@@ -51,7 +53,7 @@ function onDigits(value) {
   <div class="tracking">
     <BaseInput
       :model-value="lastFour"
-      :label="t('tracking.lastFour')"
+      :label="lastFourLabel || t('tracking.lastFour')"
       :hint="t('tracking.lastFourHint')"
       :error="error"
       inputmode="numeric"

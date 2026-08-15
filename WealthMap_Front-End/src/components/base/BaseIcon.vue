@@ -85,6 +85,9 @@ const ICONS = {
     'M7.5 11V7a4.5 4.5 0 0 1 8.6-1.8'
   ],
 
+  // A digital card lives on a phone; plastic gets the `card` icon.
+  phone: ['M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1', 'M11 18h2'],
+
   // Sliders rather than a cog: it reads at 16px, where a cog's teeth blur.
   settings: ['M4 6h10', 'M18 6h2', 'M4 12h4', 'M12 12h8', 'M4 18h10', 'M18 18h2',
              'M16 6a2 2 0 1 0 0-.01', 'M10 12a2 2 0 1 0 0-.01', 'M16 18a2 2 0 1 0 0-.01'],
