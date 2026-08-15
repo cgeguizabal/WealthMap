@@ -308,12 +308,32 @@ purchase history, which archiving leaves intact.
 { "amount": 200, "sourceType": "External", "sourceAccountId": null, "notes": "paid in cash" }
 ```
 
-**200** → `{ "card": {...}, "accountMovement": {...} | null }`
+**200** → `{ "card": {...}, "accountMovement": {...} | null, "settledInstallments": [...] }`
+
+```json
+"settledInstallments": [
+  { "installmentPurchaseId": "...", "productName": "TV", "number": 2, "monthsCount": 12, "amount": 41.67 }
+]
+```
 
 `Account` withdraws from the named account and writes a `Payment` movement; `External` (cash or a
 third party paid) touches no account and returns `accountMovement: null`. **Both** write a row to
 the payments ledger. `sourceAccountId` is required for `Account` and must be absent for `External`.
 Paying more than is owed → **400**.
+
+**The payment advances any installment plans on the card.** A plan's installment for the month is
+part of the statement being paid, so it is marked paid — oldest due date first across every plan,
+whole installments only, and never beyond what the statement had already billed however large the
+payment. `settledInstallments` reports what moved, so a client can say so rather than leaving the
+user to notice a plan advanced on its own.
+
+Two things deliberately do *not* happen: no separate `Payment` row is written for a settled
+installment, and the card balance is not reduced twice. The money left the account once, and the
+installment being marked paid is the consequence of that payment rather than another one. So an
+installment settled this way appears in `GET /payments` as a **card** payment.
+
+Paying a plan early is still its own action — `POST /installment-purchases/{id}/pay` — which reduces
+both the plan and the card balance by one month.
 
 There is **no charge endpoint** — cards are charged by purchases and installment plans.
 

@@ -43,7 +43,7 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Offline | vite-plugin-pwa |
 
 **18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
-**82** component stylesheets, **736** translation keys per language.
+**82** component stylesheets, **739** translation keys per language.
 
 ---
 
@@ -945,6 +945,11 @@ shows all three as a grid under the progress bar.
 
 Every figure is computed server-side (`StatementCycle.Split`) and arrives on the DTO. The client
 does no arithmetic on money here — same rule as `balanceAfter` in §8.3.
+
+The payment modal names the statement balance beside the total owed, and its success toast reports
+any installments the payment settled. Both exist for the same reason: the balance changing is
+visible and the schedule moving is not, so a user who is not told would go and pay the same
+installment a second time.
 
 The due date comes from the server's `nextDueDate` — the first due day *after* the next cutoff — so
 the card screen and the dashboard's safe-to-spend figure cannot disagree about the same money.

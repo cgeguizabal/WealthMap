@@ -12,7 +12,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import PaymentSourcePicker from '@/features/shared/components/PaymentSourcePicker.vue'
 import { useI18n } from '@/composables/useI18n'
 
-const { t } = useI18n()
+const { t, tc } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -69,8 +69,20 @@ async function onSubmit() {
   const result = await submit()
   if (!result) return
 
+  const message = t('cards.paidToast', {
+    paid: format(values.amount, { currency: props.card.currency }),
+    owed: format(result.card.usedCredit, { currency: result.card.currency })
+  })
+
+  // A payment that covered a plan's installment for the month advances that plan.
+  // Saying so is the point: the balance changing is visible, the schedule moving
+  // is not, and a user who is not told would go and pay the installment again.
+  const settled = result.settledInstallments ?? []
+
   toast.success(
-    `${format(values.amount, { currency: props.card.currency })} paid — ${format(result.card.usedCredit, { currency: result.card.currency })} still owed.`
+    settled.length > 0
+      ? `${message} ${tc('composed.installmentsSettled', settled.length)}`
+      : message
   )
   emit('saved', result)
   open.value = false
@@ -83,8 +95,15 @@ async function onSubmit() {
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
       <p v-if="card" class="form__context">
-        {{ card.cardName }} · owed
+        {{ card.cardName }} · {{ t('cards.owed') }}
         <strong class="numeric">{{ format(owed, { currency: card.currency }) }}</strong>
+      </p>
+
+      <!-- Named before the payment, not after: a user who does not know the
+           statement includes this month's installment would pay it separately. -->
+      <p v-if="card && card.statementBalance > 0" class="form__context">
+        {{ t('cards.dueThisStatement') }}
+        <strong class="numeric">{{ format(card.statementBalance, { currency: card.currency }) }}</strong>
       </p>
 
       <BaseInput

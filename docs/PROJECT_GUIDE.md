@@ -400,6 +400,26 @@ falling due on or before the payment date joins `StatementBalance`.
 each loaded its own history they would drift — one screen saying $50 is due and another $100 for the
 same card is worse than not showing the figure at all.
 
+**Paying the card advances the plans on it.** A plan's installment for the month is part of the
+card's statement, so `POST /{id}/payments` settles whatever installments that statement had already
+billed — oldest due date first across every plan on the card, whole installments only, and nothing
+beyond the statement however generous the payment. `InstallmentPurchase.SettleDueThrough` is the
+domain method; `PayCreditCardHandler` allocates.
+
+Without it the schedule drifted out of step with the balance it belongs to: paying a card reduced
+`UsedCredit` while the plan still reported every month outstanding, so "8 months left" quietly
+stopped being true and the user could pay the same installment twice.
+
+**No second `Payment` row is written** for a settled installment, and the card balance is not reduced
+again. `RegisterPayment` has already taken the full amount off `UsedCredit`; the installment being
+marked paid is the *consequence* of that payment, not another one. Writing a second ledger row would
+double every total that sums payments. The consequence worth knowing: an installment settled this way
+appears in the ledger as a **card** payment, not an installment payment — the ledger records money
+moving, and the money moved once.
+
+The reverse direction already worked: `POST /installment-purchases/{id}/pay` settles the next
+installment early, reducing both the plan and `UsedCredit` — a month less, deliberately chosen.
+
 ### 4.5 Jobs & salary
 `GET|POST /api/v1/jobs`, `GET|PUT|DELETE /{id}`, nested `POST|PUT|DELETE /{jobId}/deductions/{id}`,
 and `/api/v1/additional-incomes` CRUD.

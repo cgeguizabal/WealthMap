@@ -87,6 +87,49 @@ public class InstallmentPurchase : BaseEntity
         return installment;
     }
 
+    /// <summary>
+    /// Marks installments falling due on or before <paramref name="through"/> as
+    /// paid, oldest first, for as long as <paramref name="available"/> covers each
+    /// one in full. Returns those settled.
+    /// </summary>
+    /// <remarks>
+    /// This is what a card payment does to a plan. The installment for the month is
+    /// part of the card's statement, so paying that statement settles it — without
+    /// this the plan would sit unchanged while the balance it belongs to went down,
+    /// and the schedule would drift out of step with what is actually owed.
+    ///
+    /// Whole installments only. A payment covering half of one leaves it unpaid,
+    /// because the schedule has no notion of a part-paid month and inventing one
+    /// would make "how many months are left" unanswerable.
+    ///
+    /// Nothing beyond <paramref name="through"/> is touched even when the money
+    /// would stretch further. Paying next year's installments early is a deliberate
+    /// act with its own action, not something that should happen silently because a
+    /// card payment was generous.
+    /// </remarks>
+    public IReadOnlyList<InstallmentPayment> SettleDueThrough(DateOnly through, Money available)
+    {
+        var settled = new List<InstallmentPayment>();
+        var remaining = available;
+
+        var due = _payments
+            .Where(p => !p.IsPaid && p.DueDate <= through)
+            .OrderBy(p => p.Number);
+
+        foreach (var installment in due)
+        {
+            if (remaining.Amount < installment.Amount.Amount) break;
+
+            installment.MarkPaid();
+            remaining -= installment.Amount;
+            settled.Add(installment);
+        }
+
+        if (settled.Count > 0) Touch();
+
+        return settled;
+    }
+
     private void GeneratePayments()
     {
         var baseAmount = new Money(TotalPrice.Amount / MonthsCount, TotalPrice.Currency);
