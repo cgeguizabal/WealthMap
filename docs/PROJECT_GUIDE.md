@@ -314,7 +314,8 @@ lowercase), PBKDF2 hash, name, country, currency. The profile currency is the re
 used by the dashboard and monthly report.
 
 ### 4.2 Accounts
-`GET|POST /api/v1/accounts`, `GET|PUT|DELETE /{id}`, `POST /{id}/block`, `POST /{id}/unblock`.
+`GET|POST /api/v1/accounts`, `GET|PUT|DELETE /{id}`, `POST /{id}/block`, `POST /{id}/unblock`,
+`PUT /{id}/tracking`.
 
 Checking or Savings. A savings account can be **blocked for saving**: deposits still work,
 withdrawals throw. It is a commitment device, not a security feature.
@@ -327,6 +328,17 @@ dropdown and total, while its movements — and the purchases, payments and jobs
 exactly as they were. `GET /{id}` and `GET /{id}/movements` still resolve afterwards so links from
 history keep working, but `ExistsForUserAsync` excludes archived rows, so nothing new can be pointed
 at one: creating a job or income against an archived account is a 404.
+
+**Tracking fields.** `LastFour` and `TrackingMode` identify the account in a bank's notification
+email. They are set through `PUT /{id}/tracking` rather than the ordinary `PUT`, because the two
+constrain each other and the order they are written in decides whether a valid pair is accepted.
+Both are inert today — see §6.14.
+
+**The invariant: an instrument can never be in `EmailSync` without a `LastFour`.** Enforced on both
+transitions, not only when switching mode. `SetTrackingMode(EmailSync)` with no digits throws, and
+`SetLastFour(null)` on a synced account throws the same message, because clearing the digits would
+otherwise leave a row claiming to be automated that can never be identified — silently unreachable
+rather than loudly wrong. A check constraint repeats the rule in the database.
 
 ### 4.3 Movements & transactions
 `POST /{id}/deposit`, `POST /{id}/withdraw`, `POST /accounts/transfer`, `GET /{id}/movements`.
@@ -346,7 +358,8 @@ Request bodies carry no currency: the amount is denominated in the account's own
 mismatch is impossible by construction.
 
 ### 4.4 Credit cards
-`GET|POST /api/v1/credit-cards`, `GET|PUT|DELETE /{id}`, `PUT /{id}/limit`, `POST /{id}/payments`.
+`GET|POST /api/v1/credit-cards`, `GET|PUT|DELETE /{id}`, `PUT /{id}/limit`, `PUT /{id}/tracking`,
+`POST /{id}/payments`.
 
 `AvailableCredit = CreditLimit − UsedCredit`, computed. `Charge` refuses to exceed the limit;
 `RegisterPayment` refuses to exceed the balance owed; `UpdateCreditLimit` refuses to drop below
@@ -358,6 +371,10 @@ current debt. There is no public charge endpoint — purchases and installments 
 A card with an outstanding balance can still be archived, deliberately: archiving is not a way to
 settle debt, and the debt itself remains visible in the payment and purchase history. What changes is
 that the balance stops counting toward the dashboard credit totals.
+
+**Tracking fields** work exactly as on accounts (§4.2), same invariant, same shared rule — a bank
+identifies a card and an account the same way, so the two must fail with the same wording.
+`InstrumentTracking` holds the check once for both.
 
 ### 4.5 Jobs & salary
 `GET|POST /api/v1/jobs`, `GET|PUT|DELETE /{id}`, nested `POST|PUT|DELETE /{jobId}/deductions/{id}`,
@@ -588,9 +605,9 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | Table | Purpose | Notable columns / constraints |
 |---|---|---|
 | `users` | identity + profile | `email` unique, `currency` = reporting currency |
-| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at` |
+| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` (`char(4)`, nullable) + `tracking_mode`; CHECK `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
 | `account_movements` | immutable audit trail | `type`, `amount`, `balance_after`, `related_entity_id`; indexes `(user_id, occurred_at)`, `(account_id, occurred_at)` |
-| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`; CHECK `used_credit <= credit_limit`, day ranges 1–31 |
+| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`char(4)`, nullable) + `tracking_mode`; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
 | `jobs` | one per user | `gross_monthly_salary`, `salary_posting_starts_on`; FK deposit account `RESTRICT` |
 | `salary_deposits` | one row per settled payday | `scheduled_date`, `amount`, `account_movement_id`; **unique `(job_id, scheduled_date)`** — the exactly-once guarantee |
 | `job_payment_days` | 1–3 per job | CHECK `day_of_month BETWEEN 1 AND 31` |
@@ -605,8 +622,10 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `product_goals` | product targets | nullable `deadline` |
 | `notifications` | persisted alerts | `type`, `severity`, `is_read`, `params` (`jsonb`); index `(user_id, is_read)` |
 | `payments` | every payment, any source | `target_type` + `target_id` (polymorphic, no FK), `source_type`, nullable `source_account_id` (FK `RESTRICT`); CHECK source and account agree; indexes `(user_id, occurred_at)`, `(target_type, target_id)` |
+| `refresh_tokens` | one row per issued refresh token | `token_hash` (SHA-256 hex, **unique**), `expires_at`, `revoked_at`, `replaced_by_token_hash`; FK `users` cascade |
+| `bank_defaults` | fallback account per bank, per direction | `bank_name`, `direction`, `default_account_id`; **unique `(user_id, bank_name, direction)`**; FK `users` cascade, FK `accounts` **`RESTRICT`** (§6.14) |
 
-Twelve migrations, `InitialCreate` through `AddPayments`.
+Seventeen migrations, `InitialCreate` through `AddInstrumentTrackingAndBankDefaults`.
 
 `AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
 new table would have silently zeroed the report's historical figures — a regression introduced by an
@@ -760,6 +779,32 @@ Values go over the wire raw — invariant decimals, ISO dates — so the client 
 user's locale rather than inheriting the server's culture. Where the server makes a decision the
 wording depends on, it sends the decision: `savingsCover: "true"`, not the suggestion sentence.
 
+### 6.14 Planned: automatic transaction sync
+
+Banks announce transactions by email, and they identify the instrument by its last four digits —
+"tarjeta de crédito 7765", "XXXXXXXXXX6868". A future feature will read those messages and propose
+transactions instead of asking the user to type them. That feature is **deliberately not built**:
+there is no email reading, no parsing, no webhook, no ingestion, and no proposal queue anywhere in
+this codebase.
+
+What exists is the data it would need. `accounts.last_four` and `credit_cards.last_four` record the
+digits that would let a message be matched to a row. `tracking_mode` is the per-instrument opt-in, so
+automation would be something a user turns on for one card rather than something that happens to
+their whole account. `bank_defaults` answers the case that no amount of parsing can: some banks'
+transfer notifications never name the source account at all, so the user nominates a fallback per
+bank and per direction.
+
+The fields are captured now for one reason — they describe the real world, not the feature. Which
+card ends in 7765 is true today and would have to be asked for eventually; asking now costs a user
+one field per instrument, while asking later means interrupting them mid-import with a list of
+unmatched messages. The invariant that `EmailSync` requires a `LastFour` (§4.2) exists so that
+whenever the ingestion is written, it cannot encounter an instrument that opted in but cannot be
+identified.
+
+This is why `TrackingMode.EmailSync` is a value nobody can select. The API accepts it and the
+database stores it, but the UI renders it disabled behind a "Coming soon" badge, because an option
+that silently does nothing is worse than one that admits it is not ready yet.
+
 ---
 
 ## 7. Running, testing, migrating
@@ -852,3 +897,6 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Payday** | One date salary is due, after clamping. Two payment days landing on the same date in a short month are one payday. |
 | **Exactly-once** | Each payday paid once regardless of restarts, retries or concurrent instances. Guaranteed by a unique index, not by a check. |
 | **Alert params** | The names, amounts and dates an alert sentence was built from, stored beside it so it can be re-expressed in another language (§6.13). |
+| **Tracking mode** | Per-instrument opt-in for automatic transaction sync: `Manual` (the only working mode) or `EmailSync` (reserved, unselectable). Never `EmailSync` without a **last four** (§4.2, §6.14). |
+| **Last four** | The four digits a bank prints when it names an account or card in a notification email. Identifying data, stored as `char(4)`; nothing reads it yet (§6.14). |
+| **Bank default** | The account to assume when a bank's transfer notification names none. One per bank per direction; the foreign key is `RESTRICT` so it cannot vanish with the account it points at (§6.14). |

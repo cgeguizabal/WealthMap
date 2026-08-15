@@ -42,8 +42,8 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Animation | motion-v, imported per component |
 | Offline | vite-plugin-pwa |
 
-**18** base components, **13** composables, **5** stores, **15** API modules, **19** routes,
-**79** component stylesheets, **685** translation keys per language.
+**18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
+**82** component stylesheets, **728** translation keys per language.
 
 ---
 
@@ -936,6 +936,11 @@ running balance is a recorded fact from the API, never recomputed in the browser
 Utilisation bars (amber at 50%, red at 80%). Limit updates have their own endpoint and their own
 modal. Payments use the shared `PaymentSourcePicker`; "Pay" is disabled at zero balance.
 
+Tiles show the billing cycle as **dates**, not day numbers: when the statement closes and when the
+balance from it is due. The due date comes from the server's `nextDueDate` — the first due day
+*after* the next cutoff — so the card screen and the dashboard's safe-to-spend figure cannot
+disagree about the same money. Tracking fields on this form are covered in §8.14.
+
 ### 8.5 Payments — `/payments`
 User-wide ledger across cards, debts and installments, with date and target-type filters. Source is
 labelled "Cash / third party" rather than the raw `External`.
@@ -993,6 +998,49 @@ The purchase form captures date *and* time. It used to take a date alone, which 
 every purchase read `00:00` and the hour column dead weight. The `datetime-local` value is local
 wall-clock with no zone, so it is converted explicitly — `toISOString()` on it would shift what the
 user typed by their offset.
+
+### 8.14 Instrument tracking fields
+
+Both the account and card forms carry two extra fields, rendered by one shared
+`features/shared/components/TrackingFields.vue`:
+
+- **Last 4 digits** — optional, `maxlength=4`, non-digits stripped as you type, mirroring the
+  server's `^\d{4}$`.
+- **Tracking mode** — a radio pair. **Manual** is the default and the only selectable option;
+  **Automatic** is rendered **disabled** behind a "Coming soon" `BaseBadge`.
+
+The automatic value round-trips and persists correctly — it simply cannot be chosen, because the
+ingestion that would honour it is not built (see "Planned: automatic transaction sync", §6.14 of the
+project guide). An option that silently does nothing would be worse than one that says it is not
+ready.
+
+One component rather than the same markup in two forms: the pair is governed by a single rule (sync
+requires digits), and two copies would drift the moment that rule or the disabled state changes.
+
+**Editing sends the tracking pair only when it changed.** It has its own endpoint, separate from the
+ordinary update, so an unchanged pair would otherwise be a second request that writes nothing.
+
+Where accounts and cards are listed, a present `lastFour` renders as `••••7765` in muted `.numeric`
+text beside the bank name. Absent, nothing is shown — a placeholder would imply data that is simply
+not there.
+
+`BaseInput` gained a `maxlength` prop for this. The component's root is the wrapping `div`, so a
+bare `maxlength` attribute would have fallen through onto the div and done nothing.
+
+### 8.15 Settings — `/settings`
+
+Bank defaults: which account to assume when a bank's transfer notification names none. A table, an
+upsert form (bank name, direction, account), and delete behind the double confirmation used
+everywhere destructive.
+
+The form always sends the same request whether creating or editing, because the endpoint upserts on
+`(bankName, direction)` — there is no id to send and no separate create path.
+
+The account dropdown lists only non-archived accounts, matching the server, which 404s an archived
+one: a fallback that could never be honoured is refused at the point of nomination.
+
+Its empty state is **informational, not an error**. Having no defaults is the normal starting
+position and nothing is broken without them, so the copy says so rather than prompting for a fix.
 
 ---
 

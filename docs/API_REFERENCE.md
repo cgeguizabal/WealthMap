@@ -76,6 +76,8 @@ is a string both ways (`"Account"` / `"External"`, case-insensitive on input).
 | Goal `status` (response) | `OnTrack` · `BehindSchedule` · `DeadlinePassed` · `Completed` |
 | Payment `targetType` | `CreditCard` · `Debt` · `Installment` |
 | Payment `sourceType` | `Account` · `External` |
+| `trackingMode` | `1` Manual · `2` EmailSync |
+| Bank default `direction` | `1` Inbound · `2` Outbound |
 
 ---
 
@@ -110,14 +112,18 @@ the message does not distinguish the two, so it cannot be used to discover which
 
 ```json
 { "name": "Checking", "bankName": "BBVA", "type": 1,
-  "openingBalance": 1000, "currency": "USD" }
+  "openingBalance": 1000, "currency": "USD",
+  "lastFour": "6868", "trackingMode": 1 }
 ```
+
+`lastFour` and `trackingMode` are optional; omitted, they default to `null` and `1` (Manual).
 
 ### `GET /api/v1/accounts` · `GET /api/v1/accounts/{id}`
 
 ```json
 { "id": "...", "name": "Checking", "bankName": "BBVA", "type": "Checking",
   "balance": 1000.00, "currency": "USD", "isBlockedForSaving": false,
+  "lastFour": "6868", "trackingMode": "Manual",
   "notes": null, "createdAt": "2026-08-01T12:00:00Z" }
 ```
 
@@ -142,6 +148,25 @@ history keep working. Nothing new can be pointed at it: creating a job or income
 `depositAccountId` → **404**. Archiving an already-archived account → **400**.
 
 The archived balance is simply excluded from totals; archiving does not move or zero the money.
+
+### `PUT /api/v1/accounts/{id}/tracking`
+
+```json
+{ "trackingMode": 1, "lastFour": "6868" }
+```
+
+**200** → the full account DTO.
+
+Sets both fields together, because they constrain each other. `lastFour` must match `^\d{4}$` or be
+`null`/omitted; `trackingMode` must be `1` or `2`.
+
+**`trackingMode: 2` with no `lastFour` → 400**, keyed to the `lastFour` field: *"Last 4 digits are
+required to enable email sync."* The same message comes back for clearing `lastFour` on an
+instrument already in `EmailSync` — an instrument can never be synced without identifying digits
+(§4.2 of the project guide). A check constraint repeats the rule in the database.
+
+Nothing consumes these fields yet; see "Planned: automatic transaction sync" (§6.14 of the project
+guide).
 
 ### `POST /api/v1/accounts/{id}/block` · `POST /api/v1/accounts/{id}/unblock`
 
@@ -196,8 +221,11 @@ Paged, newest first. Each item:
 
 ```json
 { "cardName": "Gold", "bankName": "BBVA", "creditLimit": 5000, "currency": "USD",
-  "annualInterestRate": 45.9, "paymentDueDay": 15, "statementCutoffDay": 28 }
+  "annualInterestRate": 45.9, "paymentDueDay": 15, "statementCutoffDay": 28,
+  "lastFour": "7765", "trackingMode": 1 }
 ```
+
+`lastFour` and `trackingMode` are optional; omitted, they default to `null` and `1` (Manual).
 
 ### `GET /api/v1/credit-cards` · `GET /api/v1/credit-cards/{id}`
 
@@ -205,10 +233,25 @@ Paged, newest first. Each item:
 { "id": "...", "cardName": "Gold", "bankName": "BBVA", "creditLimit": 5000.00,
   "usedCredit": 1800.00, "availableCredit": 3200.00, "currency": "USD",
   "annualInterestRate": 45.900, "paymentDueDay": 15, "statementCutoffDay": 28,
+  "lastFour": "7765", "trackingMode": "Manual",
+  "nextCutoffDate": "2026-08-28", "nextDueDate": "2026-09-17",
+  "daysUntilCutoff": 14, "daysUntilDue": 34,
   "notes": null, "createdAt": "..." }
 ```
 
 `availableCredit` is computed, never stored.
+
+`nextDueDate` is when **today's balance** must be paid — the first due day *after* the next cutoff,
+not simply the next occurrence of `paymentDueDay`. It is the same date the dashboard's safe-to-spend
+projection reserves against.
+
+### `PUT /api/v1/credit-cards/{id}/tracking`
+
+```json
+{ "trackingMode": 1, "lastFour": "7765" }
+```
+
+**200** → the full card DTO. Identical rules and errors to the account endpoint above.
 
 ### `PUT /api/v1/credit-cards/{id}`
 
@@ -359,6 +402,45 @@ would push net below zero → **400**.
 
 Recurring extras only; one-off money is a `Bonus` deposit. Frequencies are normalized to a monthly
 figure for the dashboard (weekly × 52/12, biweekly × 26/12, yearly ÷ 12).
+
+---
+
+## Bank defaults
+
+Which account to assume when a bank's transfer notification names none. Stored now, consumed by
+nothing — see "Planned: automatic transaction sync" (§6.14 of the project guide).
+
+### `GET /api/v1/bank-defaults`
+
+```json
+[ { "id": "...", "bankName": "Banco Agricola", "direction": "Outbound",
+    "defaultAccountId": "...", "defaultAccountName": "Cuenta Principal",
+    "createdAt": "..." } ]
+```
+
+Ordered by bank, then direction. `defaultAccountName` is resolved server-side so a client does not
+have to fetch the account list purely to render a row.
+
+### `PUT /api/v1/bank-defaults`
+
+```json
+{ "bankName": "Banco Agricola", "direction": 2, "defaultAccountId": "..." }
+```
+
+**200** → the created or updated row.
+
+An **upsert on `(bankName, direction)`**, matched case-insensitively — the key is the pair, not an
+id, so saying the same thing twice leaves one row rather than failing on the unique index. `PUT`
+rather than `POST` because it is idempotent.
+
+**An archived account → 404.** A fallback pointing at an account that can no longer be transacted
+with could never be honoured, so it is refused at the point of nomination rather than discovered
+later. An account belonging to someone else is also 404, as everywhere.
+
+### `DELETE /api/v1/bank-defaults/{id}` → **204**
+
+A real delete, not an archive: a bank default holds no history and nothing references it, so there
+is nothing to preserve. Not yours → **404**.
 
 ---
 
