@@ -66,7 +66,8 @@ const charges = computed(() => {
   const fromPurchases = (purchasePage.value?.items ?? [])
     .map((purchase) => ({
       id: purchase.id,
-      kind: 'Purchase',
+      isPlan: false,
+      kind: t('purchases.kindPurchase'),
       meta: purchase.category,
       name: purchase.productName,
       amount: purchase.amount,
@@ -78,8 +79,9 @@ const charges = computed(() => {
     .filter((plan) => plan.creditCardId === cardId)
     .map((plan) => ({
       id: plan.id,
-      kind: 'Installment plan',
-      meta: `${plan.monthsCount} months · ${plan.remainingMonths} left`,
+      isPlan: true,
+      kind: t('installments.planKind'),
+      meta: t('composed.planMeta', { total: plan.monthsCount, remaining: plan.remainingMonths }),
       name: plan.productName,
       // The full price hits the card on day one, which is what created the debt.
       amount: plan.totalPrice,
@@ -107,9 +109,15 @@ const variant = computed(() => {
   return 'accent'
 })
 
-/** Purchases have no detail screen, so only plans are navigable. */
+/**
+ * Purchases have no detail screen, so only plans are navigable.
+ *
+ * Keyed off a flag set when the row is built, not off the label. The label is
+ * translated, so comparing against the English text would silently stop matching
+ * the moment the language changed.
+ */
 function isPlan(row) {
-  return row.kind === 'Installment plan'
+  return row.isPlan === true
 }
 
 function openCharge(row) {

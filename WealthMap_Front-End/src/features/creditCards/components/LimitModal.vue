@@ -37,7 +37,7 @@ async function onSubmit() {
   const result = await submit()
   if (!result) return
 
-  toast.success(`Limit is now ${format(result.creditLimit, { currency: result.currency })}.`)
+  toast.success(t('cards.limitToast', { limit: format(result.creditLimit, { currency: result.currency }) }))
   emit('saved', result)
   open.value = false
 }

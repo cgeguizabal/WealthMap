@@ -43,7 +43,7 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Offline | vite-plugin-pwa |
 
 **18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
-**82** component stylesheets, **739** translation keys per language.
+**82** component stylesheets, **747** translation keys per language.
 
 ---
 
@@ -966,6 +966,12 @@ Stores are a shared catalogue: `isMine` controls whether an edit button renders,
 `logoUrl` falls back to a monogram. The store picker creates inline and selects what it created.
 
 ### 8.7 Installments — `/installments`, `/installments/:id`
+
+Progress is labelled **payments left**, not months left, and the plan shows the date of its *last
+payment* rather than an implied duration. The two are the same number until someone pays ahead:
+settling two installments in one month leaves 10 payments outstanding, but they are still
+installments 3–12, so the final one falls on its original date. Calling the count "months" invited
+the reading "10 months from now", which stops being true the moment a plan is prepaid.
 `previewSchedule()` reproduces the backend's split so the real instalment amounts are shown before
 submitting, including the last-payment remainder. Warns when the total exceeds available credit,
 because a tasa 0 plan charges the card in full on day one. Paying takes no amount — the endpoint pays

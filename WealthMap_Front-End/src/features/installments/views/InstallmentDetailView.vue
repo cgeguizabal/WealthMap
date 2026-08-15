@@ -6,6 +6,7 @@ import { fadeUp } from '@/composables/useMotionSafe'
 import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -24,6 +25,7 @@ const { t } = useI18n()
 
 const route = useRoute()
 const { format } = useMoney()
+const { formatDate } = useDateTime()
 const dashboard = useDashboardStore()
 
 const planId = route.params.id
@@ -73,7 +75,7 @@ onMounted(loadPlan)
     <motion.div v-else-if="plan" v-bind="fadeUp()">
       <PageHeader
         :title="plan.productName"
-        :subtitle="t('installments.planSubtitle', { count: plan.monthsCount, date: plan.purchasedAt })"
+        :subtitle="t('installments.planSubtitle', { count: plan.monthsCount, date: formatDate(plan.purchasedAt) })"
       >
         <template #actions>
           <BaseButton variant="primary" :disabled="plan.isCompleted" @click="payOpen = true">
@@ -109,7 +111,13 @@ onMounted(loadPlan)
           :value="paidAmount"
           :max="plan.totalPrice"
           :variant="plan.isCompleted ? 'positive' : 'accent'"
-          :label="plan.isCompleted ? t('installments.fullyPaid') : t('installments.monthsLeft', { remaining: plan.remainingMonths, total: plan.monthsCount, date: plan.endDate })"
+          :label="plan.isCompleted
+            ? t('installments.fullyPaid')
+            : t('installments.paymentsLeft', {
+                remaining: plan.remainingMonths,
+                total: plan.monthsCount,
+                date: formatDate(plan.endDate)
+              })"
         />
       </div>
 
@@ -127,7 +135,7 @@ onMounted(loadPlan)
               <span class="schedule__amount numeric">
                 {{ format(item.amount, { currency: item.currency }) }}
               </span>
-              <span class="schedule__due">{{ t('composed.dueOn', { date: item.dueDate }) }}</span>
+              <span class="schedule__due">{{ t('composed.dueOn', { date: formatDate(item.dueDate) }) }}</span>
             </div>
 
             <BaseBadge v-if="item.isPaid" variant="positive" size="sm">{{ t('common.paid') }}</BaseBadge>

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
@@ -17,6 +18,7 @@ const props = defineProps({
 defineEmits(['pay'])
 
 const { format } = useMoney()
+const { formatDate } = useDateTime()
 
 const paidCount = computed(() => props.plan.monthsCount - props.plan.remainingMonths)
 const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBalance)
@@ -65,8 +67,12 @@ const paidAmount = computed(() => props.plan.totalPrice - props.plan.remainingBa
         </template>
       </BaseProgress>
 
+      <!-- The last payment's date, not "ends in N months": prepaying reduces how
+           many payments are left without moving when the final one falls due. -->
       <p class="plan__end">
-        {{ plan.isCompleted ? 'Completed' : `Ends ${plan.endDate}` }}
+        {{ plan.isCompleted
+          ? t('common.completed')
+          : t('installments.lastPayment', { date: formatDate(plan.endDate) }) }}
       </p>
     </RouterLink>
 
