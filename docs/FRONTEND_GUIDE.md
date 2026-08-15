@@ -43,7 +43,7 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Offline | vite-plugin-pwa |
 
 **18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
-**82** component stylesheets, **747** translation keys per language.
+**82** component stylesheets, **755** translation keys per language.
 
 ---
 
@@ -951,6 +951,13 @@ any installments the payment settled. Both exist for the same reason: the balanc
 visible and the schedule moving is not, so a user who is not told would go and pay the same
 installment a second time.
 
+**Three tabs:** charges, installments, payments. The charges tab lists a plan on the day it was
+created, at its full price — which is what put the debt on the card. The installments tab answers the
+different question of what those plans cost *this month*: each product, its progress, what is left,
+and what it adds to the statement about to be billed, with the total in the footer. A plan showing
+`0.00` there has already had its installment paid; it stays visible and muted rather than
+disappearing, so the column keeps lining up.
+
 The due date comes from the server's `nextDueDate` — the first due day *after* the next cutoff — so
 the card screen and the dashboard's safe-to-spend figure cannot disagree about the same money.
 Tracking fields on this form are covered in §8.14.
@@ -966,6 +973,11 @@ Stores are a shared catalogue: `isMine` controls whether an edit button renders,
 `logoUrl` falls back to a monogram. The store picker creates inline and selects what it created.
 
 ### 8.7 Installments — `/installments`, `/installments/:id`
+
+The detail screen names the **card that was charged**, linked, along with what the plan adds to that
+card's next statement and when it is due. A plan is meaningless without its card — the card decides
+when the installments fall due — and a screen that cannot say which balance this is part of leaves
+the user to go and find out.
 
 Progress is labelled **payments left**, not months left, and the plan shows the date of its *last
 payment* rather than an implied duration. The two are the same number until someone pays ahead:

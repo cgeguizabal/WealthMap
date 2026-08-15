@@ -107,6 +107,34 @@ onMounted(loadPlan)
           </div>
         </div>
 
+        <!-- The card that was charged, and what this plan puts on its next
+             statement. A plan screen that cannot name its card leaves the user to
+             go and work out which balance this is part of. -->
+        <dl class="summary__card">
+          <div>
+            <dt>{{ t('installments.chargedTo') }}</dt>
+            <dd>
+              <RouterLink :to="`/credit-cards/${plan.creditCardId}`" class="summary__card-link">
+                {{ plan.creditCardName ?? t('installments.cardRemoved') }}
+                <BaseIcon v-if="plan.creditCardName" name="arrow-up-right" :size="13" />
+              </RouterLink>
+              <span v-if="plan.creditCardBankName" class="summary__card-bank">
+                {{ plan.creditCardBankName }}
+              </span>
+            </dd>
+          </div>
+
+          <div v-if="plan.statementDueDate">
+            <dt>{{ t('cards.addsToStatement') }}</dt>
+            <dd>
+              <span class="numeric">{{ format(plan.dueThisStatement, { currency: plan.currency }) }}</span>
+              <span class="summary__card-bank">
+                {{ t('composed.payBy', { date: formatDate(plan.statementDueDate) }) }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+
         <BaseProgress
           :value="paidAmount"
           :max="plan.totalPrice"

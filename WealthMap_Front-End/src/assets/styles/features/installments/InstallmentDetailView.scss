@@ -88,3 +88,44 @@
   .summary__value { font-size: var(--fs-lg); }
   .schedule__item { padding: var(--sp-3) var(--sp-4); }
 }
+
+// Which card paid for this, and what it bills next.
+.summary__card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-3);
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--canvas-alt);
+
+  dt {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+  }
+}
+
+.summary__card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--accent);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.summary__card-bank {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-normal);
+  color: var(--text-subtle);
+}

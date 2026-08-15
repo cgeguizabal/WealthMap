@@ -120,3 +120,18 @@
   margin-top: 2px;
   color: var(--text-subtle);
 }
+
+.plans-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+
+  strong { color: var(--text); font-size: var(--fs-base); }
+}
+
+// Zero is not missing data, it is "already paid" — muted rather than hidden so
+// the column still lines up down the table.
+.is-muted { color: var(--text-subtle); }

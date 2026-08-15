@@ -547,6 +547,21 @@ purchase response carries it, including the one returned by `POST /purchases`.
 
 ## Installment purchases (tasa 0)
 
+Every plan response carries the card it was bought on and what it adds to that card's current
+statement:
+
+```json
+{ "creditCardId": "...", "creditCardName": "Mastercard Gold", "creditCardBankName": "Banco Cuscatlan",
+  "dueThisStatement": 100.00, "statementDueDate": "2026-09-05", … }
+```
+
+`dueThisStatement` is the plan's installments falling due on or before `statementDueDate`, which is
+the **card's** next payment date — so this figure and the card's own `statementBalance` are computed
+from the same rule and cannot disagree. It drops to `0.00` once the month's installment is paid.
+
+`creditCardName` is null only when the card no longer exists; archived cards are still named, since a
+plan outlives the archiving of the card it sits on and its debt is real either way.
+
 ### `POST /api/v1/installment-purchases` → **201**
 
 ```json
