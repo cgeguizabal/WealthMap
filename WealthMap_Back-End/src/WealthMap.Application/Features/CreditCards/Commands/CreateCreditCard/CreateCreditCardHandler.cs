@@ -2,6 +2,7 @@ using WealthMap.Application.Common.Interfaces;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.CreditCards.DTOs;
 using WealthMap.Domain.Entities;
+using WealthMap.Domain.Enums;
 using WealthMap.Domain.ValueObjects;
 
 namespace WealthMap.Application.Features.CreditCards.Commands.CreateCreditCard;
@@ -27,6 +28,14 @@ public class CreateCreditCardHandler : ICommandHandler<CreateCreditCardCommand, 
             request.AnnualInterestRate,
             request.PaymentDueDay,
             request.StatementCutoffDay);
+
+        // Digits before mode: SetTrackingMode refuses EmailSync while LastFour is
+        // still null, so the reverse order would reject a valid request.
+        if (request.LastFour is not null)
+            card.SetLastFour(request.LastFour);
+
+        if (request.TrackingMode is { } mode)
+            card.SetTrackingMode((TrackingMode)mode);
 
         await _cards.AddAsync(card, ct);
         await _unitOfWork.SaveChangesAsync(ct);

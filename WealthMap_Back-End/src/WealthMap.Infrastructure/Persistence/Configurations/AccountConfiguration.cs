@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WealthMap.Domain.Entities;
+using WealthMap.Domain.Enums;
 
 namespace WealthMap.Infrastructure.Persistence.Configurations;
 
@@ -30,6 +31,31 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(a => a.IsArchived)
             .IsRequired()
             .HasDefaultValue(false);
+
+        // char(4): the value is always four digits or absent, never a range.
+        builder.Property(a => a.LastFour)
+            .HasMaxLength(4)
+            .IsFixedLength();
+
+        // The sentinel is the CLR default, 0, which is not a member of the enum.
+        // Without it EF cannot tell "the caller left this alone" from "the caller
+        // chose Manual", and warns that the database default would win either way.
+        // Declaring 0 as the sentinel makes the constructor's Manual an explicit
+        // write, while the column default still backfills existing rows.
+        builder.Property(a => a.TrackingMode)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(TrackingMode.Manual)
+            .HasSentinel(default(TrackingMode));
+
+        // Defence in depth behind Account.SetLastFour / SetTrackingMode. The entity
+        // gives the readable error; the constraint means a row claiming to be synced
+        // without identifying digits cannot exist even if written by a script or a
+        // future migration that forgets the rule.
+        builder.ToTable(t =>
+            t.HasCheckConstraint(
+                "ck_accounts_sync_requires_last_four",
+                "(tracking_mode = 1) OR (last_four IS NOT NULL)"));
 
         builder.ComplexProperty(a => a.Balance, money =>
         {

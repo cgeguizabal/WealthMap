@@ -43,6 +43,7 @@ public static class DependencyInjection
            services.AddScoped<ISalaryDepositRepository, SalaryDepositRepository>();
            services.AddScoped<IUserRepository, UserRepository>();
            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+           services.AddScoped<IBankDefaultRepository, BankDefaultRepository>();
 
            // QuestPDF's Community licence covers this project; it must be set before any render.
            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;

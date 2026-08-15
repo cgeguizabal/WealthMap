@@ -2,6 +2,8 @@ using WealthMap.Domain.Entities;
 
 namespace WealthMap.Application.Features.Accounts.DTOs;
 
+/// <param name="LastFour">The digits a bank prints when naming this account, or null.</param>
+/// <param name="TrackingMode">"Manual" or "EmailSync". Only Manual does anything today.</param>
 public record AccountDto(
     Guid Id,
     string Name,
@@ -10,6 +12,8 @@ public record AccountDto(
     decimal Balance,
     string Currency,
     bool IsBlockedForSaving,
+    string? LastFour,
+    string TrackingMode,
     string? Notes,
     DateTime CreatedAt)
 {
@@ -21,6 +25,8 @@ public record AccountDto(
         account.Balance.Amount,
         account.Balance.Currency,
         account.IsBlockedForSaving,
+        account.LastFour,
+        account.TrackingMode.ToString(),
         account.Notes,
         account.CreatedAt);
 }

@@ -1,4 +1,5 @@
 using FluentValidation;
+using WealthMap.Application.Common.Validation;
 
 namespace WealthMap.Application.Features.CreditCards.Commands.CreateCreditCard;
 
@@ -29,5 +30,20 @@ public class CreateCreditCardValidator : AbstractValidator<CreateCreditCardComma
 
         RuleFor(x => x.StatementCutoffDay)
             .InclusiveBetween(1, 31).WithMessage("Statement cutoff day must be between 1 and 31.");
+
+        RuleFor(x => x.LastFour)
+            .Must(TrackingRules.IsValidLastFour)
+            .WithMessage(TrackingRules.LastFourMessage);
+
+        RuleFor(x => x.TrackingMode)
+            .Must(m => m is null || TrackingRules.IsDefinedMode(m.Value))
+            .WithMessage(TrackingRules.TrackingModeMessage);
+
+        // Keyed to lastFour rather than trackingMode: the digits are what is missing,
+        // so that is the field the form should mark.
+        RuleFor(x => x.LastFour)
+            .Must((command, lastFour) =>
+                command.TrackingMode is null || TrackingRules.IsIdentifiable(command.TrackingMode.Value, lastFour))
+            .WithMessage(TrackingRules.SyncNeedsLastFourMessage);
     }
 }

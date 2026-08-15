@@ -29,6 +29,14 @@ public class CreateAccountHandler : ICommandHandler<CreateAccountCommand, Accoun
             (AccountType)request.Type,
             openingBalance);
 
+        // Digits before mode: SetTrackingMode refuses EmailSync while LastFour is
+        // still null, so the reverse order would reject a valid request.
+        if (request.LastFour is not null)
+            account.SetLastFour(request.LastFour);
+
+        if (request.TrackingMode is { } mode)
+            account.SetTrackingMode((TrackingMode)mode);
+
         await _accounts.AddAsync(account, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 

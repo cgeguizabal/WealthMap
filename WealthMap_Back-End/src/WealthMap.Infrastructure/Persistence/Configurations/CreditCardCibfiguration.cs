@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WealthMap.Domain.Entities;
+using WealthMap.Domain.Enums;
 
 namespace WealthMap.Infrastructure.Persistence.Configurations;
 
@@ -36,6 +37,22 @@ public class CreditCardConfiguration : IEntityTypeConfiguration<CreditCard>
         builder.Property(c => c.IsArchived)
             .IsRequired()
             .HasDefaultValue(false);
+
+        // char(4): the value is always four digits or absent, never a range.
+        builder.Property(c => c.LastFour)
+            .HasMaxLength(4)
+            .IsFixedLength();
+
+        // The sentinel is the CLR default, 0, which is not a member of the enum.
+        // Without it EF cannot tell "the caller left this alone" from "the caller
+        // chose Manual", and warns that the database default would win either way.
+        // Declaring 0 as the sentinel makes the constructor's Manual an explicit
+        // write, while the column default still backfills existing rows.
+        builder.Property(c => c.TrackingMode)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(TrackingMode.Manual)
+            .HasSentinel(default(TrackingMode));
 
         builder.ComplexProperty(c => c.CreditLimit, money =>
         {
@@ -77,6 +94,14 @@ public class CreditCardConfiguration : IEntityTypeConfiguration<CreditCard>
             t.HasCheckConstraint("ck_credit_cards_used_within_limit", "used_credit <= credit_limit");
             t.HasCheckConstraint("ck_credit_cards_due_day", "payment_due_day BETWEEN 1 AND 31");
             t.HasCheckConstraint("ck_credit_cards_cutoff_day", "statement_cutoff_day BETWEEN 1 AND 31");
+
+            // Defence in depth behind CreditCard.SetLastFour / SetTrackingMode. The
+            // entity gives the readable error; the constraint means a row claiming to
+            // be synced without identifying digits cannot exist even if written by a
+            // script or a future migration that forgets the rule.
+            t.HasCheckConstraint(
+                "ck_credit_cards_sync_requires_last_four",
+                "(tracking_mode = 1) OR (last_four IS NOT NULL)");
         });
     }
 }

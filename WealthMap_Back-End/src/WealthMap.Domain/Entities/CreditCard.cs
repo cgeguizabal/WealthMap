@@ -1,5 +1,7 @@
 using WealthMap.Domain.Common;
+using WealthMap.Domain.Enums;
 using WealthMap.Domain.Exceptions;
+using WealthMap.Domain.Services;
 using WealthMap.Domain.ValueObjects;
 
 namespace WealthMap.Domain.Entities;
@@ -23,6 +25,15 @@ public class CreditCard : BaseEntity
     /// </summary>
     public bool IsArchived { get; private set; }
     public DateTime? ArchivedAt { get; private set; }
+
+    /// <summary>
+    /// The last four digits a bank prints when naming this card. Identifying data
+    /// only — nothing reads it yet.
+    /// </summary>
+    public string? LastFour { get; private set; }
+
+    /// <summary>Manual until a future ingestion feature can honour anything else.</summary>
+    public TrackingMode TrackingMode { get; private set; }
 
     public Money AvailableCredit => CreditLimit - UsedCredit;
 
@@ -55,6 +66,36 @@ public class CreditCard : BaseEntity
         AnnualInterestRate = ValidateRate(annualInterestRate);
         PaymentDueDay = ValidateDayOfMonth(paymentDueDay, nameof(PaymentDueDay));
         StatementCutoffDay = ValidateDayOfMonth(statementCutoffDay, nameof(StatementCutoffDay));
+        TrackingMode = TrackingMode.Manual;
+    }
+
+    /// <summary>
+    /// Sets or clears the identifying digits.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="UpdateDetails"/> rather than folded into it: this
+    /// is the only mutation that can fail because of the *other* field's value, and
+    /// every existing caller of UpdateDetails would otherwise have to start passing
+    /// two arguments it does not care about.
+    /// </remarks>
+    public void SetLastFour(string? lastFour)
+    {
+        var normalized = InstrumentTracking.NormalizeLastFour(lastFour);
+
+        // Checked against the mode already in force, so clearing the digits on a
+        // synced card is refused rather than quietly breaking the invariant.
+        InstrumentTracking.EnsureIdentifiable(TrackingMode, normalized);
+
+        LastFour = normalized;
+        Touch();
+    }
+
+    public void SetTrackingMode(TrackingMode mode)
+    {
+        InstrumentTracking.EnsureIdentifiable(mode, LastFour);
+
+        TrackingMode = mode;
+        Touch();
     }
 
     public void Charge(Money amount)

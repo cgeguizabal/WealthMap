@@ -8,6 +8,7 @@ using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
 using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
+using WealthMap.Application.Features.Accounts.Commands.UpdateAccountTracking;
 using WealthMap.Application.Features.Accounts.Commands.ArchiveAccount;
 using WealthMap.Application.Features.Accounts.Commands.DepositToAccount;
 using WealthMap.Application.Features.Accounts.Commands.WithdrawFromAccount;
@@ -40,7 +41,9 @@ public class AccountsController : ControllerBase
             request.BankName,
             request.Type,
             request.OpeningBalance,
-            request.Currency);
+            request.Currency,
+            request.LastFour,
+            request.TrackingMode);
 
         var result = await _sender.Send(command, ct);
 
@@ -100,6 +103,22 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
     {
         var result = await _sender.Send(new UnblockAccountCommand(id, User.GetUserId()), ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Sets the identifying digits and the tracking mode. Nothing consumes them
+    /// yet — see "Planned: automatic transaction sync" in docs/PROJECT_GUIDE.md.
+    /// </summary>
+    [HttpPut("{id:guid}/tracking")]
+    public async Task<IActionResult> UpdateTracking(
+        Guid id,
+        [FromBody] UpdateTrackingRequest request,
+        CancellationToken ct)
+    {
+        var command = new UpdateAccountTrackingCommand(
+            id, User.GetUserId(), request.TrackingMode, request.LastFour);
+
+        return Ok(await _sender.Send(command, ct));
     }
 
     [HttpPost("{id:guid}/deposit")]
@@ -171,7 +190,14 @@ public record CreateAccountRequest(
     string BankName,
     int Type,
     decimal OpeningBalance,
-    string Currency);
+    string Currency,
+    string? LastFour = null,
+    int? TrackingMode = null);
+
+/// <summary>Both tracking fields at once — they constrain each other.</summary>
+public record UpdateTrackingRequest(
+    int TrackingMode,
+    string? LastFour);
 
 public record UpdateAccountRequest(
     string Name,

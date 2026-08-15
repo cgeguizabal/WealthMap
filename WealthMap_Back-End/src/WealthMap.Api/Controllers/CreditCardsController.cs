@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WealthMap.Api.Extensions;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.CreditCards.Commands.CreateCreditCard;
+using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCardTracking;
 using WealthMap.Application.Features.CreditCards.Commands.PayCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCardLimit;
@@ -36,7 +37,9 @@ public class CreditCardsController : ControllerBase
             request.Currency,
             request.AnnualInterestRate,
             request.PaymentDueDay,
-            request.StatementCutoffDay);
+            request.StatementCutoffDay,
+            request.LastFour,
+            request.TrackingMode);
 
         var result = await _sender.Send(command, ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -87,6 +90,22 @@ public class CreditCardsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Sets the identifying digits and the tracking mode. Nothing consumes them
+    /// yet — see "Planned: automatic transaction sync" in docs/PROJECT_GUIDE.md.
+    /// </summary>
+    [HttpPut("{id:guid}/tracking")]
+    public async Task<IActionResult> UpdateTracking(
+        Guid id,
+        [FromBody] UpdateTrackingRequest request,
+        CancellationToken ct)
+    {
+        var command = new UpdateCreditCardTrackingCommand(
+            id, User.GetUserId(), request.TrackingMode, request.LastFour);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
     [HttpPut("{id:guid}/limit")]
     public async Task<IActionResult> UpdateLimit(
         Guid id,
@@ -132,7 +151,9 @@ public record CreateCreditCardRequest(
     string Currency,
     decimal AnnualInterestRate,
     int PaymentDueDay,
-    int StatementCutoffDay);
+    int StatementCutoffDay,
+    string? LastFour = null,
+    int? TrackingMode = null);
 
 public record UpdateCreditCardRequest(
     string CardName,
