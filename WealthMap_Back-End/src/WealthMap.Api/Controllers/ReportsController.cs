@@ -21,11 +21,20 @@ public class ReportsController : ControllerBase
         _pdf = pdf;
     }
 
+    /// <param name="tz">
+    /// IANA zone id from the browser, e.g. "America/Guatemala". Decides where the
+    /// month starts and ends; omitted, the boundaries are UTC and a late-evening
+    /// purchase on the last of the month can fall into the next report.
+    /// </param>
     [HttpGet("monthly/{month}")]
-    public async Task<IActionResult> GetMonthly(string month, CancellationToken ct)
+    public async Task<IActionResult> GetMonthly(
+        string month,
+        CancellationToken ct,
+        [FromQuery] string? tz = null)
     {
-        var result = await _sender.Send(new GetMonthlyReportQuery(User.GetUserId(), month), ct);
-        return Ok(result);
+        var query = new GetMonthlyReportQuery(User.GetUserId(), month, tz);
+
+        return Ok(await _sender.Send(query, ct));
     }
 
     /// <summary>
@@ -46,9 +55,11 @@ public class ReportsController : ControllerBase
     public async Task<IActionResult> GetMonthlyPdf(
         string month,
         CancellationToken ct,
-        [FromQuery] string? lang = null)
+        [FromQuery] string? lang = null,
+        [FromQuery] string? tz = null)
     {
-        var report = await _sender.Send(new GetMonthlyReportQuery(User.GetUserId(), month), ct);
+        var query = new GetMonthlyReportQuery(User.GetUserId(), month, tz);
+        var report = await _sender.Send(query, ct);
         var bytes = _pdf.GenerateMonthlyReport(report, lang);
 
         return File(bytes, "application/pdf", $"wealthmap-{month}.pdf");

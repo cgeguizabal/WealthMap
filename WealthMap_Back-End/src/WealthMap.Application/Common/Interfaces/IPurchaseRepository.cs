@@ -18,6 +18,17 @@ public interface IPurchaseRepository : IRepository<Purchase>
         Guid userId, int year, int month, CancellationToken ct = default);
 
     /// <summary>
+    /// Every purchase in a half-open UTC window, [from, to).
+    /// </summary>
+    /// <remarks>
+    /// Needed alongside the year/month version because a calendar month is only a
+    /// month in one time zone. The report asks for the window that matches the
+    /// user's own calendar.
+    /// </remarks>
+    Task<IReadOnlyList<Purchase>> GetForUserInPeriodAsync(
+        Guid userId, DateTime from, DateTime to, CancellationToken ct = default);
+
+    /// <summary>
     /// Card purchases dated on or after <paramref name="since"/>, across every card.
     /// </summary>
     /// <remarks>

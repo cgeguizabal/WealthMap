@@ -145,4 +145,3 @@ Real, and not addressed by this work:
   is not.
 - **No key rotation procedure.** The `v1:` prefix makes rotation *possible* — a `v2` service can
   decrypt `v1` on read and rewrite — but nothing implements it.
-- **The monthly report renders in UTC** while every screen renders in local time.

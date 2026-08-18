@@ -55,11 +55,16 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         var user = await _users.GetByIdAsync(request.UserId, ct)
             ?? throw new NotFoundException("User", request.UserId);
 
-        var monthStart = DateTime.SpecifyKind(
-            DateTime.ParseExact(request.Month, "yyyy-MM", CultureInfo.InvariantCulture),
-            DateTimeKind.Utc);
+        var localStart = DateTime.ParseExact(
+            request.Month, "yyyy-MM", CultureInfo.InvariantCulture);
 
-        var monthEnd = monthStart.AddMonths(1);
+        var zone = ResolveZone(request.TimeZone);
+
+        // The instants the user's own month begins and ends. Everything stored is
+        // UTC, so these are what the queries below compare against; the dates the
+        // report *displays* come from localStart, which is already local.
+        var monthStart = TimeZoneInfo.ConvertTimeToUtc(localStart, zone);
+        var monthEnd = TimeZoneInfo.ConvertTimeToUtc(localStart.AddMonths(1), zone);
         var currency = user.Currency;
 
         // Anything opened after the period ended did not exist during it. Archived
@@ -76,7 +81,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
             .Where(m => m.OccurredAt < monthEnd && m.Amount.Currency == currency)
             .ToList();
 
-        var purchases = (await _purchases.GetForUserInMonthAsync(request.UserId, monthStart.Year, monthStart.Month, ct))
+        var purchases = (await _purchases.GetForUserInPeriodAsync(request.UserId, monthStart, monthEnd, ct))
             .Where(p => p.Amount.Currency == currency)
             .ToList();
 
@@ -109,8 +114,8 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         return new MonthlyReportDto(
             request.Month,
             currency,
-            DateOnly.FromDateTime(monthStart),
-            DateOnly.FromDateTime(monthEnd.AddDays(-1)),
+            DateOnly.FromDateTime(localStart),
+            DateOnly.FromDateTime(localStart.AddMonths(1).AddDays(-1)),
             user.FullName,
             income,
             spending,
@@ -119,6 +124,29 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
             goals,
             income.Total - spending.TotalPurchases,
             DateTime.UtcNow);
+    }
+
+    /// <summary>
+    /// The caller's time zone, or UTC when it is missing or unrecognised.
+    /// </summary>
+    /// <remarks>
+    /// Never throws. A report is a read, and refusing to produce one because a
+    /// browser reported a zone this machine has never heard of would be a worse
+    /// outcome than a report bounded an hour or two off. Windows accepts IANA ids
+    /// through ICU, so "America/Guatemala" resolves on both Windows and Linux.
+    /// </remarks>
+    private static TimeZoneInfo ResolveZone(string? id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return TimeZoneInfo.Utc;
+
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(id);
+        }
+        catch (Exception e) when (e is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            return TimeZoneInfo.Utc;
+        }
     }
 
     private static IncomeSectionDto BuildIncome(IReadOnlyList<AccountMovement> monthMovements, Job? job)
