@@ -7,6 +7,7 @@ using WealthMap.Application.Features.Accounts.Queries.GetAccounts;
 using WealthMap.Application.Features.Accounts.Queries.GetAccountById;
 using WealthMap.Application.Features.Accounts.Commands.BlockAccount;
 using WealthMap.Application.Features.Accounts.Commands.UnblockAccount;
+using WealthMap.Application.Features.Accounts.Commands.RestoreAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccount;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccountTracking;
 using WealthMap.Application.Features.Accounts.Commands.UpdateAccountDebitCard;
@@ -52,11 +53,26 @@ public class AccountsController : ControllerBase
 
 return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);          }
 
-      [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    /// <param name="includeArchived">
+    /// Archived accounts are hidden from every list and total by default. Ask for
+    /// them to offer restoring one.
+    /// </param>
+    [HttpGet]
+    public async Task<IActionResult> GetAll(
+        CancellationToken ct,
+        [FromQuery] bool includeArchived = false)
     {
-        var result = await _sender.Send(new GetAccountsQuery(User.GetUserId()), ct);
-        return Ok(result);
+        var query = new GetAccountsQuery(User.GetUserId(), includeArchived);
+
+        return Ok(await _sender.Send(query, ct));
+    }
+
+    /// <summary>Brings an archived account back into the lists and totals.</summary>
+    [HttpPost("{id:guid}/restore")]
+    public async Task<IActionResult> Restore(Guid id, CancellationToken ct)
+    {
+        await _sender.Send(new RestoreAccountCommand(id, User.GetUserId()), ct);
+        return NoContent();
     }
 
     [HttpGet("{id:guid}")]

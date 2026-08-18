@@ -7,6 +7,7 @@ using WealthMap.Application.Features.FreelanceJobs.Commands.CreateFreelanceJob;
 using WealthMap.Application.Features.FreelanceJobs.Commands.DeleteFreelanceJob;
 using WealthMap.Application.Features.FreelanceJobs.Commands.MarkFreelanceJobDelivered;
 using WealthMap.Application.Features.FreelanceJobs.Commands.MarkFreelanceJobPaid;
+using WealthMap.Application.Features.FreelanceJobs.Commands.ReopenFreelanceJob;
 using WealthMap.Application.Features.FreelanceJobs.Commands.UpdateFreelanceJob;
 using WealthMap.Application.Features.FreelanceJobs.Queries.GetFreelanceJobById;
 using WealthMap.Application.Features.FreelanceJobs.Queries.GetFreelanceJobs;
@@ -122,6 +123,11 @@ public class FreelanceJobsController : ControllerBase
 
         return Ok(await _sender.Send(command, ct));
     }
+
+    /// <summary>The client came back. Only cancelled work can be reopened.</summary>
+    [HttpPost("{id:guid}/reopen")]
+    public async Task<IActionResult> Reopen(Guid id, CancellationToken ct)
+        => Ok(await _sender.Send(new ReopenFreelanceJobCommand(id, User.GetUserId()), ct));
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)

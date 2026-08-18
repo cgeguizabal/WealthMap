@@ -237,6 +237,35 @@ async function markDelivered(work) {
   }
 }
 
+async function cancelFreelance(work) {
+  const confirmed = await ui.confirm({
+    title: t('freelance.cancelTitle'),
+    message: t('freelance.cancelMessage', { title: work.title }),
+    confirmLabel: t('freelance.cancelConfirm'),
+    variant: 'danger'
+  })
+
+  if (!confirmed) return
+
+  try {
+    await freelanceJobsApi.cancel(work.id, new Date().toISOString().slice(0, 10))
+    toast.success(t('freelance.cancelled'))
+    await loadFreelance()
+  } catch (err) {
+    toast.error(err.message)
+  }
+}
+
+async function reopenFreelance(work) {
+  try {
+    await freelanceJobsApi.reopen(work.id)
+    toast.success(t('freelance.reopened'))
+    await loadFreelance()
+  } catch (err) {
+    toast.error(err.message)
+  }
+}
+
 async function removeFreelance(work) {
   // Paid work moved money, so removing it moves it back. That is worth spelling
   // out before the click rather than surprising someone with a changed balance.
@@ -500,6 +529,28 @@ async function removeFreelance(work) {
                 @click="openPayment(work)"
               >
                 {{ t('freelance.gotPaid') }}
+              </BaseButton>
+
+              <!-- Cancelling keeps the row and can be undone; deleting does
+                   neither. Both are offered, and they mean different things. -->
+              <BaseButton
+                v-if="work.status === 'InProgress' || work.status === 'Delivered'"
+                size="sm"
+                variant="ghost"
+                :title="t('freelance.cancelWork')"
+                @click="cancelFreelance(work)"
+              >
+                <template #icon><BaseIcon name="x" :size="14" /></template>
+                <span class="sr-only">{{ t('freelance.cancelWork') }}</span>
+              </BaseButton>
+
+              <BaseButton
+                v-if="work.status === 'Cancelled'"
+                size="sm"
+                variant="secondary"
+                @click="reopenFreelance(work)"
+              >
+                {{ t('freelance.reopen') }}
               </BaseButton>
 
               <BaseButton

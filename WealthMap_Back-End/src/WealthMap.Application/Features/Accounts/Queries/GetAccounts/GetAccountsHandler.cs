@@ -12,7 +12,8 @@ public class GetAccountsHandler : IQueryHandler<GetAccountsQuery, IReadOnlyList<
 
     public async Task<IReadOnlyList<AccountDto>> Handle(GetAccountsQuery request, CancellationToken ct)
     {
-        var accounts = await _accounts.GetAllForUserAsync(request.UserId, ct: ct);
+        var accounts = await _accounts.GetAllForUserAsync(
+            request.UserId, request.IncludeArchived, ct);
 
         return accounts.Select(AccountDto.FromEntity).ToList();
     }

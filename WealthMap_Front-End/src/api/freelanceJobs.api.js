@@ -28,6 +28,9 @@ export const freelanceJobsApi = {
   /** Called off. Keeps the record; `remove` is what erases it. */
   cancel: (id, cancelledOn) => client.post(`/freelance-jobs/${id}/cancel`, { cancelledOn }),
 
+  /** The client came back. Only cancelled work can be reopened. */
+  reopen: (id) => client.post(`/freelance-jobs/${id}/reopen`),
+
   /** Reverses the deposit if the work had been paid. */
   remove: (id) => client.delete(`/freelance-jobs/${id}`)
 }

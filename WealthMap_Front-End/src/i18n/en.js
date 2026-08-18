@@ -223,6 +223,13 @@ export default {
   },
 
   freelance: {
+    cancelWork: 'Cancel this work',
+    cancelTitle: 'Cancel this work?',
+    cancelMessage: 'Marks {title} as called off. The record stays and you can reopen it if the client comes back.',
+    cancelConfirm: 'Mark as cancelled',
+    cancelled: 'Marked as cancelled.',
+    reopen: 'Reopen',
+    reopened: 'Back in progress.',
     active: 'Active',
     history: 'History',
     noneActiveTitle: 'Nothing in progress',
@@ -1171,6 +1178,12 @@ export default {
   },
 
   settings: {
+    archived: 'Archived accounts and cards',
+    archivedSubtitle: 'Hidden from every list and total. Restoring one brings it back with its whole history.',
+    nothingArchivedTitle: 'Nothing archived',
+    nothingArchivedMessage: 'Accounts and cards you archive appear here, and can be brought back.',
+    restore: 'Restore',
+    restored: '{name} is back.',
     profile: 'Your profile',
     profileSubtitle: 'The details WealthMap uses to address you and format your money.',
     profileSaved: 'Profile updated.',

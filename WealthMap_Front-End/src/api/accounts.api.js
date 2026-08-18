@@ -1,7 +1,12 @@
 import client from './client'
 
 export const accountsApi = {
-  list: () => client.get('/accounts'),
+  /**
+   * Archived accounts are excluded unless asked for. Every screen but the
+   * archived list in Settings wants them gone.
+   */
+  list: ({ includeArchived = false } = {}) =>
+    client.get('/accounts', { params: includeArchived ? { includeArchived: true } : undefined }),
   get: (id) => client.get(`/accounts/${id}`),
 
   /** `type` is an integer: 1 Checking, 2 Savings. Currency is explicit here. */
@@ -15,6 +20,9 @@ export const accountsApi = {
    * its movements and the purchases and payments referencing it are preserved.
    */
   remove: (id) => client.delete(`/accounts/${id}`),
+
+  /** Undoes an archive. What makes archiving safe to offer rather than final. */
+  restore: (id) => client.post(`/accounts/${id}/restore`),
 
   block: (id) => client.post(`/accounts/${id}/block`),
   unblock: (id) => client.post(`/accounts/${id}/unblock`),

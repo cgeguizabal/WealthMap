@@ -1,0 +1,43 @@
+.archived__loading {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-8);
+}
+
+.archived {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.archived__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: var(--border-subtle);
+  color: var(--text-muted);
+
+  &:last-child { border-bottom: 0; }
+}
+
+.archived__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  // Pushes the button to the right without a spacer element.
+  flex: 1;
+  min-width: 0;
+}
+
+.archived__name {
+  color: var(--text);
+  font-weight: var(--fw-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archived__meta {
+  font-size: var(--fs-xs);
+}

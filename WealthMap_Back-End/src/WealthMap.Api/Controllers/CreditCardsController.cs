@@ -5,6 +5,7 @@ using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.CreditCards.Commands.CreateCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCardTracking;
 using WealthMap.Application.Features.CreditCards.Commands.PayCreditCard;
+using WealthMap.Application.Features.CreditCards.Commands.RestoreCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCard;
 using WealthMap.Application.Features.CreditCards.Commands.UpdateCreditCardLimit;
 using WealthMap.Application.Features.CreditCards.Commands.ArchiveCreditCard;
@@ -45,11 +46,17 @@ public class CreditCardsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
+    /// <param name="includeArchived">
+    /// Archived cards are hidden by default. Ask for them to offer restoring one.
+    /// </param>
     [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll(
+        CancellationToken ct,
+        [FromQuery] bool includeArchived = false)
     {
-        var result = await _sender.Send(new GetCreditCardsQuery(User.GetUserId()), ct);
-        return Ok(result);
+        var query = new GetCreditCardsQuery(User.GetUserId(), includeArchived);
+
+        return Ok(await _sender.Send(query, ct));
     }
 
     [HttpGet("{id:guid}")]
@@ -83,6 +90,14 @@ public class CreditCardsController : ControllerBase
     /// Archives the card: it leaves the user's lists and totals, but the
     /// purchases, installment plans and payments that reference it are preserved.
     /// </summary>
+    /// <summary>Brings an archived card back into the lists and totals.</summary>
+    [HttpPost("{id:guid}/restore")]
+    public async Task<IActionResult> Restore(Guid id, CancellationToken ct)
+    {
+        await _sender.Send(new RestoreCreditCardCommand(id, User.GetUserId()), ct);
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

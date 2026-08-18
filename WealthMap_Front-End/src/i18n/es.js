@@ -222,6 +222,13 @@ export default {
   },
 
   freelance: {
+    cancelWork: 'Cancelar este trabajo',
+    cancelTitle: '¿Cancelar este trabajo?',
+    cancelMessage: 'Marca {title} como cancelado. El registro se conserva y puedes reabrirlo si el cliente vuelve.',
+    cancelConfirm: 'Marcar como cancelado',
+    cancelled: 'Marcado como cancelado.',
+    reopen: 'Reabrir',
+    reopened: 'De vuelta en curso.',
     active: 'En curso',
     history: 'Historial',
     noneActiveTitle: 'Nada en curso',
@@ -1167,6 +1174,12 @@ export default {
   },
 
   settings: {
+    archived: 'Cuentas y tarjetas archivadas',
+    archivedSubtitle: 'Ocultas de todas las listas y totales. Al restaurar una vuelve con todo su historial.',
+    nothingArchivedTitle: 'Nada archivado',
+    nothingArchivedMessage: 'Las cuentas y tarjetas que archives aparecen aquí y se pueden recuperar.',
+    restore: 'Restaurar',
+    restored: '{name} está de vuelta.',
     profile: 'Tu perfil',
     profileSubtitle: 'Los datos que WealthMap usa para dirigirse a ti y dar formato a tu dinero.',
     profileSaved: 'Perfil actualizado.',

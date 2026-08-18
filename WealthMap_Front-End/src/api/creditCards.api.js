@@ -1,7 +1,9 @@
 import client from './client'
 
 export const creditCardsApi = {
-  list: () => client.get('/credit-cards'),
+  /** Archived cards are excluded unless asked for. */
+  list: ({ includeArchived = false } = {}) =>
+    client.get('/credit-cards', { params: includeArchived ? { includeArchived: true } : undefined }),
   get: (id) => client.get(`/credit-cards/${id}`),
 
   create: (payload) => client.post('/credit-cards', payload),
@@ -14,6 +16,9 @@ export const creditCardsApi = {
    * purchases, installment plans and payments are preserved.
    */
   remove: (id) => client.delete(`/credit-cards/${id}`),
+
+  /** Undoes an archive. What makes archiving safe to offer rather than final. */
+  restore: (id) => client.post(`/credit-cards/${id}/restore`),
 
   /** Rejected if the new limit falls below what is currently owed. */
   updateLimit: (id, newLimit) => client.put(`/credit-cards/${id}/limit`, { newLimit }),

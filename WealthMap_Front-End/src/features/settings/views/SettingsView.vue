@@ -20,6 +20,7 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BankDefaultFormModal from '../components/BankDefaultFormModal.vue'
 import DeleteAccountModal from '../components/DeleteAccountModal.vue'
 import ProfileCard from '../components/ProfileCard.vue'
+import ArchivedCard from '../components/ArchivedCard.vue'
 import ChangePasswordModal from '../components/ChangePasswordModal.vue'
 
 const { t } = useI18n()
@@ -128,6 +129,8 @@ function replayTours() {
         {{ t('settings.changePassword') }}
       </BaseButton>
     </BaseCard>
+
+    <ArchivedCard />
 
     <BaseCard data-tour="settings-defaults" :title="t('bankDefaults.title')" :subtitle="t('bankDefaults.explain')" :padded="false">
       <template #actions>

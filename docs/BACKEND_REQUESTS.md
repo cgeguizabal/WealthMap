@@ -62,7 +62,7 @@ a suspected compromise, and nothing let them.
 
 ---
 
-## 3. Deleting is unavailable for several resources — *resolved for accounts and cards*
+## 3. Deleting is unavailable for several resources — *resolved*
 
 **Found:** building list screens with row actions.
 

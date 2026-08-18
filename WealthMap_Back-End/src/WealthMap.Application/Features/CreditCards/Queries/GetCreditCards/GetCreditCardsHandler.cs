@@ -18,7 +18,8 @@ public class GetCreditCardsHandler : IQueryHandler<GetCreditCardsQuery, IReadOnl
 
     public async Task<IReadOnlyList<CreditCardDto>> Handle(GetCreditCardsQuery request, CancellationToken ct)
     {
-        var cards = await _cards.GetAllForUserAsync(request.UserId, ct: ct);
+        var cards = await _cards.GetAllForUserAsync(
+            request.UserId, request.IncludeArchived, ct);
 
         return await _statements.ToDtoListAsync(cards, request.UserId, ct);
     }
