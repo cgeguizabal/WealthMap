@@ -705,7 +705,31 @@ Two subtleties that took care to get right:
 - **Obligations exclude revolving card debt.** You choose how much of a card balance to pay, so it
   is not a committed outflow. Obligations = loan monthly payments + next installment of each plan.
 
-`safeToSpend = monthlyNetIncome − monthlyObligations`.
+#### Safe to spend is a projection, not a subtraction
+
+`LiquidityProjection.Forecast` walks the calendar rather than subtracting two totals, because money
+and bills do not arrive on the same day. Holding $500 against a $1,400 card bill looks hopeless until
+two $500 paydays land before the due date — and looks fine if the bill is due tomorrow. The order of
+the dates is the whole answer.
+
+It is a spending limit across **accounts and cards together**, not a cash balance. A card charged
+today is not settled until its statement falls due, so the question is whether the balance can be
+cleared *then*, out of everything that has arrived by then.
+
+The answer is the **lowest** the running balance ever gets from that settlement date onward — not
+the closing balance. A balance that dips below zero mid-way and recovers is still a missed payment
+on the day it dipped.
+
+**The settlement date itself is always sampled**, whether or not an event falls on it. That was a
+real bug: the running minimum was only evaluated on event dates, so the balance on the day new
+spending comes due was skipped whenever nothing happened to land there. The direction of the error
+depended on what came next — with a payday next, the first sample was taken *after* that salary
+arrived and the figure came out too high; adding any outflow on the due date then sampled *before*
+the salary, and the number collapsed. A $10 card charge appeared to cost $689, a whole payday. It
+held for 3.1% of date combinations, which is why it survived being looked at.
+
+The invariant to test against: **charging X to a card lowers safe-to-spend by exactly X.** Never
+more.
 
 Alert rules (in `AlertRules`, pure: same snapshot in, same alerts out): card/debt/installment due
 within 7 days, insufficient checking for upcoming card payments (with a "move from savings"
@@ -1179,7 +1203,7 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Backfill** | A data migration that reconstructs history for a newly added table, so an improvement does not silently erase past figures. |
 | **Tasa 0** | Interest-free installments. The card is charged the full price up front; installments repay it. |
 | **Contribution opportunity** | A calendar month from now through the deadline month inclusive; the denominator of a goal's required monthly contribution. |
-| **Safe to spend** | Net monthly income minus committed obligations (loan payments + next installments). |
+| **Safe to spend** | The lowest the running balance reaches between the date money spent today falls due and the horizon — across accounts and cards together, capped by cash plus available credit. Not a subtraction: the order of the dates is the answer (§4.11). |
 | **Clamping** | Snapping a day-of-month to a month's real length — the "30th" in February. |
 | **Snapshot** | `FinancialSnapshot`: the user's whole financial picture loaded once, shared by the dashboard and alerts so they cannot disagree. |
 | **Archiving** | A delete that keeps the row. The item leaves every list and total; everything referencing it is untouched (§6.11). |

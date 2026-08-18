@@ -125,24 +125,35 @@ public static class LiquidityProjection
         // before then is money already committed and already accounted for — it
         // cannot be made worse by a purchase that is not billed until later.
         var running = spendableCash;
-        Money? lowest = today >= spendDueOn ? spendableCash : null;
-        var lowestOn = today;
+        Money? lowest = null;
+        var lowestOn = spendDueOn;
 
         foreach (var e in events)
         {
+            // The balance *on* spendDueOn binds whether or not an event happens to
+            // fall there, because that is the day money spent today comes due.
+            // Sampling only on event dates missed it, and the direction of the
+            // error depended on what the next event was: with an inflow next, the
+            // first sample was taken after the salary landed and the figure came
+            // out too high; adding any outflow on that date then sampled before it
+            // and the figure dropped by far more than the outflow itself. A £10
+            // charge appeared to cost a whole payday.
+            if (lowest is null && e.Date >= spendDueOn)
+                lowest = running;
+
             running += e.Amount;
 
             if (e.Date < spendDueOn) continue;
 
-            if (lowest is null || running.Amount < lowest.Value.Amount)
+            if (running.Amount < lowest!.Value.Amount)
             {
                 lowest = running;
                 lowestOn = e.Date;
             }
         }
 
-        // Nothing happens between now and the day new spending falls due, so the
-        // balance then is simply the balance now.
+        // No event falls on or after the due date, so nothing can pull the balance
+        // down after it: what has accumulated by then is the answer.
         var headroom = lowest ?? running;
 
         // Capacity is still bounded by the instruments themselves: a card cannot be
