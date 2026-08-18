@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WealthMap.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using WealthMap.Infrastructure.Persistence;
 namespace WealthMap.Infrastructure.Migrations
 {
     [DbContext(typeof(WealthMapDbContext))]
-    partial class WealthMapDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818020859_EncryptPiiColumns")]
+    partial class EncryptPiiColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1384,7 +1387,6 @@ namespace WealthMap.Infrastructure.Migrations
                         .HasColumnName("email");
 
                     b.Property<string>("EmailLookup")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character(64)")
                         .HasColumnName("email_lookup")
@@ -1411,10 +1413,6 @@ namespace WealthMap.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_users");
-
-                    b.HasIndex("EmailLookup")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_email_lookup");
 
                     b.ToTable("users", (string)null);
                 });

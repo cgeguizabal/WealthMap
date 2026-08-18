@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WealthMap.Infrastructure.Persistence;
@@ -31,7 +32,15 @@ public static class DependencyInjection
 
         services.AddDbContext<WealthMapDbContext>(options =>
            options.UseNpgsql(connectionString)
-           .UseSnakeCaseNamingConvention());
+           .UseSnakeCaseNamingConvention()
+           // The eight configurations that encrypt columns take the encryption
+           // service in their constructor, so the assembly scan cannot build them
+           // and logs this warning for each on every startup. They are applied by
+           // hand immediately afterwards; the warning is noise, not news.
+           // WealthMapDbContext.OnModelCreating guards the count so a ninth one
+           // cannot go missing under the silence.
+           .ConfigureWarnings(w =>
+               w.Ignore(CoreEventId.SkippedEntityTypeConfigurationWarning)));
 
            services.AddScoped<IUnitOfWork, UnitOfWork>();
            services.AddScoped<IAccountRepository, AccountRepository>();
@@ -51,6 +60,10 @@ public static class DependencyInjection
            services.AddScoped<IUserRepository, UserRepository>();
            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
            services.AddScoped<IBankDefaultRepository, BankDefaultRepository>();
+
+           // Resolved only by the --encrypt-pii command line flag, never by a
+           // request. Registering it costs nothing; running it is deliberate.
+           services.AddScoped<PiiEncryptionRunner>();
 
            // QuestPDF's Community licence covers this project; it must be set before any render.
            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;

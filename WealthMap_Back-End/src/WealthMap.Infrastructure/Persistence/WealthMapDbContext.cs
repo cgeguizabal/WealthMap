@@ -72,6 +72,8 @@ public class WealthMapDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProductGoalConfiguration(_encryption));
         modelBuilder.ApplyConfiguration(new NotificationConfiguration(_encryption));
 
+        GuardEveryEncryptedConfigurationIsApplied();
+
         // Ids come from BaseEntity (Guid.CreateVersion7()), never from the database.
         // Without this, EF treats aggregate children discovered via navigations
         // (e.g. a Deduction added to a tracked Job) as existing rows and issues
@@ -82,6 +84,45 @@ public class WealthMapDbContext : DbContext
             if (id is not null)
                 id.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
         }
+    }
+
+    /// <summary>
+    /// How many configurations are applied by hand just above.
+    /// </summary>
+    private const int EncryptedConfigurationCount = 8;
+
+    /// <summary>
+    /// Turns a silently skipped configuration into a startup failure.
+    /// </summary>
+    /// <remarks>
+    /// EF warns when the assembly scan finds a configuration it cannot build, and
+    /// that warning is suppressed in AddInfrastructure because eight of them are
+    /// expected. The danger is the ninth: add a configuration that takes the
+    /// encryption service, forget the ApplyConfiguration line, and the table would
+    /// quietly lose its entire mapping with nothing logged.
+    ///
+    /// Counting is enough to catch it. The list above is the only way a
+    /// constructor-taking configuration reaches the model, so any mismatch means
+    /// one is missing from it.
+    /// </remarks>
+    private static void GuardEveryEncryptedConfigurationIsApplied()
+    {
+        var needingTheService = typeof(WealthMapDbContext).Assembly
+            .GetTypes()
+            .Where(type => !type.IsAbstract
+                && type.GetInterfaces().Any(i => i.IsGenericType
+                    && i.GetGenericTypeDefinition() == typeof(IEntityTypeConfiguration<>))
+                && type.GetConstructor(Type.EmptyTypes) is null)
+            .Select(type => type.Name)
+            .OrderBy(name => name)
+            .ToList();
+
+        if (needingTheService.Count != EncryptedConfigurationCount)
+            throw new InvalidOperationException(
+                $"{needingTheService.Count} entity configurations require the encryption " +
+                $"service but {EncryptedConfigurationCount} are applied in OnModelCreating: " +
+                $"{string.Join(", ", needingTheService)}. Add the missing " +
+                "ApplyConfiguration call and update EncryptedConfigurationCount.");
     }
 
     /// <summary>

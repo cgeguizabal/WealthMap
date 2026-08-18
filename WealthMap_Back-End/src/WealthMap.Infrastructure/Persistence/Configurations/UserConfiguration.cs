@@ -36,6 +36,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // The uniqueness that `email` used to carry. Randomised ciphertext cannot
         // hold it: two encryptions of one address differ, so the database would
         // happily store the same person twice.
+        //
+        // Added by the third migration rather than the first, because the column
+        // is empty until the data runner has filled it.
         builder.HasIndex(UserConfiguration.EmailLookup)
             .IsUnique()
             .HasDatabaseName("ix_users_email_lookup");

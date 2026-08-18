@@ -80,6 +80,27 @@ builder.Services.AddScoped<WealthMap.Api.Auth.RefreshTokenCookie>();
 
 var app = builder.Build();
 
+// The one-time pass that encrypts rows written before encryption existed. A flag
+// rather than a hosted service: it must run once, under supervision, between the
+// schema migration and the migration that adds the unique constraint — not on
+// every boot, where a half-finished run would be nobody's decision.
+//
+//   dotnet run --project src/WealthMap.Api -- --encrypt-pii
+//
+// Safe to run twice; rows already carrying the v1: envelope are skipped.
+if (args.Contains("--encrypt-pii"))
+{
+    using var scope = app.Services.CreateScope();
+
+    var runner = scope.ServiceProvider
+        .GetRequiredService<WealthMap.Infrastructure.Persistence.PiiEncryptionRunner>();
+
+    foreach (var result in await runner.RunAsync())
+        Console.WriteLine($"{result.Table,-20} {result.RowsEncrypted} row(s) encrypted");
+
+    return;
+}
+
 // Configure the HTTP request pipeline.
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
