@@ -722,11 +722,15 @@ on the day it dipped.
 
 **The settlement date itself is always sampled**, whether or not an event falls on it. That was a
 real bug: the running minimum was only evaluated on event dates, so the balance on the day new
-spending comes due was skipped whenever nothing happened to land there. The direction of the error
-depended on what came next — with a payday next, the first sample was taken *after* that salary
-arrived and the figure came out too high; adding any outflow on the due date then sampled *before*
-the salary, and the number collapsed. A $10 card charge appeared to cost $689, a whole payday. It
-held for 3.1% of date combinations, which is why it survived being looked at.
+spending comes due was skipped whenever nothing happened to land there. A $10 card charge could
+appear to cost $689 — a whole payday. It held for 3.1% of date combinations, which is why it
+survived being looked at.
+
+**Money in comes before money out on the same day.** Salary landing on the 15th can pay a card due
+on the 15th, because that is how a person actually does it. The opposite order reserves a whole
+payday against a bill that the payday covers. The assumption is that the deposit arrives before the
+payment is made, which holds when the user pays the bill themselves; a direct debit taken at
+midnight against a salary posted at noon would need the two ordered the other way.
 
 The invariant to test against: **charging X to a card lowers safe-to-spend by exactly X.** Never
 more.

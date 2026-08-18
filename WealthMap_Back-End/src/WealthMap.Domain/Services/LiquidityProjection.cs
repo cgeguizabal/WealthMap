@@ -116,9 +116,16 @@ public static class LiquidityProjection
         var events = outflows
             .Concat(BuildSalary(today, horizon, job))
             .OrderBy(e => e.Date)
-            // Money out before money in on the same day: a payment that clears the
-            // morning a deposit lands must not be assumed covered by it.
-            .ThenBy(e => e.Amount.Amount)
+            // Money in before money out on the same day. Salary landing on the
+            // 15th can pay a card due on the 15th — that is how a person actually
+            // does it, and treating the two as if the payment cleared first would
+            // reserve a whole payday against a bill the salary covers.
+            //
+            // The assumption is that the deposit arrives before the payment is
+            // made, which holds when the user pays the bill themselves. A direct
+            // debit taken at midnight against a salary posted at noon would break
+            // it, and that case would need the two ordered the other way.
+            .ThenByDescending(e => e.Amount.Amount)
             .ToList();
 
         // Only the stretch from spendDueOn onward constrains new spending. A dip
@@ -130,22 +137,21 @@ public static class LiquidityProjection
 
         foreach (var e in events)
         {
-            // The balance *on* spendDueOn binds whether or not an event happens to
-            // fall there, because that is the day money spent today comes due.
-            // Sampling only on event dates missed it, and the direction of the
-            // error depended on what the next event was: with an inflow next, the
-            // first sample was taken after the salary landed and the figure came
-            // out too high; adding any outflow on that date then sampled before it
-            // and the figure dropped by far more than the outflow itself. A £10
-            // charge appeared to cost a whole payday.
-            if (lowest is null && e.Date >= spendDueOn)
+            // The balance on spendDueOn binds even when no event lands on it —
+            // that is the day money spent today comes due. Sampling only on event
+            // dates skipped it entirely, and a £10 card charge could appear to
+            // cost a whole payday.
+            //
+            // Strictly after, not on: an event on spendDueOn is sampled by the
+            // loop below, once that day's salary has been added.
+            if (lowest is null && e.Date > spendDueOn)
                 lowest = running;
 
             running += e.Amount;
 
             if (e.Date < spendDueOn) continue;
 
-            if (running.Amount < lowest!.Value.Amount)
+            if (lowest is null || running.Amount < lowest.Value.Amount)
             {
                 lowest = running;
                 lowestOn = e.Date;
