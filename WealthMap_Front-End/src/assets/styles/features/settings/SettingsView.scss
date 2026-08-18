@@ -12,3 +12,25 @@
   // wrapping buttons under the row they belong to.
   .settings__row-actions { justify-content: flex-start; }
 }
+
+/**
+ * The cards had no spacing at all — BaseCard carries no margin of its own, and
+ * the view stacked six of them straight onto a container with no layout, so
+ * they met edge to edge. Every other multi-card screen here uses a flex column
+ * with a gap; this one had been missed.
+ *
+ * The gap lives on a wrapper rather than on the view root because PageHeader
+ * already sets its own margin-bottom, and a gap there would add to it.
+ */
+.settings__sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+/**
+ * Set apart, because deleting an account is not the same kind of thing as the
+ * settings above it. Space only — a rule here would land on the card's own
+ * border and leave it with three heavy sides and one light one.
+ */
+.settings__danger { margin-top: var(--sp-4); }

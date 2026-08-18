@@ -101,98 +101,102 @@ function replayTours() {
   <motion.div v-bind="fadeUp()">
     <PageHeader :title="t('settings.title')" :subtitle="t('settings.subtitle')" />
 
-    <!-- Last on the page, and visually separated: it is the only action here
-         that cannot be undone. -->
-    <BaseCard
-      class="settings__danger"
-      :title="t('settings.dangerZone')"
-      :subtitle="t('settings.dangerZoneSubtitle')"
-    >
-      <BaseButton variant="danger" @click="deleteAccountOpen = true">
-        <template #icon><BaseIcon name="trash" :size="15" /></template>
-        {{ t('settings.deleteAccount') }}
-      </BaseButton>
-    </BaseCard>
 
-    <BaseCard :title="t('tour.replay')" :subtitle="t('tour.replayHint')">
-      <BaseButton variant="secondary" @click="replayTours">
-        <template #icon><BaseIcon name="info" :size="15" /></template>
-        {{ t('tour.replay') }}
-      </BaseButton>
-    </BaseCard>
 
-    <ProfileCard />
+    <div class="settings__sections">
+      <ProfileCard />
 
-    <BaseCard :title="t('settings.security')" :subtitle="t('settings.securitySubtitle')">
-      <BaseButton variant="secondary" @click="changePasswordOpen = true">
-        <template #icon><BaseIcon name="lock" :size="15" /></template>
-        {{ t('settings.changePassword') }}
-      </BaseButton>
-    </BaseCard>
-
-    <ArchivedCard />
-
-    <BaseCard data-tour="settings-defaults" :title="t('bankDefaults.title')" :subtitle="t('bankDefaults.explain')" :padded="false">
-      <template #actions>
-        <BaseButton variant="primary" size="sm" @click="openCreate">
-          <template #icon><BaseIcon name="plus" :size="15" /></template>
-          {{ t('bankDefaults.add') }}
+      <BaseCard :title="t('settings.security')" :subtitle="t('settings.securitySubtitle')">
+        <BaseButton variant="secondary" @click="changePasswordOpen = true">
+          <template #icon><BaseIcon name="lock" :size="15" /></template>
+          {{ t('settings.changePassword') }}
         </BaseButton>
-      </template>
+      </BaseCard>
 
-      <!-- Informational, not an error: having no defaults is the normal starting
-           state and nothing is broken without them. -->
-      <BaseEmptyState
-        v-if="!loading && rows.length === 0"
-        icon="info"
-        :title="t('bankDefaults.emptyTitle')"
-        :message="t('bankDefaults.emptyMessage')"
+      <BaseCard data-tour="settings-defaults" :title="t('bankDefaults.title')" :subtitle="t('bankDefaults.explain')" :padded="false">
+        <template #actions>
+          <BaseButton variant="primary" size="sm" @click="openCreate">
+            <template #icon><BaseIcon name="plus" :size="15" /></template>
+            {{ t('bankDefaults.add') }}
+          </BaseButton>
+        </template>
+
+        <!-- Informational, not an error: having no defaults is the normal starting
+             state and nothing is broken without them. -->
+        <BaseEmptyState
+          v-if="!loading && rows.length === 0"
+          icon="info"
+          :title="t('bankDefaults.emptyTitle')"
+          :message="t('bankDefaults.emptyMessage')"
+        >
+          <template #action>
+            <BaseButton variant="secondary" @click="openCreate">{{ t('bankDefaults.add') }}</BaseButton>
+          </template>
+        </BaseEmptyState>
+
+        <BaseTable
+          v-else
+          :columns="COLUMNS"
+          :rows="rows"
+          :loading="loading"
+          :empty-title="t('bankDefaults.emptyTitle')"
+          :empty-message="t('bankDefaults.emptyMessage')"
+        >
+          <template #cell-direction="{ value }">
+            <BaseBadge size="sm">
+              {{ value === 'Outbound' ? t('bankDefaults.outbound') : t('bankDefaults.inbound') }}
+            </BaseBadge>
+          </template>
+
+          <template #cell-actions="{ row }">
+            <div class="settings__row-actions">
+              <BaseButton
+                size="sm"
+                variant="ghost"
+                :title="t('common.edit')"
+                :aria-label="t('common.edit')"
+                @click="openEdit(row)"
+              >
+                <template #icon><BaseIcon name="pencil" :size="14" /></template>
+              </BaseButton>
+
+              <BaseButton
+                class="settings__delete"
+                size="sm"
+                variant="ghost"
+                :title="t('common.delete')"
+                :aria-label="t('common.delete')"
+                @click="remove(row)"
+              >
+                <template #icon><BaseIcon name="trash" :size="14" /></template>
+              </BaseButton>
+            </div>
+          </template>
+        </BaseTable>
+      </BaseCard>
+
+      <ArchivedCard />
+
+      <BaseCard :title="t('tour.replay')" :subtitle="t('tour.replayHint')">
+        <BaseButton variant="secondary" @click="replayTours">
+          <template #icon><BaseIcon name="info" :size="15" /></template>
+          {{ t('tour.replay') }}
+        </BaseButton>
+      </BaseCard>
+
+      <!-- Last, and set apart. It is the only action on this page that cannot
+           be undone, and it spent a while sitting first by accident. -->
+      <BaseCard
+        class="settings__danger"
+        :title="t('settings.dangerZone')"
+        :subtitle="t('settings.dangerZoneSubtitle')"
       >
-        <template #action>
-          <BaseButton variant="secondary" @click="openCreate">{{ t('bankDefaults.add') }}</BaseButton>
-        </template>
-      </BaseEmptyState>
-
-      <BaseTable
-        v-else
-        :columns="COLUMNS"
-        :rows="rows"
-        :loading="loading"
-        :empty-title="t('bankDefaults.emptyTitle')"
-        :empty-message="t('bankDefaults.emptyMessage')"
-      >
-        <template #cell-direction="{ value }">
-          <BaseBadge size="sm">
-            {{ value === 'Outbound' ? t('bankDefaults.outbound') : t('bankDefaults.inbound') }}
-          </BaseBadge>
-        </template>
-
-        <template #cell-actions="{ row }">
-          <div class="settings__row-actions">
-            <BaseButton
-              size="sm"
-              variant="ghost"
-              :title="t('common.edit')"
-              :aria-label="t('common.edit')"
-              @click="openEdit(row)"
-            >
-              <template #icon><BaseIcon name="pencil" :size="14" /></template>
-            </BaseButton>
-
-            <BaseButton
-              class="settings__delete"
-              size="sm"
-              variant="ghost"
-              :title="t('common.delete')"
-              :aria-label="t('common.delete')"
-              @click="remove(row)"
-            >
-              <template #icon><BaseIcon name="trash" :size="14" /></template>
-            </BaseButton>
-          </div>
-        </template>
-      </BaseTable>
-    </BaseCard>
+        <BaseButton variant="danger" @click="deleteAccountOpen = true">
+          <template #icon><BaseIcon name="trash" :size="15" /></template>
+          {{ t('settings.deleteAccount') }}
+        </BaseButton>
+      </BaseCard>
+    </div>
 
     <ChangePasswordModal v-model="changePasswordOpen" />
 
