@@ -1143,6 +1143,112 @@ footer, hidden when the rail is collapsed because an icon for "Privacy Policy" w
 
 ---
 
+### 8.17 Theming — light, dark, system
+
+Three states, not two. "System" is the default and the only one that sets no attribute on the root
+element; the stylesheet reads its absence as "follow `prefers-color-scheme`", so the OS stays in
+charge and a laptop that switches at sunset takes the app with it. A two-state toggle cannot express
+that — it would freeze the app in whichever mode happened to be active on first load.
+
+Everything lives in `_tokens.scss` as two mixins:
+
+```scss
+@mixin light-palette { --canvas: #F3F2EE; … }
+@mixin dark-palette  { --canvas: #171614; … }
+
+:root { @include light-palette; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { @include dark-palette; }
+}
+
+:root[data-theme='dark']  { @include dark-palette; }
+:root[data-theme='light'] { @include light-palette; }
+```
+
+The `:not([data-theme='light'])` is what lets an explicit light choice win on a machine set to dark.
+Without it, choosing light would do nothing there.
+
+**The dark palette is written, not inverted.** The light theme is warm paper with hard offset
+shadows, and flipping lightness mechanically produces cold grey and loses the character entirely.
+Colours the light theme uses at full strength are lightened rather than reused: `--accent` at
+`#212F46` is nearly black and would vanish against a dark canvas. The shadow colour goes *darker*
+than the canvas, because a hard offset only reads as a shadow if it is the darker thing.
+
+**Four tokens exist only because of dark mode.** `--ink` was used as both a text colour and a
+background, so `background: var(--ink); color: #fff` would have become light-on-white the moment the
+theme flipped. `--on-ink`, `--on-accent`, `--on-negative` and `--scrim` are the pairs that fix it.
+
+`main.js` applies the stored theme **before Vue mounts**. The store applies the same value when it is
+created, but a Pinia store is only created when a component first uses it — which is after mount, and
+one frame of light theme is a white flash on every load.
+
+Nothing outside `_tokens.scss` contains a colour, and that is worth keeping: a hardcoded `#fff` looks
+correct in whichever mode it was written in and breaks silently in the other.
+
+---
+
+### 8.18 The guided tour
+
+A short walkthrough plays the first time each screen is opened, then never again unless replayed
+from Settings. Ten modules, forty-four steps, both languages.
+
+`config/tours.js` defines them, keyed by route name:
+
+```js
+job: [
+  { key: 'intro' },
+  { key: 'deductions', target: '[data-tour="job-deductions"]' },
+  …
+]
+```
+
+**Targets are `data-tour` attributes, not CSS classes.** Renaming a class to fix a layout should not
+silently break a tour, and an attribute that exists for exactly one reason makes the cost of deleting
+it obvious.
+
+**A step whose target is not on screen is dropped when the tour starts.** That is what lets one
+definition serve both an empty module and a full one — the "here is your list" step waits until there
+is a list, rather than spotlighting empty space for the new user it was written for.
+
+The dimming is one element: a box positioned over the target with a `9999px` spread shadow, so
+everything outside it darkens and the target stays untouched. Four masking panels around the target
+would need re-measuring on every scroll rather than one translation.
+
+**Dismissing counts as seen.** Someone who skipped a tour has said they do not want it, and replaying
+it next visit reads as the app not listening. Settings has an explicit replay for when they change
+their mind.
+
+The steps teach procedures rather than labelling furniture — how to add a deduction and when to pick
+percentage over fixed, what each payment method does to a balance, how a payday clamps in a short
+month. A check asserts every step body is substantive rather than a stub.
+
+---
+
+### 8.19 Freelance work — on `/job`
+
+A section on the income screen listing each piece of work with what was agreed, what has arrived, and
+where it stands. Three actions, and only one of them moves money:
+
+| Action | Effect |
+|---|---|
+| Add | Records the agreement. No account is chosen — where the money lands is decided when it arrives |
+| Mark as delivered | A date. Nothing else |
+| Got paid | Deposits into an account, which is where safe-to-spend starts rising |
+
+`FreelancePaymentModal` only offers accounts **in the work's currency**. The API refuses a mismatch,
+and a list that showed ineligible accounts would produce an error nobody could have predicted from
+it. The amount defaults to what was agreed and stays editable, since clients pay short or add a bonus.
+
+The card footer totals what clients still owe, and that figure feeds nothing. Unpaid work is a hope
+with a name on it; once paid it becomes ordinary account balance and counts like any other money
+(§4.14 in the project guide).
+
+**Delete and cancel differ**, and the confirmation says which is happening: cancel keeps the row,
+delete removes it and takes the deposit back out of the account.
+
+---
+
 ## 9. Language
 
 Two languages, English and Spanish, chosen from a selector in the user menu.
@@ -1297,6 +1403,9 @@ Stated plainly, because knowing the edges is part of knowing the system.
 
 | Term | Meaning |
 |---|---|
+| **Design token** | A CSS custom property in `_tokens.scss`. Every colour in the app is one, and nothing outside that file contains a hex value — a hardcoded colour ignores the theme and fails silently in whichever mode it was not written in (§8.17). |
+| **Paired token** | A colour and the colour that sits on it — `--accent` and `--on-accent`. Needed because a token used as both text and background inverts into itself in dark mode (§8.17). |
+| **Tour anchor** | A `data-tour` attribute marking an element a tour step points at. Deliberately not a CSS class, so restyling cannot break a tour (§8.18). |
 | **Composition API** | Organising a component by concern using functions, rather than by option kind. |
 | **`<script setup>`** | Compiler sugar making every top-level binding available to the template. |
 | **Ref** | A reactive box around a value. `.value` exists so assignment is interceptable (§2.2). |

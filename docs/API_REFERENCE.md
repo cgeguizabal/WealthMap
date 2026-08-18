@@ -799,6 +799,85 @@ Contributing past the target caps `progressPercentage` at 100 and sets `status: 
 
 ---
 
+## Freelance work
+
+Work with no schedule. Every state change is its own endpoint rather than a status field on an
+update, because delivering and being paid happen on different days and only one of them moves money.
+
+### `POST /api/v1/freelance-jobs` → **201**
+
+```json
+{ "title": "Landing page redesign", "agreedAmount": 1500, "currency": "USD",
+  "client": "Acme Ltd", "dueOn": "2026-09-01", "notes": "Two rounds of revisions" }
+```
+
+`client`, `dueOn` and `notes` are optional. No deposit account is given here — where the money lands
+is decided when it arrives, which may be months later.
+
+`dueOn` is a reminder for you. Nothing happens on that date.
+
+### `GET /api/v1/freelance-jobs` · `GET /api/v1/freelance-jobs/{id}`
+
+```json
+{ "id": "...", "title": "Landing page redesign", "client": "Acme Ltd",
+  "agreedAmount": 1500, "amountPaid": 1400, "outstanding": 0, "currency": "USD",
+  "status": "Paid", "dueOn": "2026-09-01", "deliveredOn": "2026-08-28",
+  "paidOn": "2026-09-05", "cancelledOn": null, "depositAccountId": "...", "notes": null }
+```
+
+`status` is `InProgress`, `Delivered`, `Paid` or `Cancelled`, computed from the four dates rather
+than stored. `outstanding` is the agreed amount until the work is paid or cancelled, then zero.
+
+The list returns unfinished work first — `Delivered` (waiting on money) before `InProgress`, then
+`Paid`, then `Cancelled`.
+
+### `PUT /api/v1/freelance-jobs/{id}`
+
+Same body as create. **400** once the work is paid or cancelled; delete and re-record instead. The
+currency cannot change.
+
+### `POST /api/v1/freelance-jobs/{id}/delivered`
+
+```json
+{ "deliveredOn": "2026-08-28" }
+```
+
+Records that the work was finished. **Moves no money.** **400** if already paid or cancelled.
+
+### `POST /api/v1/freelance-jobs/{id}/paid`
+
+```json
+{ "amountPaid": 1400, "depositAccountId": "...", "paidOn": "2026-09-05" }
+```
+
+The only endpoint here that touches a balance. In one transaction it records the payment, deposits
+into the account, and writes a `FreelanceIncome` movement (type `9`) naming the job.
+
+`amountPaid` is deliberately separate from the agreed amount — clients pay short, late, or with a
+bonus. Delivery is implied if it was not recorded first.
+
+**400** if already paid, if cancelled, or if the account's currency differs from the work's; the
+message names both currencies.
+
+From this point the money is ordinary account balance and counts toward `safeToSpend`. Before it,
+outstanding work counts toward nothing.
+
+### `POST /api/v1/freelance-jobs/{id}/cancel`
+
+```json
+{ "cancelledOn": "2026-09-10" }
+```
+
+The work was called off. Keeps the row. **400** if already paid.
+
+### `DELETE /api/v1/freelance-jobs/{id}` → **204**
+
+Removes the record. If it had been paid, the deposit is withdrawn and every later movement on that
+account is rebased, exactly as purchase deletion works. **400** if the account no longer holds
+enough to reverse the deposit.
+
+---
+
 ## Dashboard & alerts
 
 ### `GET /api/v1/dashboard`
@@ -972,6 +1051,9 @@ app**, which need not match the browser's.
 | POST | `/api/v1/jobs/{jobId}/deductions` |
 | PUT DELETE | `/api/v1/jobs/{jobId}/deductions/{deductionId}` |
 | GET POST | `/api/v1/additional-incomes` |
+| GET POST | `/api/v1/freelance-jobs` |
+| GET PUT DELETE | `/api/v1/freelance-jobs/{id}` |
+| POST | `/api/v1/freelance-jobs/{id}/delivered` · `/paid` · `/cancel` |
 | GET PUT DELETE | `/api/v1/additional-incomes/{id}` |
 | GET POST | `/api/v1/stores` |
 | GET PUT | `/api/v1/stores/{id}` |

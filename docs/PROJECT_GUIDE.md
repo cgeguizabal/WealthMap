@@ -805,6 +805,65 @@ than an empty list — an empty list would confirm the id exists.
 the plan's card, so the report's per-card "Paid" figure includes payments whose target is a plan on
 that card.
 
+### 4.14 Freelance work
+
+Neither a `Job` nor an `AdditionalIncome`, and the difference is the point. A job pays on fixed days
+of the month, and salary posting settles those automatically. An additional income repeats on a
+frequency. Freelance work has neither property: it is agreed, delivered and paid whenever those
+things happen, and the only person who knows when is the one who did the work.
+
+So **nothing here posts automatically**. Every state change is something a person recorded.
+
+`FreelanceJob` stores four dates — `due_on`, `delivered_on`, `paid_on`, `cancelled_on` — and derives
+status from them:
+
+```csharp
+public FreelanceJobStatus Status =>
+    CancelledOn is not null ? FreelanceJobStatus.Cancelled
+    : PaidOn is not null ? FreelanceJobStatus.Paid
+    : DeliveredOn is not null ? FreelanceJobStatus.Delivered
+    : FreelanceJobStatus.InProgress;
+```
+
+The same rule as everywhere else in the domain (§3.9): the dates are the facts, the status is a
+reading of them, and storing both would let them disagree.
+
+**Agreed and paid are separate amounts.** Clients pay late, short, or with a bonus. A model that
+assumed the two matched would force the user to falsify one of them, so `agreed_amount` and
+`amount_paid` are different columns and the UI shows whichever is relevant to the row's state.
+
+**Delivering moves no money; being paid moves all of it.** `MarkDelivered` writes a date and stops.
+`MarkPaid` is the only place freelance work touches a balance, and does three things in one
+transaction: records the payment on the job, deposits into the account, and writes a
+`FreelanceIncome` movement naming the job. Any one alone would be a lie — a paid job with no
+deposit, or a balance that rose for no stated reason.
+
+Paying implies delivery rather than requiring it. Plenty of freelance work is paid up front, and
+refusing to record that would push the user into inventing a delivery date.
+
+#### Unpaid work is not income
+
+**Outstanding work never raises `SafeToSpend`, and this is deliberate.** Salary is money an employer
+is contractually going to pay on a known date, which is why the liquidity projection counts it
+(§4.11). An unpaid invoice is a hope with a name on it. Counting it would be the one place WealthMap
+told someone to spend money that may never arrive.
+
+The mechanism needs no special case. Unpaid work is simply absent from every calculation; once paid,
+the money is an ordinary account balance and raises what is safe to spend exactly as a salary
+deposit does. `LiquidityProjection` never learns freelance exists — it sees a larger balance.
+
+#### Deleting versus cancelling
+
+Two different things, and the UI says which is happening.
+
+**Cancel** means the work was called off. The row stays, because a client who wasted three weeks of
+your time is worth still seeing next year.
+
+**Delete** means the record was wrong. It removes the row and reverses everything it did — the
+deposit comes back out and every later movement is rebased, the same treatment purchase deletion
+gets (§4.7), and for the same reason: this data is typed by hand, so a mistaken entry is a normal
+event rather than an exceptional one.
+
 ---
 
 ## 5. The database schema
@@ -823,6 +882,7 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `job_payment_days` | 1–3 per job | CHECK `day_of_month BETWEEN 1 AND 31` |
 | `deductions` | payslip deductions | `type` (Fixed/Percentage), CHECK `value > 0` |
 | `additional_incomes` | recurring extras | `frequency` |
+| `freelance_jobs` | irregular work, recorded by hand | `title`/`client`/`notes` **encrypted**; `agreed_amount` and `amount_paid` kept apart; four nullable dates that status is derived from; FK deposit account `RESTRICT`; CHECKs `paid_on`/`deposit_account_id`/`amount_paid` all set or all empty, and never both paid and cancelled |
 | `stores` | shared catalog | `created_by_user_id` **nullable**, `ON DELETE SET NULL` |
 | `purchases` | what you bought | `notes` encrypted; `payment_method`, nullable `account_id`/`credit_card_id`/`store_id`; indexes `(user_id, occurred_at)`, `(user_id, category)` |
 | `installment_purchases` | tasa 0 plans | `total_price`, `months_count`; CHECK 1–120 |
@@ -835,7 +895,7 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `refresh_tokens` | one row per issued refresh token | `token_hash` (SHA-256 hex, **unique**), `expires_at`, `revoked_at`, `replaced_by_token_hash`; FK `users` cascade |
 | `bank_defaults` | fallback account per bank, per direction | `bank_name`, `direction`, `default_account_id`; **unique `(user_id, bank_name, direction)`**; FK `users` cascade, FK `accounts` **`RESTRICT`** (§6.14) |
 
-Twenty migrations, `InitialCreate` through `RequireEmailLookup`.
+Twenty-two migrations, `InitialCreate` through `AddFreelanceJobs`.
 
 `AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
 new table would have silently zeroed the report's historical figures — a regression introduced by an
@@ -1134,4 +1194,6 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Envelope prefix** | The `v1:` in front of every ciphertext. Names the key generation, so a future `v2` can decrypt and rewrite old values — and makes decryption idempotent, since a value without it is plaintext that predates encryption (§3.10). |
 | **Pseudonymisation** | Storing data so it is unreadable without a key the *operator* holds. Distinct from zero-knowledge encryption, where the operator could not read it either. WealthMap does the former; the privacy policy says so plainly (§3.10). |
 | **Policy version** | Which text of the Terms and Privacy Policy a user accepted, stored with the timestamp. "They agreed" is not a useful record without it. |
+| **Freelance work** | Work agreed, delivered and paid on no schedule, recorded entirely by hand. Distinct from a job (fixed paydays) and an additional income (a frequency). Unpaid work counts toward nothing (§4.14). |
+| **Outstanding** | What clients still owe for freelance work. Shown for awareness and deliberately absent from every total that feeds safe-to-spend — an unpaid invoice is not money (§4.14). |
 | **Bank default** | The account to assume when a bank's transfer notification names none. One per bank per direction; the foreign key is `RESTRICT` so it cannot vanish with the account it points at (§6.14). |
