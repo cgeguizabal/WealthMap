@@ -67,6 +67,17 @@ const consentParts = computed(() =>
     .filter((part) => part !== '')
 )
 
+/**
+ * The same sentence with the placeholders resolved, as the checkbox's
+ * accessible name. The visible text cannot serve that purpose here: wrapping it
+ * in a label would swallow clicks meant for the two links.
+ */
+const consentLabel = computed(() =>
+  t('auth.acceptTerms')
+    .replace('{terms}', t('legal.terms'))
+    .replace('{privacy}', t('legal.privacy'))
+)
+
 async function onSubmit() {
   fieldErrors.value = {}
   formError.value = null
@@ -154,8 +165,20 @@ async function onSubmit() {
       />
 
       <div class="consent">
-        <label class="consent__row">
-          <input v-model="acceptedTerms" type="checkbox" class="consent__box" />
+        <!--
+          Not a <label> wrapping the sentence, which is the obvious markup and is
+          wrong here: a label forwards clicks to its control, so clicking "Terms
+          of Service" toggled the checkbox instead of opening the document. The
+          checkbox gets its accessible name from aria-label instead, and the
+          links are left to behave like links.
+        -->
+        <div class="consent__row">
+          <input
+            v-model="acceptedTerms"
+            type="checkbox"
+            class="consent__box"
+            :aria-label="consentLabel"
+          />
 
           <span class="consent__text">
             <template v-for="(part, index) in consentParts" :key="index">
@@ -172,7 +195,7 @@ async function onSubmit() {
               <template v-else>{{ part }}</template>
             </template>
           </span>
-        </label>
+        </div>
 
         <p v-if="fieldErrors.acceptedTerms" class="consent__error" role="alert">
           {{ fieldErrors.acceptedTerms }}
