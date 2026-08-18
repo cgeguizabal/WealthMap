@@ -121,6 +121,7 @@ onMounted(loadAccounts)
     <PageHeader :title="t('accounts.title')" :subtitle="t('accounts.subtitle')">
       <template #actions>
         <BaseButton
+          data-tour="accounts-transfer"
           variant="secondary"
           :disabled="(accounts?.length ?? 0) < 2"
           :title="(accounts?.length ?? 0) < 2 ? t('accounts.needTwoToTransfer') : undefined"

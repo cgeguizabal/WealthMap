@@ -141,7 +141,7 @@ onMounted(load)
       </div>
     </div>
 
-    <BaseTabs v-model="tab" :tabs="tabs" class="tabs" />
+    <BaseTabs v-model="tab" :tabs="tabs" class="tabs" data-tour="goals-tabs" />
 
     <CardGridSkeleton v-if="loading && !visible.length" />
 

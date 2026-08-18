@@ -121,6 +121,7 @@ const variant = computed(() => {
         variant="secondary"
         :disabled="card.usedCredit <= 0"
         :title="card.usedCredit <= 0 ? t('cards.nothingOwed') : undefined"
+        data-tour="cards-pay"
         @click="$emit('pay', card)"
       >
         <template #icon><BaseIcon name="receipt" :size="14" /></template>

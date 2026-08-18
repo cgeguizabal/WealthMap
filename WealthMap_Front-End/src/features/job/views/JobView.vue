@@ -173,7 +173,7 @@ onMounted(load)
       :subtitle="t('job.subtitle')"
     >
       <template #actions>
-        <BaseButton variant="secondary" @click="openIncome()">
+        <BaseButton data-tour="job-income" variant="secondary" @click="openIncome()">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ t('job.addIncome') }}
         </BaseButton>
@@ -247,14 +247,14 @@ onMounted(load)
             </div>
           </div>
 
-          <div class="job__schedule">
+          <div class="job__schedule" data-tour="job-days">
             <span class="job__label">{{ t('job.paidOnDay') }}</span>
             <div class="job__days">
               <BaseBadge v-for="day in job.paymentDays" :key="day" size="sm">{{ day }}</BaseBadge>
             </div>
 
             <span class="job__next">
-              Next:
+              {{ t('job.nextPayday') }}
               <template v-for="(date, index) in job.nextPaymentDates" :key="date">
                 {{ date }}<span v-if="index < job.nextPaymentDates.length - 1"> · </span>
               </template>
@@ -262,11 +262,11 @@ onMounted(load)
           </div>
         </div>
 
-        <BaseCard :title="t('job.deductions')" :subtitle="t('job.deductionsSubtitle')" :padded="false">
+        <BaseCard data-tour="job-deductions" :title="t('job.deductions')" :subtitle="t('job.deductionsSubtitle')" :padded="false">
           <template #actions>
             <BaseButton size="sm" variant="secondary" @click="openDeduction()">
               <template #icon><BaseIcon name="plus" :size="14" /></template>
-              Add
+              {{ t('common.add') }}
             </BaseButton>
           </template>
 
@@ -329,7 +329,7 @@ onMounted(load)
         <template #actions>
           <BaseButton size="sm" variant="secondary" @click="openIncome()">
             <template #icon><BaseIcon name="plus" :size="14" /></template>
-            Add
+            {{ t('common.add') }}
           </BaseButton>
         </template>
 
@@ -358,7 +358,7 @@ onMounted(load)
             <div class="income__actions">
               <BaseButton size="sm" variant="ghost" :title="t('common.edit')" @click="openIncome(income)">
                 <template #icon><BaseIcon name="pencil" :size="14" /></template>
-                <span class="sr-only">Edit</span>
+                <span class="sr-only">{{ t('common.edit') }}</span>
               </BaseButton>
               <BaseButton size="sm" variant="ghost" :title="t('common.remove')" @click="removeIncome(income)">
                 <template #icon><BaseIcon name="trash" :size="14" /></template>

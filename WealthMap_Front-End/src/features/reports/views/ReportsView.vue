@@ -106,7 +106,13 @@ onMounted(load)
 
         <BaseButton variant="secondary" :loading="loading" @click="load">{{ t('reports.view') }}</BaseButton>
 
-        <BaseButton variant="primary" :loading="downloading" :disabled="!report" @click="downloadPdf">
+        <BaseButton
+          data-tour="reports-download"
+          variant="primary"
+          :loading="downloading"
+          :disabled="!report"
+          @click="downloadPdf"
+        >
           <template #icon><BaseIcon name="download" :size="15" /></template>
           {{ t('reports.pdf') }}
         </BaseButton>

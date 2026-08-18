@@ -24,49 +24,66 @@ export const TOURS = {
   accounts: [
     { key: 'intro' },
     { key: 'add', target: '[data-tour="accounts-add"]' },
-    { key: 'list', target: '[data-tour="accounts-list"]' }
+    { key: 'list', target: '[data-tour="accounts-list"]' },
+    { key: 'moving', target: '[data-tour="accounts-list"]' },
+    { key: 'transfer', target: '[data-tour="accounts-transfer"]' }
   ],
 
   'credit-cards': [
     { key: 'intro' },
     { key: 'add', target: '[data-tour="cards-add"]' },
-    { key: 'cutoff', target: '[data-tour="cards-list"]' }
+    { key: 'cutoff', target: '[data-tour="cards-list"]' },
+    { key: 'pay', target: '[data-tour="cards-pay"]' },
+    { key: 'detail', target: '[data-tour="cards-list"]' }
   ],
 
   purchases: [
     { key: 'intro' },
     { key: 'add', target: '[data-tour="purchases-add"]' },
-    { key: 'list', target: '[data-tour="purchases-list"]' }
+    { key: 'method', target: '[data-tour="purchases-add"]' },
+    { key: 'list', target: '[data-tour="purchases-list"]' },
+    { key: 'fixing', target: '[data-tour="purchases-list"]' }
   ],
 
   installments: [
     { key: 'intro' },
+    { key: 'create' },
     { key: 'list', target: '[data-tour="installments-list"]' }
   ],
 
   debts: [
     { key: 'intro' },
-    { key: 'add', target: '[data-tour="debts-add"]' }
+    { key: 'add', target: '[data-tour="debts-add"]' },
+    { key: 'paying' }
   ],
 
   goals: [
     { key: 'intro' },
-    { key: 'add', target: '[data-tour="goals-add"]' }
+    { key: 'kinds', target: '[data-tour="goals-tabs"]' },
+    { key: 'add', target: '[data-tour="goals-add"]' },
+    { key: 'contribute' }
   ],
 
   job: [
     { key: 'intro' },
-    { key: 'salary', target: '[data-tour="job-salary"]' }
+    { key: 'salary', target: '[data-tour="job-salary"]' },
+    { key: 'deductions', target: '[data-tour="job-deductions"]' },
+    { key: 'deductionKinds', target: '[data-tour="job-deductions"]' },
+    { key: 'paydays', target: '[data-tour="job-days"]' },
+    { key: 'extraIncome', target: '[data-tour="job-income"]' }
   ],
 
   reports: [
     { key: 'intro' },
-    { key: 'month', target: '[data-tour="reports-month"]' }
+    { key: 'month', target: '[data-tour="reports-month"]' },
+    { key: 'download', target: '[data-tour="reports-download"]' }
   ],
 
   settings: [
     { key: 'intro' },
-    { key: 'bankDefaults', target: '[data-tour="settings-defaults"]' }
+    { key: 'bankDefaults', target: '[data-tour="settings-defaults"]' },
+    { key: 'appearance' },
+    { key: 'replay' }
   ]
 }
 

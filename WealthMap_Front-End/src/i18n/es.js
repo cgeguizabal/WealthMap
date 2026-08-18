@@ -34,6 +34,14 @@ export default {
     },
 
     accounts: {
+      moving: {
+        title: 'Depositar y retirar',
+        body: 'Cada tarjeta de cuenta tiene Depositar y Retirar. Usa Depositar cuando entre dinero que no sea tu salario, y Retirar cuando salga sin ser una compra: una comisión, un cajero, una transferencia fuera de la aplicación.'
+      },
+      transfer: {
+        title: 'Mover dinero entre cuentas',
+        body: 'Transferir saca un monto de una cuenta y lo pone en otra en un solo paso, dejando un movimiento en ambas. Necesita dos cuentas en la misma moneda, por eso está deshabilitado hasta que las tengas.'
+      },
       intro: {
         title: 'Cuentas',
         body: 'Cada lugar donde realmente está tu dinero. Estos saldos son los que usa el resto de la aplicación.'
@@ -49,6 +57,14 @@ export default {
     },
 
     'credit-cards': {
+      pay: {
+        title: 'Pagar una tarjeta',
+        body: 'Pagar abre el formulario de pago. Elige el monto — Pagar todo llena el estado de cuenta que cierra — e indica de dónde salió el dinero: de una cuenta, lo que baja ese saldo, o de fuera, que no. Pagar libera el crédito otra vez.'
+      },
+      detail: {
+        title: 'Abre una tarjeta para ver el detalle',
+        body: 'Haz clic en una tarjeta para ver sus compras, sus planes de cuotas y cuánto está sumando cada plan al corte actual. Esa última cifra es la que explica una factura que no esperabas.'
+      },
       intro: {
         title: 'Tarjetas de crédito',
         body: 'Una tarjeta no es solo un saldo. Lo que importa es cuánto cae en este estado de cuenta y cuándo hay que pagarlo.'
@@ -64,6 +80,14 @@ export default {
     },
 
     purchases: {
+      method: {
+        title: 'Cómo pagaste sí importa',
+        body: 'Cuenta baja el saldo de esa cuenta. Tarjeta de crédito aumenta lo que la tarjeta debe y reduce su crédito disponible. Efectivo no afecta ninguno: se registra para que tus totales de gasto estén completos, no para mover un saldo.'
+      },
+      fixing: {
+        title: 'Editar y eliminar',
+        body: 'Usa las acciones de cada fila para editar o eliminar. Al eliminar se revierte todo lo que la compra hizo — el saldo, el movimiento y el crédito — así que un registro equivocado no deja rastro. Editar aplica la diferencia de la misma forma.'
+      },
       intro: {
         title: 'Compras',
         body: 'Registra lo que gastas. Cada compra mueve la cuenta o la tarjeta con la que pagaste, así los saldos se mantienen correctos sin editarlos a mano.'
@@ -79,6 +103,10 @@ export default {
     },
 
     installments: {
+      create: {
+        title: 'Crear un plan',
+        body: 'Los planes empiezan en Compras: registra la compra con una tarjeta de crédito y elige dividirla. Indica el precio total y el número de meses, y WealthMap genera el calendario y carga la tarjeta con el monto completo desde el inicio.'
+      },
       intro: {
         title: 'Planes de cuotas',
         body: 'Compras sin intereses divididas en meses. La tarjeta se carga con el precio completo desde el inicio, y el plan lo va pagando.'
@@ -90,6 +118,10 @@ export default {
     },
 
     debts: {
+      paying: {
+        title: 'Registrar un pago',
+        body: 'Abre una deuda y registra un pago. Indica si el dinero salió de una de tus cuentas o vino de fuera; solo lo primero mueve un saldo. El monto restante baja, y la cuota del mes siguiente se ajusta.'
+      },
       intro: {
         title: 'Deudas',
         body: 'Préstamos y todo lo demás que estás pagando poco a poco, aparte de las tarjetas de crédito.'
@@ -101,6 +133,14 @@ export default {
     },
 
     goals: {
+      kinds: {
+        title: 'Dos tipos de meta',
+        body: 'Las metas de ahorro son una cantidad para una fecha: un fondo de emergencia, un viaje. Las metas de producto son algo concreto para lo que ahorras, con su precio como objetivo. Las pestañas cambian entre ellas.'
+      },
+      contribute: {
+        title: 'Aportar a una meta',
+        body: 'Abre una meta y aporta a ella. Puedes vincular una meta de ahorro a una cuenta, lo que permite a WealthMap tratar ese dinero como comprometido en lugar de disponible.'
+      },
       intro: {
         title: 'Metas',
         body: 'Dos tipos: ahorrar una cantidad para una fecha, y ahorrar para algo concreto.'
@@ -112,6 +152,22 @@ export default {
     },
 
     job: {
+      deductions: {
+        title: 'Agregar una deducción',
+        body: 'Pulsa Agregar en esta tarjeta por cada concepto que tu boleta descuenta: impuestos, seguro social, una pensión, el pago de un préstamo. Ponle nombre y valor, y WealthMap recalcula tu neto al instante.'
+      },
+      deductionKinds: {
+        title: 'Fija o porcentaje',
+        body: 'Una deducción fija es el mismo monto cada mes. Un porcentaje se calcula sobre tu bruto, así que un aumento lo actualiza solo. Elige porcentaje siempre que tu boleta muestre una tasa: poner la cifra de hoy como fija la vuelve incorrecta en cuanto cambie tu salario.'
+      },
+      paydays: {
+        title: 'Cuándo te pagan',
+        body: 'Agrega hasta tres días del mes. Dos entradas significan quincenal, y cada día de pago deposita su parte automáticamente. Un día posterior al final de un mes corto se ajusta al último, así que el 31 se paga el 28 de febrero.'
+      },
+      extraIncome: {
+        title: 'Ingresos además del salario',
+        body: 'Agrega alquileres que recibas, trabajo independiente o cualquier otra cosa que llegue con regularidad. Los ingresos recurrentes cuentan para lo que puedes gastar con seguridad; el dinero puntual conviene registrarlo como un depósito en la cuenta.'
+      },
       intro: {
         title: 'Ingresos',
         body: 'Tu salario y todo lo demás que llega con regularidad. Esto es lo que hace que el dinero futuro sea real para las proyecciones.'
@@ -123,6 +179,10 @@ export default {
     },
 
     reports: {
+      download: {
+        title: 'Descargar en PDF',
+        body: 'Primero mira un mes, luego descárgalo. El PDF se escribe en el idioma que la aplicación tenga ahora mismo: cambia a inglés antes de descargar y el reporte sale en inglés.'
+      },
       intro: {
         title: 'Reporte mensual',
         body: 'La foto completa de un mes: ingresos, gasto por categoría, cada cuenta y tarjeta, y cómo avanzaron tus metas.'
@@ -134,6 +194,14 @@ export default {
     },
 
     settings: {
+      appearance: {
+        title: 'Apariencia e idioma',
+        body: 'Ambos están en el menú detrás de tus iniciales, arriba a la derecha. Apariencia ofrece claro, oscuro o seguir a tu sistema. El idioma cambia toda la aplicación, incluido el PDF del reporte mensual.'
+      },
+      replay: {
+        title: 'Repetir estos recorridos',
+        body: 'Volver a mostrar los recorridos reinicia todos, así cada pantalla te guía una vez más la próxima vez que la abras. Útil después de un tiempo sin usarla, o para enseñarle la aplicación a alguien más.'
+      },
       intro: {
         title: 'Ajustes',
         body: 'Apariencia, idioma y los valores por defecto a los que recurre la aplicación.'
@@ -187,6 +255,7 @@ export default {
   },
 
   common: {
+    add: 'Agregar',
     save: 'Guardar',
     cancel: 'Cancelar',
     confirm: 'Confirmar',
@@ -773,6 +842,7 @@ export default {
     netBecomes: 'El neto mensual queda en',
     deductionsExceed: 'Las deducciones superarían tu salario bruto. Esto será rechazado.',
     perMonth: '{amount} al mes',
+    nextPayday: 'Próximo:',
     perPayday: '{amount} en cada uno de {count} pagos',
     noDeductionsTitle: 'Sin deducciones',
     noDeductionsMessage: 'El neto es igual al bruto hasta que agregues lo que se descuenta.',

@@ -35,6 +35,14 @@ export default {
     },
 
     accounts: {
+      moving: {
+        title: 'Deposit and withdraw',
+        body: 'Every account card has Deposit and Withdraw. Use Deposit when money arrives outside your salary, and Withdraw when it leaves without being a purchase — a fee, an ATM, a transfer out of the app.'
+      },
+      transfer: {
+        title: 'Move money between accounts',
+        body: 'Transfer takes an amount out of one account and puts it into another in one step, recording a movement on both. It needs two accounts in the same currency, so it stays disabled until you have them.'
+      },
       intro: {
         title: 'Accounts',
         body: 'Every place your money actually sits. Balances here are the ones the rest of the app reasons about.'
@@ -50,6 +58,14 @@ export default {
     },
 
     'credit-cards': {
+      pay: {
+        title: 'Pay a card',
+        body: 'Pay opens the payment form. Choose the amount — Pay all fills in the closing statement — and say where the money came from: an account, which lowers that balance, or elsewhere, which does not. Paying frees the credit back up.'
+      },
+      detail: {
+        title: 'Open a card for the detail',
+        body: 'Click a card to see its purchases, its installment plans, and how much each plan is adding to the current statement. That last figure is the one that explains a bill you were not expecting.'
+      },
       intro: {
         title: 'Credit cards',
         body: 'A card is not just a balance. What matters is how much falls in this statement, and when it must be paid.'
@@ -65,6 +81,14 @@ export default {
     },
 
     purchases: {
+      method: {
+        title: 'How you paid matters',
+        body: 'Account lowers that account\'s balance. Credit card raises what the card owes and reduces its available credit. Cash affects neither — it is recorded so your spending totals are complete, not to move a balance.'
+      },
+      fixing: {
+        title: 'Editing and deleting',
+        body: 'Use the row actions to edit or delete. Deleting reverses everything the purchase did — the balance, the movement and the credit — so a wrong entry leaves nothing behind. Editing re-applies the difference the same way.'
+      },
       intro: {
         title: 'Purchases',
         body: 'Record what you spend. Each purchase moves the account or card it was paid with, so balances stay true without editing them by hand.'
@@ -80,6 +104,10 @@ export default {
     },
 
     installments: {
+      create: {
+        title: 'Creating a plan',
+        body: 'Start a plan from Purchases: record the purchase on a credit card and choose to split it. Give the total price and the number of months, and WealthMap generates the schedule and charges the card the full amount up front.'
+      },
       intro: {
         title: 'Installment plans',
         body: 'Interest-free purchases split over months. The card is charged the full price up front, and the plan repays it.'
@@ -91,6 +119,10 @@ export default {
     },
 
     debts: {
+      paying: {
+        title: 'Recording a payment',
+        body: 'Open a debt and record a payment against it. Say whether the money left one of your accounts or came from outside; only the first moves a balance. The remaining amount drops, and next month\'s due figure follows.'
+      },
       intro: {
         title: 'Debts',
         body: 'Loans and anything else you are paying down over time, separate from credit cards.'
@@ -102,6 +134,14 @@ export default {
     },
 
     goals: {
+      kinds: {
+        title: 'Two kinds of goal',
+        body: 'Savings goals are an amount by a date — an emergency fund, a trip. Product goals are a specific thing you are saving up for, with its price as the target. The tabs switch between them.'
+      },
+      contribute: {
+        title: 'Adding to a goal',
+        body: 'Open a goal and contribute to it. You can link a savings goal to an account, which lets WealthMap treat that money as spoken for rather than spendable.'
+      },
       intro: {
         title: 'Goals',
         body: 'Two kinds: saving an amount by a date, and saving up for a specific thing.'
@@ -113,6 +153,22 @@ export default {
     },
 
     job: {
+      deductions: {
+        title: 'Adding a deduction',
+        body: 'Press Add on this card for every item your payslip subtracts — tax, social security, a pension, a loan repayment. Give it a name and a value, and WealthMap recalculates your net immediately.'
+      },
+      deductionKinds: {
+        title: 'Fixed or percentage',
+        body: 'A fixed deduction is the same amount every month. A percentage is worked out from your gross, so a raise updates it on its own. Pick percentage whenever your payslip shows a rate — entering today\'s figure as fixed makes it wrong the moment your salary changes.'
+      },
+      paydays: {
+        title: 'When you are paid',
+        body: 'Add up to three days of the month. Two entries means fortnightly, and each payday deposits its share automatically. A day past the end of a short month clamps to the last one, so the 31st pays on 28 February.'
+      },
+      extraIncome: {
+        title: 'Income beyond salary',
+        body: 'Add rent received, freelance work, or anything else arriving on a schedule. Recurring income counts toward what is safe to spend; one-off money is better recorded as a deposit on the account.'
+      },
       intro: {
         title: 'Income',
         body: 'Your salary and anything else that arrives regularly. This is what makes future money real to the projections.'
@@ -124,6 +180,10 @@ export default {
     },
 
     reports: {
+      download: {
+        title: 'Download as PDF',
+        body: 'View a month first, then download it. The PDF is written in the language the app is set to right now — switch to Spanish before downloading and the report comes out in Spanish.'
+      },
       intro: {
         title: 'Monthly report',
         body: 'A full picture of one month: income, spending by category, every account and card, and how your goals moved.'
@@ -135,6 +195,14 @@ export default {
     },
 
     settings: {
+      appearance: {
+        title: 'Appearance and language',
+        body: 'Both live in the menu behind your initials, top right. Appearance offers light, dark, or following your system. Language switches the whole app, including the monthly report PDF.'
+      },
+      replay: {
+        title: 'Replaying these tours',
+        body: 'Show the tours again resets every one of them, so each screen walks you through it once more the next time you open it. Useful after a break, or when showing someone else around.'
+      },
       intro: {
         title: 'Settings',
         body: 'Appearance, language and the defaults the app falls back on.'
@@ -188,6 +256,7 @@ export default {
   },
 
   common: {
+    add: 'Add',
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Confirm',
@@ -772,6 +841,7 @@ export default {
     netBecomes: 'Net monthly becomes',
     deductionsExceed: 'Deductions would exceed your gross salary. This will be rejected.',
     perMonth: '{amount} a month',
+    nextPayday: 'Next:',
     perPayday: '{amount} at each of {count} paydays',
     noDeductionsTitle: 'No deductions',
     noDeductionsMessage: 'Net equals gross until you add what comes out.',
