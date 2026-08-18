@@ -30,19 +30,9 @@
 /* The sidebar carries the brand at desktop widths, collapsed or not */
 .header__brand { display: none; align-items: center; gap: var(--sp-2); text-decoration: none; color: inherit; }
 
-.header__mark {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  background: var(--ink);
-  color: var(--canvas);
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-}
-
-.header__wordmark { font-size: var(--fs-base); font-weight: var(--fw-semibold); }
+// The logo is an image now, so nothing here sets type. It keeps a class only
+// so the collapsed and narrow states have something to hide.
+.header__wordmark { flex: none; }
 
 .header__icon-btn {
   position: relative;

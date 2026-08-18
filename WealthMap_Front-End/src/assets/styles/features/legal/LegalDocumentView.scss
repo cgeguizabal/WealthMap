@@ -121,3 +121,13 @@
     white-space: nowrap;
   }
 }
+
+// Icon then wordmark, wrapping to two rows on a narrow phone rather than
+// squeezing the logo below the width its tagline needs.
+.legal__brand {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}

@@ -4,6 +4,7 @@ import { NAV_GROUPS } from './navigation.js'
 import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import WealthMapIcon from '@/components/brand/WealthMapIcon.vue'
+import WealthMapLogo from '@/components/brand/WealthMapLogo.vue'
 import { LEGAL_ROUTES } from '@/config/legal'
 import { VERSION_LABEL } from '@/config/app'
 
@@ -39,7 +40,7 @@ function isActive(item) {
       <!-- Small enough for the collapsed rail, where it is the only thing
            left standing for the app. -->
       <WealthMapIcon :size="28" />
-      <span class="sidebar__wordmark">WealthMap</span>
+      <WealthMapLogo class="sidebar__wordmark" :width="122" />
 
       <button
         class="sidebar__toggle"

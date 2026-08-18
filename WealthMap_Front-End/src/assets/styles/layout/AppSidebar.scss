@@ -20,12 +20,9 @@
 
 
 
-.sidebar__wordmark {
-  font-size: var(--fs-md);
-  font-weight: var(--fw-semibold);
-  letter-spacing: -0.01em;
-  flex: 1;
-}
+// Takes the room left between the icon and the collapse toggle. The logo sets
+// its own width; this only stops the row from distributing space oddly.
+.sidebar__wordmark { flex: 1; }
 
 .sidebar__toggle {
   display: grid;

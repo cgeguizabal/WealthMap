@@ -5,6 +5,7 @@ import { RouterLink } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import { LEGAL_ROUTES } from '@/config/legal'
 import WealthMapIcon from '@/components/brand/WealthMapIcon.vue'
+import WealthMapLogo from '@/components/brand/WealthMapLogo.vue'
 import { VERSION_LABEL } from '@/config/app'
 
 const { t } = useI18n()
@@ -30,7 +31,7 @@ defineProps({
         <WealthMapIcon :size="64" />
 
         <div class="auth__names">
-          <span class="auth__wordmark">WealthMap</span>
+          <WealthMapLogo :width="180" />
           <span class="auth__version">{{ VERSION_LABEL }}</span>
         </div>
       </header>

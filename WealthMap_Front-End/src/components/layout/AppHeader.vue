@@ -8,6 +8,8 @@ import { useDashboardStore } from '@/stores/dashboard.store'
 import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import LanguageSelector from './LanguageSelector.vue'
+import WealthMapIcon from '@/components/brand/WealthMapIcon.vue'
+import WealthMapLogo from '@/components/brand/WealthMapLogo.vue'
 import ThemeSelector from './ThemeSelector.vue'
 
 defineProps({
@@ -86,8 +88,8 @@ async function logout() {
     </button>
 
     <RouterLink to="/" class="header__brand">
-      <span class="header__mark">WM</span>
-      <span class="header__wordmark">WealthMap</span>
+      <WealthMapIcon :size="26" />
+      <WealthMapLogo class="header__wordmark" :width="112" />
     </RouterLink>
 
     <div class="header__spacer" />

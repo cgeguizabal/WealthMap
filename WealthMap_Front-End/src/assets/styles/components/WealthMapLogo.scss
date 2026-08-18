@@ -1,0 +1,25 @@
+.logo {
+  /**
+   * Fluid by default so the logo shrinks with a narrow phone and stops growing
+   * once it is comfortably readable. Callers with a known slot pass `width`,
+   * which overrides this.
+   */
+  --logo-width: clamp(140px, 40vw, 260px);
+
+  inline-size: var(--logo-width);
+
+  /**
+   * Derived, never set. The artwork is 1053×269, and letting the height come
+   * from the ratio is what guarantees the lettering is never stretched — which
+   * is the one thing that would make a wordmark look counterfeit.
+   */
+  block-size: auto;
+  aspect-ratio: 1053 / 269;
+
+  // An image is not a flex item to be compressed.
+  flex: none;
+
+  // Nothing here should be dragged out of the page as a loose image.
+  user-select: none;
+  -webkit-user-drag: none;
+}

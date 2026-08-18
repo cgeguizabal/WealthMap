@@ -7,6 +7,8 @@ import { useI18n } from '@/composables/useI18n'
 import { renderMarkdown } from '../renderMarkdown'
 import { LEGAL_ROUTES } from '@/config/legal'
 import { VERSION_LABEL } from '@/config/app'
+import WealthMapIcon from '@/components/brand/WealthMapIcon.vue'
+import WealthMapLogo from '@/components/brand/WealthMapLogo.vue'
 
 // The canonical text, imported from docs/legal as raw strings — four documents,
 // two per language. All are pulled in rather than fetched per route: together
@@ -49,6 +51,17 @@ const body = computed(() => renderMarkdown(source.value))
         {{ isPrivacy ? t('legal.terms') : t('legal.privacy') }}
       </RouterLink>
     </div>
+
+    <!--
+      The full brand lockup, and the one place in the app with room for the
+      tagline to be legible. These two documents are read by someone deciding
+      whether to trust the thing, often before they have an account — so they
+      should say plainly whose documents they are.
+    -->
+    <header class="legal__brand">
+      <WealthMapIcon :size="56" />
+      <WealthMapLogo :width="240" />
+    </header>
 
     <p class="legal__beta" role="note">
       <strong>{{ VERSION_LABEL }}</strong>
