@@ -965,6 +965,13 @@ it was written in. Rows created before `params` existed have `{}` and fall back 
 
 e.g. `/api/v1/reports/monthly/2026-08`. Malformed months → **400**.
 
+**`?tz=`** takes an IANA zone id — `America/Guatemala` — and decides where the month begins and
+ends. Everything is stored in UTC, so without it the boundaries are UTC too, and a purchase made at
+nine in the evening on the 31st is already the 1st in UTC: it would land in the next month's report
+while every screen in the app showed it in this one. Omitted or unrecognised, the server falls back
+to UTC rather than refusing to produce the report. The web client sends the browser's zone
+automatically. The PDF endpoint takes the same parameter alongside `lang`.
+
 ```json
 { "month": "2026-08", "currency": "USD",
   "periodStart": "2026-08-01", "periodEnd": "2026-08-31", "userFullName": "...",
