@@ -17,6 +17,7 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseSpinner from '@/components/base/BaseSpinner.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
+import BaseTabs from '@/components/base/BaseTabs.vue'
 
 import JobFormModal from '../components/JobFormModal.vue'
 import DeductionFormModal from '../components/DeductionFormModal.vue'
@@ -184,6 +185,33 @@ onMounted(load)
 const totalOutstanding = computed(() =>
   freelanceJobs.value.reduce((sum, work) => sum + work.outstanding, 0)
 )
+
+/**
+ * Work still in play, and work that is finished with.
+ *
+ * The list is sorted with unfinished first, so the top stayed useful without
+ * this — but after a year of freelancing you would scroll past dozens of paid
+ * jobs to reach the current ones. Splitting them keeps the default view to what
+ * still needs doing without hiding anything.
+ */
+const freelanceTab = ref('active')
+
+const activeFreelance = computed(() =>
+  freelanceJobs.value.filter((w) => w.status === 'InProgress' || w.status === 'Delivered')
+)
+
+const finishedFreelance = computed(() =>
+  freelanceJobs.value.filter((w) => w.status === 'Paid' || w.status === 'Cancelled')
+)
+
+const visibleFreelance = computed(() =>
+  freelanceTab.value === 'active' ? activeFreelance.value : finishedFreelance.value
+)
+
+const freelanceTabs = computed(() => [
+  { value: 'active', label: t('freelance.active'), count: activeFreelance.value.length },
+  { value: 'history', label: t('freelance.history'), count: finishedFreelance.value.length }
+])
 
 async function loadFreelance() {
   freelanceJobs.value = await freelanceJobsApi.list()
@@ -411,8 +439,23 @@ async function removeFreelance(work) {
           compact
         />
 
-        <ul v-else class="incomes">
-          <li v-for="work in freelanceJobs" :key="work.id" class="income">
+        <template v-else>
+          <BaseTabs v-model="freelanceTab" :tabs="freelanceTabs" class="freelance-tabs" />
+
+          <BaseEmptyState
+            v-if="!visibleFreelance.length"
+            icon="info"
+            :title="freelanceTab === 'active'
+              ? t('freelance.noneActiveTitle')
+              : t('freelance.noneFinishedTitle')"
+            :message="freelanceTab === 'active'
+              ? t('freelance.noneActiveMessage')
+              : t('freelance.noneFinishedMessage')"
+            compact
+          />
+
+          <ul v-else class="incomes">
+            <li v-for="work in visibleFreelance" :key="work.id" class="income">
             <div class="income__main">
               <span class="income__name">{{ work.title }}</span>
 
@@ -481,7 +524,8 @@ async function removeFreelance(work) {
               </BaseButton>
             </div>
           </li>
-        </ul>
+          </ul>
+        </template>
 
         <!--
           Outstanding is shown, and deliberately kept out of every total that

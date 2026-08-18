@@ -91,6 +91,68 @@ it shows, and step 3 is the point after which fixing it is harder.
 
 ---
 
+## 2b. Rotating the encryption keys
+
+Do this if a key is exposed, or on whatever schedule you decide. It runs while the app is serving
+traffic — nothing needs to be taken down.
+
+**Rotate both keys together.** Not because the encryption key and the blind-index key are linked,
+but because the pass that rewrites the data selects rows by the *encryption* stamp. Change only the
+blind-index key and the pass finds nothing to do, the indexes are never recomputed, and sign-in keeps
+working purely because the old key is still configured — which is not a rotation, it is two keys
+where there should be one.
+
+**1. Generate a new pair** and keep the current pair — you need both during the rotation.
+
+**2. Deploy with all four values set.** `KeyVersion` goes up by one:
+
+```
+Encryption__Key                    = <new encryption key>
+Encryption__BlindIndexKey          = <new blind index key>
+Encryption__KeyVersion             = 2
+Encryption__PreviousKey            = <the outgoing encryption key>
+Encryption__PreviousBlindIndexKey  = <the outgoing blind index key>
+```
+
+From this moment everything written carries `v2:`, everything already stored still says `v1:` and is
+still readable, and sign-in tries both blind indexes. Users notice nothing.
+
+**3. Rewrite the stored data** — the same command that did the first encryption:
+
+```powershell
+dotnet run --project src/WealthMap.Api -- --encrypt-pii
+```
+
+It selects rows that lack the current stamp, reads each with the previous key and writes it back with
+the new one. Safe to re-run, and safe to interrupt.
+
+**4. Check nothing is left behind**, per encrypted column:
+
+```sql
+SELECT count(*) FROM users        WHERE email     NOT LIKE 'v2:%';
+SELECT count(*) FROM accounts     WHERE name      NOT LIKE 'v2:%';
+SELECT count(*) FROM credit_cards WHERE card_name NOT LIKE 'v2:%';
+SELECT count(*) FROM notifications WHERE title    NOT LIKE 'v2:%';
+```
+
+All zero. Then sign in as a real user — that is what proves the blind indexes were recomputed rather
+than merely still matching on the old key.
+
+**5. Remove the two previous keys** and redeploy:
+
+```
+Encryption__PreviousKey            =
+Encryption__PreviousBlindIndexKey  =
+```
+
+Until you do, the retired key is still live configuration, and a key you rotated away from because it
+leaked is still useful to whoever has it. After this step, any row still on `v1:` fails loudly with a
+message naming the missing setting — which is why step 4 comes first.
+
+**Destroy the old keys** only once step 5 is deployed and the app has been exercised.
+
+---
+
 ## 3. Database role
 
 Apply `docs/DB_ROLES.sql` as the database owner, then point the application's connection string at
@@ -148,5 +210,3 @@ Real, and not addressed by this work:
   day — six hours daily at UTC-6. It is cosmetic and self-correcting, but it is not right. Date
   validators no longer reject valid input over it (they allow a day either way); the display side
   would need the user's zone threaded through, the way `GET /reports/monthly` now does it.
-- **No key rotation procedure.** The `v1:` prefix makes rotation *possible* — a `v2` service can
-  decrypt `v1` on read and rewrite — but nothing implements it.

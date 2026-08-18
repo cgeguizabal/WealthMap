@@ -23,20 +23,26 @@ public class UserRepository : Repository<User>, IUserRepository
     /// BlindIndex applies the same trim-and-lowercase as User.NormalizeEmail. If
     /// those two ever diverge the lookup misses silently, which is why the service
     /// documents the coupling rather than leaving it to be rediscovered.
+    ///
+    /// Matched against every candidate index rather than one, because a blind
+    /// index carries no version stamp. While a key rotation is in flight the table
+    /// holds indexes from both keys, and testing only the current one would report
+    /// everyone the pass had not reached yet as not existing — every one of them
+    /// locked out mid-rotation.
     /// </remarks>
     public async Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
-        var lookup = _encryption.BlindIndex(email);
+        var lookups = _encryption.BlindIndexCandidates(email);
 
         return await Set.FirstOrDefaultAsync(
-            u => EF.Property<string>(u, UserConfiguration.EmailLookup) == lookup, ct);
+            u => lookups.Contains(EF.Property<string>(u, UserConfiguration.EmailLookup)), ct);
     }
 
     public async Task<bool> EmailExistsAsync(string email, CancellationToken ct = default)
     {
-        var lookup = _encryption.BlindIndex(email);
+        var lookups = _encryption.BlindIndexCandidates(email);
 
         return await Set.AnyAsync(
-            u => EF.Property<string>(u, UserConfiguration.EmailLookup) == lookup, ct);
+            u => lookups.Contains(EF.Property<string>(u, UserConfiguration.EmailLookup)), ct);
     }
 }

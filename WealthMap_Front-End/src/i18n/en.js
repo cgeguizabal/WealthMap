@@ -223,6 +223,12 @@ export default {
   },
 
   freelance: {
+    active: 'Active',
+    history: 'History',
+    noneActiveTitle: 'Nothing in progress',
+    noneActiveMessage: 'Every piece of work is paid or cancelled. Add one when the next job comes in.',
+    noneFinishedTitle: 'Nothing finished yet',
+    noneFinishedMessage: 'Paid and cancelled work is kept here once you record it.',
     title: 'Freelance work',
     subtitle: 'Paid whenever the client pays. Record it when it happens.',
     emptyTitle: 'No freelance work recorded',

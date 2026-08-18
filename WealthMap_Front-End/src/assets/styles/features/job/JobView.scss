@@ -109,3 +109,9 @@
 @media (max-width: 480px) {
   .job__figures { grid-template-columns: 1fr; }
 }
+
+// Sits inside the freelance card, above the list, so it needs the card's own
+// padding rather than the page margin a top-level tab bar would use.
+.freelance-tabs {
+  margin: var(--sp-4) var(--sp-4) 0;
+}

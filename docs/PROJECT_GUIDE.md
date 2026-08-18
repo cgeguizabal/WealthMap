@@ -334,11 +334,24 @@ configuration and the list is readable in one place.
 **GCM, not CBC**, because it is authenticated: a value altered directly in the database fails to
 decrypt loudly rather than yielding plausible garbage that then flows into a report.
 
-**The `v1:` prefix is mandatory and does two jobs.** It makes key rotation possible — a future `v2`
-can decrypt `v1` values on read and rewrite them — and it makes `Decrypt` idempotent, because a
-value without the prefix is plaintext that predates encryption and is returned unchanged. That
-second property is what lets the data migration run against a half-converted table and be re-run
-after an interruption.
+**The `v1:` prefix is mandatory and does two jobs.** It names the key generation that wrote the
+value, and it makes `Decrypt` idempotent — a value without a stamp is plaintext that predates
+encryption and is returned unchanged. That second property is what lets the data pass run against a
+half-converted table and be re-run after an interruption.
+
+The first is what makes **rotation** possible without downtime. Raise `Encryption:KeyVersion`, put
+the outgoing key in `Encryption:PreviousKey`, and the app writes `v2:` while still reading `v1:`.
+The same `--encrypt-pii` pass then rewrites the old rows, because its predicates ask for rows
+lacking the *current* stamp rather than naming a fixed generation. Remove the previous key when the
+pass reports nothing left.
+
+Both keys rotate together, and that is a constraint rather than a convention: the pass selects rows
+by the encryption stamp, so changing only the blind-index key would leave it with nothing to do and
+the indexes never recomputed. A blind index carries no stamp of its own — it is a bare hash — which
+is also why sign-in tries the current index and the previous one while a rotation is in flight.
+Without that, every user the pass had not reached would be told their account does not exist.
+
+The full procedure is in `docs/DEPLOYMENT_CHECKLIST.md`.
 
 #### The blind index
 
@@ -1219,6 +1232,7 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Last four** | The four digits a bank prints when it names an account or card in a notification email. Identifying data, stored as `char(4)`; nothing reads it yet (§6.14). |
 | **Debit card** | Whether a card reaches an account — `None`, `Physical` or `Digital` — and its own last four, which is a *different* number from the account's. No card means no digits, enforced by the entity and by a check constraint (§4.2). |
 | **Blind index** | A deterministic keyed hash of a value, stored beside its encrypted form so the column can still be searched and made unique. `users.email_lookup` is `HMAC-SHA256(normalised email)` under its own key. Encryption is randomised and cannot do either job (§3.10). |
+| **Key generation** | The number in a value's stamp — `v2:` was written by the second key. Rotation raises it, keeps the outgoing key for reading, and rewrites the rows; the app serves traffic throughout (§3.10). |
 | **Envelope prefix** | The `v1:` in front of every ciphertext. Names the key generation, so a future `v2` can decrypt and rewrite old values — and makes decryption idempotent, since a value without it is plaintext that predates encryption (§3.10). |
 | **Pseudonymisation** | Storing data so it is unreadable without a key the *operator* holds. Distinct from zero-knowledge encryption, where the operator could not read it either. WealthMap does the former; the privacy policy says so plainly (§3.10). |
 | **Policy version** | Which text of the Terms and Privacy Policy a user accepted, stored with the timestamp. "They agreed" is not a useful record without it. |

@@ -222,6 +222,12 @@ export default {
   },
 
   freelance: {
+    active: 'En curso',
+    history: 'Historial',
+    noneActiveTitle: 'Nada en curso',
+    noneActiveMessage: 'Todos los trabajos están pagados o cancelados. Agrega uno cuando llegue el siguiente.',
+    noneFinishedTitle: 'Todavía nada terminado',
+    noneFinishedMessage: 'Aquí se conservan los trabajos pagados y cancelados una vez que los registres.',
     title: 'Trabajo independiente',
     subtitle: 'Se paga cuando el cliente paga. Regístralo cuando ocurra.',
     emptyTitle: 'No hay trabajos registrados',

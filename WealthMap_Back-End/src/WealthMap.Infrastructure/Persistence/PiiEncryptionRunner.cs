@@ -6,7 +6,7 @@ using WealthMap.Domain.Common;
 namespace WealthMap.Infrastructure.Persistence;
 
 /// <summary>
-/// Rewrites the rows that existed before encryption, once.
+/// Rewrites every row that is not encrypted with the current key.
 /// </summary>
 /// <remarks>
 /// The schema migration only widened the columns; every value in them is still
@@ -25,9 +25,22 @@ namespace WealthMap.Infrastructure.Persistence;
 /// model.
 ///
 /// Re-running is a genuine no-op, not merely a harmless one: each table is asked
-/// which rows still lack the v1: envelope, and an already-converted database
-/// returns none. That matters because the realistic failure is an interrupted
-/// run, and the operator's instinct is to run it again.
+/// which rows lack the *current* key's stamp, and a converted database returns
+/// none. That matters because the realistic failure is an interrupted run, and
+/// the operator's instinct is to run it again.
+///
+/// Asking for the current stamp rather than a fixed "v1:" is what makes this one
+/// pass do two jobs. Raise Encryption:KeyVersion and put the outgoing key in
+/// Encryption:PreviousKey, and the same run re-encrypts everything the old key
+/// wrote — reading each value with the previous key and writing it back with the
+/// new one. Saving a user also recomputes its blind index, so both keys move
+/// together.
+///
+/// Which is why they must be rotated together. Rotating only the blind-index key
+/// would leave every email still stamped with the current generation, this pass
+/// would select no rows, and the indexes would never be recomputed — sign-in
+/// would keep working purely because the old key is still configured. Bump
+/// KeyVersion whenever either key changes.
 /// </remarks>
 public sealed class PiiEncryptionRunner
 {
@@ -64,30 +77,30 @@ public sealed class PiiEncryptionRunner
             // users next: everything else is meaningless without an account that
             // can still sign in, so if this is going to fail, fail here.
             new("users", await EncryptAsync(
-                _db.Users, "users", "email NOT LIKE 'v1:%' OR email_lookup IS NULL", ct)),
+                _db.Users, "users", "email NOT LIKE '{0}%' OR email_lookup IS NULL", ct)),
 
             new("accounts", await EncryptAsync(
-                _db.Accounts, "accounts", "name NOT LIKE 'v1:%'", ct)),
+                _db.Accounts, "accounts", "name NOT LIKE '{0}%'", ct)),
 
             new("credit_cards", await EncryptAsync(
-                _db.CreditCards, "credit_cards", "card_name NOT LIKE 'v1:%'", ct)),
+                _db.CreditCards, "credit_cards", "card_name NOT LIKE '{0}%'", ct)),
 
             new("debts", await EncryptAsync(
-                _db.Debts, "debts", "name NOT LIKE 'v1:%'", ct)),
+                _db.Debts, "debts", "name NOT LIKE '{0}%'", ct)),
 
             // The only encrypted column here is nullable, so rows that never had a
             // note need no visit at all.
             new("purchases", await EncryptAsync(
-                _db.Purchases, "purchases", "notes IS NOT NULL AND notes NOT LIKE 'v1:%'", ct)),
+                _db.Purchases, "purchases", "notes IS NOT NULL AND notes NOT LIKE '{0}%'", ct)),
 
             new("savings_goals", await EncryptAsync(
-                _db.SavingsGoals, "savings_goals", "name NOT LIKE 'v1:%'", ct)),
+                _db.SavingsGoals, "savings_goals", "name NOT LIKE '{0}%'", ct)),
 
             new("product_goals", await EncryptAsync(
-                _db.ProductGoals, "product_goals", "name NOT LIKE 'v1:%'", ct)),
+                _db.ProductGoals, "product_goals", "name NOT LIKE '{0}%'", ct)),
 
             new("notifications", await EncryptAsync(
-                _db.Notifications, "notifications", "title NOT LIKE 'v1:%'", ct))
+                _db.Notifications, "notifications", "title NOT LIKE '{0}%'", ct))
         };
 
         return results;
@@ -185,6 +198,9 @@ public sealed class PiiEncryptionRunner
         CancellationToken ct)
         where TEntity : BaseEntity
     {
+        // {0} is the current key's stamp, filled in by PendingIdsAsync. Written
+        // this way so one pass covers two jobs: rows that were never encrypted,
+        // and rows encrypted by a key that has since been rotated out.
         var pending = await PendingIdsAsync(table, stillPlaintext, ct);
 
         if (pending.Count == 0)
@@ -235,7 +251,9 @@ public sealed class PiiEncryptionRunner
         try
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT id FROM {table} WHERE {stillPlaintext}";
+            command.CommandText =
+                $"SELECT id FROM {table} WHERE " +
+                stillPlaintext.Replace("{0}", _encryption.CurrentVersionPrefix);
 
             await using var reader = await command.ExecuteReaderAsync(ct);
 
