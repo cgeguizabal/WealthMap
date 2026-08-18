@@ -20,6 +20,7 @@ public class AccountMovement : BaseEntity
     public bool IsInbound => Type is MovementType.SalaryDeposit
                                   or MovementType.Deposit
                                   or MovementType.Bonus
+                                  or MovementType.FreelanceIncome
                                   or MovementType.TransferIn;
 
     private AccountMovement()

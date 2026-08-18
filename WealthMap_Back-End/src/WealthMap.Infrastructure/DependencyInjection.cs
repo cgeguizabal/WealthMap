@@ -33,11 +33,11 @@ public static class DependencyInjection
         services.AddDbContext<WealthMapDbContext>(options =>
            options.UseNpgsql(connectionString)
            .UseSnakeCaseNamingConvention()
-           // The eight configurations that encrypt columns take the encryption
+           // The configurations that encrypt columns take the encryption
            // service in their constructor, so the assembly scan cannot build them
            // and logs this warning for each on every startup. They are applied by
            // hand immediately afterwards; the warning is noise, not news.
-           // WealthMapDbContext.OnModelCreating guards the count so a ninth one
+           // WealthMapDbContext.OnModelCreating guards the count so a new one
            // cannot go missing under the silence.
            .ConfigureWarnings(w =>
                w.Ignore(CoreEventId.SkippedEntityTypeConfigurationWarning)));
@@ -60,6 +60,7 @@ public static class DependencyInjection
            services.AddScoped<IUserRepository, UserRepository>();
            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
            services.AddScoped<IBankDefaultRepository, BankDefaultRepository>();
+           services.AddScoped<IFreelanceJobRepository, FreelanceJobRepository>();
 
            // Resolved only by the --encrypt-pii command line flag, never by a
            // request. Registering it costs nothing; running it is deliberate.

@@ -27,6 +27,7 @@ public class WealthMapDbContext : DbContext
     public DbSet<SalaryDeposit> SalaryDeposits => Set<SalaryDeposit>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<BankDefault> BankDefaults => Set<BankDefault>();
+    public DbSet<FreelanceJob> FreelanceJobs => Set<FreelanceJob>();
 
     /// <summary>
     /// The encryption service reaches the entity configurations through here.
@@ -71,6 +72,7 @@ public class WealthMapDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SavingsGoalConfiguration(_encryption));
         modelBuilder.ApplyConfiguration(new ProductGoalConfiguration(_encryption));
         modelBuilder.ApplyConfiguration(new NotificationConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new FreelanceJobConfiguration(_encryption));
 
         GuardEveryEncryptedConfigurationIsApplied();
 
@@ -89,15 +91,15 @@ public class WealthMapDbContext : DbContext
     /// <summary>
     /// How many configurations are applied by hand just above.
     /// </summary>
-    private const int EncryptedConfigurationCount = 8;
+    private const int EncryptedConfigurationCount = 9;
 
     /// <summary>
     /// Turns a silently skipped configuration into a startup failure.
     /// </summary>
     /// <remarks>
     /// EF warns when the assembly scan finds a configuration it cannot build, and
-    /// that warning is suppressed in AddInfrastructure because eight of them are
-    /// expected. The danger is the ninth: add a configuration that takes the
+    /// that warning is suppressed in AddInfrastructure because several are expected.
+    /// The danger is the next one: add a configuration that takes the
     /// encryption service, forget the ApplyConfiguration line, and the table would
     /// quietly lose its entire mapping with nothing logged.
     ///

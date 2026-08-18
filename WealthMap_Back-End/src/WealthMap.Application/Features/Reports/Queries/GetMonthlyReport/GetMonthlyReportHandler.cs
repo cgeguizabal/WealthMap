@@ -124,7 +124,13 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
     private static IncomeSectionDto BuildIncome(IReadOnlyList<AccountMovement> monthMovements, Job? job)
     {
         // TransferIn is money moving between the user's own accounts, not income.
-        var incomeTypes = new[] { MovementType.SalaryDeposit, MovementType.Deposit, MovementType.Bonus };
+        var incomeTypes = new[]
+        {
+            MovementType.SalaryDeposit,
+            MovementType.Deposit,
+            MovementType.Bonus,
+            MovementType.FreelanceIncome
+        };
 
         var lines = monthMovements
             .Where(m => incomeTypes.Contains(m.Type))
