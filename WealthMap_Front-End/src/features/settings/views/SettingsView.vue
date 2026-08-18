@@ -18,11 +18,13 @@ import BaseBadge from '@/components/base/BaseBadge.vue'
 import BaseTable from '@/components/base/BaseTable.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BankDefaultFormModal from '../components/BankDefaultFormModal.vue'
+import DeleteAccountModal from '../components/DeleteAccountModal.vue'
 
 const { t } = useI18n()
 const toast = useToast()
 const confirmTwice = useDoubleConfirm()
 const tour = useTourStore()
+const deleteAccountOpen = ref(false)
 
 const { data: defaults, loading, run: loadDefaults } = useAsync(
   bankDefaultsApi.list, { initialData: [] })
@@ -95,6 +97,19 @@ function replayTours() {
   <motion.div v-bind="fadeUp()">
     <PageHeader :title="t('settings.title')" :subtitle="t('settings.subtitle')" />
 
+    <!-- Last on the page, and visually separated: it is the only action here
+         that cannot be undone. -->
+    <BaseCard
+      class="settings__danger"
+      :title="t('settings.dangerZone')"
+      :subtitle="t('settings.dangerZoneSubtitle')"
+    >
+      <BaseButton variant="danger" @click="deleteAccountOpen = true">
+        <template #icon><BaseIcon name="trash" :size="15" /></template>
+        {{ t('settings.deleteAccount') }}
+      </BaseButton>
+    </BaseCard>
+
     <BaseCard :title="t('tour.replay')" :subtitle="t('tour.replayHint')">
       <BaseButton variant="secondary" @click="replayTours">
         <template #icon><BaseIcon name="info" :size="15" /></template>
@@ -163,6 +178,8 @@ function replayTours() {
         </template>
       </BaseTable>
     </BaseCard>
+
+    <DeleteAccountModal v-model="deleteAccountOpen" />
 
     <BankDefaultFormModal
       v-model="formOpen"

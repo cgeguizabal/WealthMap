@@ -177,7 +177,8 @@ as the hosting platform retains them.
   it as a PDF.
 - **Correct it.** Every record in WealthMap can be edited.
 - **Delete it.** Individual records can be deleted from the app. To delete your
-  whole account, email the address in section 2.
+  whole account, use Settings → Delete your account. It happens immediately:
+  nothing is archived, there is no grace period, and it cannot be undone.
 - **Take it with you.** Ask, and you will be sent your data in a machine-readable
   form.
 - **Withdraw consent.** Stop using WealthMap and ask for deletion.

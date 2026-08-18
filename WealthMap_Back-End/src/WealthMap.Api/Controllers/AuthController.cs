@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using WealthMap.Api.Auth;
+using WealthMap.Api.Extensions;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Auth.Commands.Login;
 using WealthMap.Application.Features.Auth.Commands.Logout;
 using WealthMap.Application.Features.Auth.Commands.RefreshSession;
+using Microsoft.AspNetCore.Authorization;
+using WealthMap.Application.Features.Auth.Commands.DeleteAccount;
 using WealthMap.Application.Features.Auth.Commands.Register;
 using WealthMap.Application.Features.Auth.DTOs;
 
@@ -68,4 +71,32 @@ public class AuthController : ControllerBase
 
         return Ok(session.Result);
     }
+
+    /// <summary>
+    /// Deletes the account and everything in it. Immediate and irreversible.
+    /// </summary>
+    /// <remarks>
+    /// Requires the password as well as a valid token: a token lives in a browser
+    /// and outlives the moment it was issued, so on its own it would let a
+    /// borrowed laptop destroy someone's records. Every other action here can be
+    /// undone.
+    ///
+    /// The refresh cookie is cleared on the way out — the session it names no
+    /// longer exists, and leaving it would send the client into a refresh that
+    /// could only fail.
+    /// </remarks>
+    [Authorize]
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteAccount(
+        [FromBody] DeleteAccountRequest request,
+        CancellationToken ct)
+    {
+        await _sender.Send(new DeleteAccountCommand(User.GetUserId(), request.Password), ct);
+
+        _cookie.Clear(Response);
+
+        return NoContent();
+    }
+
+    public record DeleteAccountRequest(string Password);
 }

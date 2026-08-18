@@ -1,0 +1,38 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.form__error {
+  padding: var(--sp-3);
+  border: 1px solid var(--negative);
+  border-radius: var(--radius);
+  background: var(--negative-soft);
+  color: var(--negative);
+  font-size: var(--fs-sm);
+}
+
+// Loud, because this is the one action in the app with no undo.
+.danger-note {
+  padding: var(--sp-4);
+  border: var(--border);
+  border-left-width: 4px;
+  border-left-color: var(--negative);
+  border-radius: var(--radius);
+  background: var(--negative-soft);
+  color: var(--negative);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.danger-list {
+  margin: 0 0 0 var(--sp-5);
+  padding: 0;
+  list-style: disc;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--text-muted);
+
+  li { margin-bottom: var(--sp-1); }
+}

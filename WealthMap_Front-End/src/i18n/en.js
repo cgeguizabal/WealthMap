@@ -1165,6 +1165,16 @@ export default {
   },
 
   settings: {
+    dangerZone: 'Delete your account',
+    dangerZoneSubtitle: 'Removes everything, immediately. There is no undo and no grace period.',
+    deleteAccount: 'Delete my account',
+    deleteAccountWarning: 'This erases your account and every record in it, right now. Nothing is archived and nothing can be recovered afterwards.',
+    deleteAccountAccounts: 'Accounts, cards, balances and every movement',
+    deleteAccountHistory: 'Purchases, installment plans, debts, goals, income and freelance work',
+    deleteAccountImmediate: 'Deleted the moment you confirm — not after 30 days',
+    deleteAccountPassword: 'Your password',
+    deleteAccountType: 'Type {word} to confirm',
+    deleteAccountConfirm: 'Delete everything',
     title: 'Settings',
     subtitle: 'How WealthMap treats your accounts and cards.'
   },

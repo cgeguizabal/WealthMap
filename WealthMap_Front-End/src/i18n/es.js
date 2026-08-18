@@ -1161,6 +1161,16 @@ export default {
   },
 
   settings: {
+    dangerZone: 'Eliminar tu cuenta',
+    dangerZoneSubtitle: 'Elimina todo, de inmediato. No hay forma de deshacerlo ni periodo de gracia.',
+    deleteAccount: 'Eliminar mi cuenta',
+    deleteAccountWarning: 'Esto borra tu cuenta y todos sus registros, ahora mismo. No se archiva nada y después no se puede recuperar.',
+    deleteAccountAccounts: 'Cuentas, tarjetas, saldos y todos los movimientos',
+    deleteAccountHistory: 'Compras, planes de cuotas, deudas, metas, ingresos y trabajo independiente',
+    deleteAccountImmediate: 'Se elimina en el momento en que confirmas, no a los 30 días',
+    deleteAccountPassword: 'Tu contraseña',
+    deleteAccountType: 'Escribe {word} para confirmar',
+    deleteAccountConfirm: 'Eliminar todo',
     title: 'Ajustes',
     subtitle: 'Cómo WealthMap trata tus cuentas y tarjetas.'
   },

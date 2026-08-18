@@ -168,7 +168,8 @@ tiempo que los retenga la plataforma de alojamiento.
 - **Verlos.** Cada pantalla te muestra tus propios datos; el reporte mensual los exporta en PDF.
 - **Corregirlos.** Todo registro en WealthMap se puede editar.
 - **Eliminarlos.** Los registros individuales se pueden borrar desde la aplicación. Para eliminar
-  tu cuenta completa, escribe a la dirección de la sección 2.
+  tu cuenta completa, usa Ajustes → Eliminar tu cuenta. Ocurre de inmediato: no se archiva nada, no
+  hay periodo de gracia y no se puede deshacer.
 - **Llevártelos.** Pídelo y se te enviarán tus datos en un formato legible por máquina.
 - **Retirar el consentimiento.** Deja de usar WealthMap y solicita la eliminación.
 
