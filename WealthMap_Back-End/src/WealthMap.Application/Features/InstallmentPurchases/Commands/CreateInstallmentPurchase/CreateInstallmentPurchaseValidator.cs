@@ -1,4 +1,5 @@
 using FluentValidation;
+using WealthMap.Application.Common.Validation;
 
 namespace WealthMap.Application.Features.InstallmentPurchases.Commands.CreateInstallmentPurchase;
 
@@ -20,7 +21,7 @@ public class CreateInstallmentPurchaseValidator : AbstractValidator<CreateInstal
             .InclusiveBetween(1, 120).WithMessage("Months must be between 1 and 120.");
 
         RuleFor(x => x.PurchasedAt)
-            .Must(d => d!.Value <= DateOnly.FromDateTime(DateTime.UtcNow))
+            .Must(d => CalendarDate.IsNotInTheFuture(d!.Value))
             .WithMessage("Purchase date cannot be in the future.")
             .When(x => x.PurchasedAt is not null);
     }

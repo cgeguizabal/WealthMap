@@ -1,4 +1,5 @@
 using FluentValidation;
+using WealthMap.Application.Common.Validation;
 
 namespace WealthMap.Application.Features.SavingsGoals.Commands.CreateSavingsGoal;
 
@@ -22,7 +23,7 @@ public class CreateSavingsGoalValidator : AbstractValidator<CreateSavingsGoalCom
             .Length(3).WithMessage("Currency must be a 3-letter ISO code.");
 
         RuleFor(x => x.Deadline)
-            .Must(d => d >= DateOnly.FromDateTime(DateTime.UtcNow))
+            .Must(CalendarDate.IsNotInThePast)
             .WithMessage("Deadline cannot be in the past.");
     }
 }

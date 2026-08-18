@@ -143,5 +143,10 @@ deliberate — an app that boots and fails later fails somewhere nobody is watch
 
 Real, and not addressed by this work:
 
+- **The app reasons in UTC outside the monthly report.** "Due in N days", goal countdowns and
+  alert thresholds are computed against the UTC date, so they can read a day out for part of each
+  day — six hours daily at UTC-6. It is cosmetic and self-correcting, but it is not right. Date
+  validators no longer reject valid input over it (they allow a day either way); the display side
+  would need the user's zone threaded through, the way `GET /reports/monthly` now does it.
 - **No key rotation procedure.** The `v1:` prefix makes rotation *possible* — a `v2` service can
   decrypt `v1` on read and rewrite — but nothing implements it.
