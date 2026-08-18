@@ -83,6 +83,13 @@ builder.Services.Configure<WealthMap.Api.Auth.CookieSettings>(
     builder.Configuration.GetSection(WealthMap.Api.Auth.CookieSettings.SectionName));
 builder.Services.AddScoped<WealthMap.Api.Auth.RefreshTokenCookie>();
 
+// What day it is where the caller is, from the X-Time-Zone header they send.
+// Everything is stored in UTC; computing in UTC as well made "the next time the
+// 20th comes around" answer next month on the evening a card was due.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<
+    WealthMap.Application.Common.Interfaces.IUserClock, WealthMap.Api.Auth.HttpUserClock>();
+
 var app = builder.Build();
 
 // The one-time pass that encrypts rows written before encryption existed. A flag

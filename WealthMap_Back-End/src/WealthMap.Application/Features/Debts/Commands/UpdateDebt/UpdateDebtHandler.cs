@@ -10,11 +10,14 @@ public class UpdateDebtHandler : ICommandHandler<UpdateDebtCommand, DebtDto>
 {
     private readonly IDebtRepository _debts;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
-    public UpdateDebtHandler(IDebtRepository debts, IUnitOfWork unitOfWork)
+    public UpdateDebtHandler(IDebtRepository debts, IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _debts = debts;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<DebtDto> Handle(UpdateDebtCommand request, CancellationToken ct)
@@ -29,6 +32,6 @@ public class UpdateDebtHandler : ICommandHandler<UpdateDebtCommand, DebtDto>
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return DebtDto.FromEntity(debt);
+        return DebtDto.FromEntity(debt, _clock.Today);
     }
 }

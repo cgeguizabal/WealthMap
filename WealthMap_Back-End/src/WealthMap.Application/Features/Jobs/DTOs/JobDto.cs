@@ -17,7 +17,11 @@ public record JobDto(
     IReadOnlyList<DateOnly> NextPaymentDates,
     DateTime CreatedAt)
 {
-    public static JobDto FromEntity(Job job)
+    /// <param name="today">
+    /// The caller's own date, from IUserClock. The next paydays are computed from
+    /// it, and a UTC date that has already rolled over skips today's.
+    /// </param>
+    public static JobDto FromEntity(Job job, DateOnly today)
     {
         var paymentDays = job.PaymentDays
             .Select(d => d.DayOfMonth)
@@ -35,8 +39,7 @@ public record JobDto(
             job.DepositAccountId,
             paymentDays,
             job.Deductions.Select(DeductionDto.FromEntity).ToList(),
-            PaymentSchedule.NextPaymentDates(
-                DateOnly.FromDateTime(DateTime.UtcNow), paymentDays, 3),
+            PaymentSchedule.NextPaymentDates(today, paymentDays, 3),
             job.CreatedAt);
     }
 }

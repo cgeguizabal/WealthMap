@@ -9,11 +9,14 @@ public class PostDueSalaryHandler : ICommandHandler<PostDueSalaryCommand, int>
 {
     private readonly IJobRepository _jobs;
     private readonly SalaryPostingService _poster;
+    private readonly IUserClock _clock;
 
-    public PostDueSalaryHandler(IJobRepository jobs, SalaryPostingService poster)
+    public PostDueSalaryHandler(IJobRepository jobs, SalaryPostingService poster,
+        IUserClock clock)
     {
         _jobs = jobs;
         _poster = poster;
+        _clock = clock;
     }
 
     public async Task<int> Handle(PostDueSalaryCommand request, CancellationToken ct)
@@ -21,6 +24,6 @@ public class PostDueSalaryHandler : ICommandHandler<PostDueSalaryCommand, int>
         var job = await _jobs.GetByIdForUserAsync(request.JobId, request.UserId, ct)
             ?? throw new NotFoundException("Job", request.JobId);
 
-        return await _poster.PostDueForJobAsync(job, DateOnly.FromDateTime(DateTime.UtcNow), ct);
+        return await _poster.PostDueForJobAsync(job, _clock.Today, ct);
     }
 }

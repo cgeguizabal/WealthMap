@@ -19,13 +19,16 @@ public class CardStatementLoader
 {
     private readonly IPurchaseRepository _purchases;
     private readonly IInstallmentPurchaseRepository _installments;
+    private readonly IUserClock _clock;
 
     public CardStatementLoader(
         IPurchaseRepository purchases,
-        IInstallmentPurchaseRepository installments)
+        IInstallmentPurchaseRepository installments,
+        IUserClock clock)
     {
         _purchases = purchases;
         _installments = installments;
+        _clock = clock;
     }
 
     public async Task<CreditCardDto> ToDtoAsync(CreditCard card, Guid userId, CancellationToken ct)
@@ -36,7 +39,11 @@ public class CardStatementLoader
     {
         if (cards.Count == 0) return [];
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // The caller's date, not UTC: every cutoff and due date below is "the
+        // next time this day comes around", which answers next month if the
+        // date has already rolled over where the server is but not where the
+        // user is.
+        var today = _clock.Today;
 
         // The earliest cutoff across the cards, so one query covers all of them
         // however differently their cycles are set.
@@ -87,6 +94,6 @@ public class CardStatementLoader
             installmentRemaining,
             installmentDueThisCycle);
 
-        return CreditCardDto.FromEntity(card, split);
+        return CreditCardDto.FromEntity(card, split, today);
     }
 }

@@ -48,9 +48,14 @@ public record CreditCardDto(
     /// purchase and installment history the card entity does not carry. Passing it
     /// in keeps every response — read or write — showing the same figures.
     /// </summary>
-    public static CreditCardDto FromEntity(CreditCard card, StatementSplit split)
+    /// <param name="today">
+    /// The caller's own date, from IUserClock. Not DateTime.UtcNow: the cutoff and
+    /// due dates below are "the next time this day of the month comes around", and
+    /// computing that from a UTC date that has already rolled over answers next
+    /// month on the very evening a card falls due.
+    /// </param>
+    public static CreditCardDto FromEntity(CreditCard card, StatementSplit split, DateOnly today)
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var cutoff = IncomeMath.NextOccurrence(today, card.StatementCutoffDay);
         var due = LiquidityProjection.StatementDueDate(today, card.StatementCutoffDay, card.PaymentDueDay);
 

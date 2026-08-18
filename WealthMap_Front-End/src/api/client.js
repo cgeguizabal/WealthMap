@@ -11,10 +11,35 @@ const client = axios.create({
   withCredentials: true
 })
 
-// ── Request: attach the token ────────────────────────────
+/**
+ * The browser's IANA zone, e.g. "America/Guatemala".
+ *
+ * Sent on every request because the server stores everything in UTC and has no
+ * other way to know what day it is where you are. Computing in UTC as well is
+ * not the day-out it sounds like: "the next time the 20th comes around" answers
+ * next month if the server's date has already rolled over and yours has not, so
+ * a card due today reported as due in thirty days.
+ */
+const browserTimeZone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || null
+  } catch {
+    // Ancient or locked-down runtime. The server falls back to UTC.
+    return null
+  }
+}
+
+// Resolved once: it cannot change without the page being reloaded.
+const TIME_ZONE = browserTimeZone()
+
+// ── Request: attach the token and the caller's time zone ──
 client.interceptors.request.use((config) => {
   if (accessToken.value) {
     config.headers.Authorization = `Bearer ${accessToken.value}`
+  }
+
+  if (TIME_ZONE) {
+    config.headers['X-Time-Zone'] = TIME_ZONE
   }
 
   return config

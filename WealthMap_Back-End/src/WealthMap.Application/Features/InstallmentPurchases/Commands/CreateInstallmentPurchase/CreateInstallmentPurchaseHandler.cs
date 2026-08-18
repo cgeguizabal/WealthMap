@@ -16,19 +16,22 @@ public class CreateInstallmentPurchaseHandler
     private readonly IStoreRepository _stores;
     private readonly IUnitOfWork _unitOfWork;
     private readonly InstallmentContextLoader _context;
+    private readonly IUserClock _clock;
 
     public CreateInstallmentPurchaseHandler(
         IInstallmentPurchaseRepository installments,
         ICreditCardRepository cards,
         IStoreRepository stores,
         IUnitOfWork unitOfWork,
-        InstallmentContextLoader context)
+        InstallmentContextLoader context,
+        IUserClock clock)
     {
         _context = context;
         _installments = installments;
         _cards = cards;
         _stores = stores;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<InstallmentPurchaseDto> Handle(
@@ -50,7 +53,7 @@ public class CreateInstallmentPurchaseHandler
             request.StoreId,
             card.Id,
             request.MonthsCount,
-            request.PurchasedAt ?? DateOnly.FromDateTime(DateTime.UtcNow));
+            request.PurchasedAt ?? _clock.Today);
 
         // Tasa 0 still consumes the full credit line on day one; the card's
         // limit guard rejects the plan if there isn't enough available credit.

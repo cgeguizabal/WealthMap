@@ -9,11 +9,14 @@ public class RemoveDeductionHandler : ICommandHandler<RemoveDeductionCommand, Jo
 {
     private readonly IJobRepository _jobs;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
-    public RemoveDeductionHandler(IJobRepository jobs, IUnitOfWork unitOfWork)
+    public RemoveDeductionHandler(IJobRepository jobs, IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _jobs = jobs;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<JobDto> Handle(RemoveDeductionCommand request, CancellationToken ct)
@@ -28,6 +31,6 @@ public class RemoveDeductionHandler : ICommandHandler<RemoveDeductionCommand, Jo
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return JobDto.FromEntity(job);
+        return JobDto.FromEntity(job, _clock.Today);
     }
 }

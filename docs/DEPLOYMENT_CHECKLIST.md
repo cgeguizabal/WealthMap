@@ -205,8 +205,12 @@ deliberate — an app that boots and fails later fails somewhere nobody is watch
 
 Real, and not addressed by this work:
 
-- **The app reasons in UTC outside the monthly report.** "Due in N days", goal countdowns and
-  alert thresholds are computed against the UTC date, so they can read a day out for part of each
-  day — six hours daily at UTC-6. It is cosmetic and self-correcting, but it is not right. Date
-  validators no longer reject valid input over it (they allow a day either way); the display side
-  would need the user's zone threaded through, the way `GET /reports/monthly` now does it.
+- **Goal deadlines are still evaluated against the UTC date.** `SavingsGoal.Status` and
+  `ProductGoal.Status` read a static `Today`, so a deadline can read as passed a few hours early.
+  Unlike the due-day calculations — which were a *month* wrong at the boundary and are now fixed —
+  this is bounded at one day, because a deadline is an absolute date rather than "the next time the
+  20th comes around". Fixing it means turning three computed properties into methods across two
+  entities and their DTOs.
+- **Salary posting uses the server's date.** The background runner has no request and therefore no
+  caller to take a zone from, so a payday can post a few hours early or late relative to the user's
+  calendar. The amount and the exactly-once guarantee are unaffected.

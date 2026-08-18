@@ -20,6 +20,7 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
     private readonly IUnitOfWork _unitOfWork;
     private readonly IInstallmentPurchaseRepository _installments;
     private readonly CardStatementLoader _statements;
+    private readonly IUserClock _clock;
 
     public PayCreditCardHandler(
         ICreditCardRepository cards,
@@ -28,7 +29,8 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
         IPaymentRepository payments,
         IUnitOfWork unitOfWork,
         IInstallmentPurchaseRepository installments,
-        CardStatementLoader statements)
+        CardStatementLoader statements,
+        IUserClock clock)
     {
         _cards = cards;
         _accounts = accounts;
@@ -37,6 +39,7 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
         _installments = installments;
         _statements = statements;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<CardPaymentResultDto> Handle(PayCreditCardCommand request, CancellationToken ct)
@@ -62,7 +65,7 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
             await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 card.RegisterPayment(amount);
-                settled.AddRange(SettleInstallments(card, plansOnCard, amount));
+                settled.AddRange(SettleInstallments(card, plansOnCard, amount, _clock.Today));
 
                 await _payments.AddAsync(new Payment(
                     request.UserId,
@@ -88,7 +91,7 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
         {
             account.Withdraw(amount);
             card.RegisterPayment(amount);
-            settled.AddRange(SettleInstallments(card, plansOnCard, amount));
+            settled.AddRange(SettleInstallments(card, plansOnCard, amount, _clock.Today));
 
             movement = new AccountMovement(
                 account.Id,
@@ -141,13 +144,15 @@ public class PayCreditCardHandler : ICommandHandler<PayCreditCardCommand, CardPa
     /// being marked paid is the consequence of that, not a second payment.
     /// </remarks>
     private static List<(InstallmentPurchase Plan, InstallmentPayment Paid)> SettleInstallments(
-        CreditCard card, IReadOnlyList<InstallmentPurchase> plans, Money amount)
+        CreditCard card,
+        IReadOnlyList<InstallmentPurchase> plans,
+        Money amount,
+        DateOnly today)
     {
         var settled = new List<(InstallmentPurchase, InstallmentPayment)>();
 
         if (plans.Count == 0) return settled;
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var dueThrough = LiquidityProjection.StatementDueDate(
             today, card.StatementCutoffDay, card.PaymentDueDay);
 

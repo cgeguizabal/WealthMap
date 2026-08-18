@@ -11,12 +11,15 @@ public class UpdateJobHandler : ICommandHandler<UpdateJobCommand, JobDto>
     private readonly IJobRepository _jobs;
     private readonly IAccountRepository _accounts;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
-    public UpdateJobHandler(IJobRepository jobs, IAccountRepository accounts, IUnitOfWork unitOfWork)
+    public UpdateJobHandler(IJobRepository jobs, IAccountRepository accounts, IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _jobs = jobs;
         _accounts = accounts;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<JobDto> Handle(UpdateJobCommand request, CancellationToken ct)
@@ -37,6 +40,6 @@ public class UpdateJobHandler : ICommandHandler<UpdateJobCommand, JobDto>
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return JobDto.FromEntity(job);
+        return JobDto.FromEntity(job, _clock.Today);
     }
 }

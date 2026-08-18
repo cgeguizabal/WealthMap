@@ -22,8 +22,13 @@ namespace WealthMap.Application.Common.Services;
 public class InstallmentContextLoader
 {
     private readonly ICreditCardRepository _cards;
+    private readonly IUserClock _clock;
 
-    public InstallmentContextLoader(ICreditCardRepository cards) => _cards = cards;
+    public InstallmentContextLoader(ICreditCardRepository cards, IUserClock clock)
+    {
+        _cards = cards;
+        _clock = clock;
+    }
 
     public async Task<InstallmentPurchaseDto> ToDtoAsync(
         InstallmentPurchase purchase, Guid userId, CancellationToken ct)
@@ -40,7 +45,8 @@ public class InstallmentContextLoader
         var cards = await _cards.GetAllForUserAsync(userId, includeArchived: true, ct: ct);
         var byId = cards.ToDictionary(c => c.Id);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // The caller's date; see FinancialSnapshotLoader for why UTC is wrong here.
+        var today = _clock.Today;
 
         return purchases
             .Select(purchase => Build(purchase, byId.GetValueOrDefault(purchase.CreditCardId), today))

@@ -20,6 +20,7 @@ public class FinancialSnapshotLoader
     private readonly IJobRepository _jobs;
     private readonly IAdditionalIncomeRepository _incomes;
     private readonly IPurchaseRepository _purchases;
+    private readonly IUserClock _clock;
 
     public FinancialSnapshotLoader(
         IUserRepository users,
@@ -31,7 +32,8 @@ public class FinancialSnapshotLoader
         IProductGoalRepository productGoals,
         IJobRepository jobs,
         IAdditionalIncomeRepository incomes,
-        IPurchaseRepository purchases)
+        IPurchaseRepository purchases,
+        IUserClock clock)
     {
         _users = users;
         _accounts = accounts;
@@ -43,6 +45,7 @@ public class FinancialSnapshotLoader
         _jobs = jobs;
         _incomes = incomes;
         _purchases = purchases;
+        _clock = clock;
     }
 
     public async Task<FinancialSnapshot> LoadAsync(Guid userId, CancellationToken ct)
@@ -50,7 +53,11 @@ public class FinancialSnapshotLoader
         var user = await _users.GetByIdAsync(userId, ct)
             ?? throw new NotFoundException("User", userId);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // The caller's date, not UTC. This feeds the alert thresholds and the
+        // liquidity projection, and both ask when the next cutoff or due day
+        // falls — a question that answers next month if the server's date has
+        // rolled over and the user's has not.
+        var today = _clock.Today;
 
         var accounts = await _accounts.GetAllForUserAsync(userId, ct: ct);
         var cards = await _cards.GetAllForUserAsync(userId, ct: ct);

@@ -13,12 +13,15 @@ public class CreateJobHandler : ICommandHandler<CreateJobCommand, JobDto>
     private readonly IJobRepository _jobs;
     private readonly IAccountRepository _accounts;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
-    public CreateJobHandler(IJobRepository jobs, IAccountRepository accounts, IUnitOfWork unitOfWork)
+    public CreateJobHandler(IJobRepository jobs, IAccountRepository accounts, IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _jobs = jobs;
         _accounts = accounts;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<JobDto> Handle(CreateJobCommand request, CancellationToken ct)
@@ -40,6 +43,6 @@ public class CreateJobHandler : ICommandHandler<CreateJobCommand, JobDto>
         await _jobs.AddAsync(job, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return JobDto.FromEntity(job);
+        return JobDto.FromEntity(job, _clock.Today);
     }
 }

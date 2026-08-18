@@ -9,11 +9,14 @@ public class MarkDebtDefaultedHandler : ICommandHandler<MarkDebtDefaultedCommand
 {
     private readonly IDebtRepository _debts;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
-    public MarkDebtDefaultedHandler(IDebtRepository debts, IUnitOfWork unitOfWork)
+    public MarkDebtDefaultedHandler(IDebtRepository debts, IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _debts = debts;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<DebtDto> Handle(MarkDebtDefaultedCommand request, CancellationToken ct)
@@ -25,6 +28,6 @@ public class MarkDebtDefaultedHandler : ICommandHandler<MarkDebtDefaultedCommand
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return DebtDto.FromEntity(debt);
+        return DebtDto.FromEntity(debt, _clock.Today);
     }
 }

@@ -27,6 +27,12 @@ from, are: account creation, card creation, job creation, additional income, deb
 (`paymentDueDay`, `monthlyDueDay`, job payment days) are integers 1–31 and clamp to short months —
 the "31st" resolves to the 30th in November and the 28th/29th in February.
 
+**`X-Time-Zone` on every request.** The client sends its IANA zone — `America/Guatemala` — and the
+server uses it to decide what day it is for the caller. Everything is stored in UTC, and computing in
+UTC as well is not the day-out it sounds like: "the next time the 20th comes around" answers *next
+month* if the server's date has rolled over and the caller's has not, so a card due today is reported
+as due in thirty days. A missing or unrecognised zone falls back to UTC.
+
 **Encryption is invisible here.** Names, emails, notes and card digits are encrypted in the
 database, but the API sends and receives plaintext — the conversion happens in the EF model. No
 request or response shape changes because of it, and no endpoint takes or returns a ciphertext.

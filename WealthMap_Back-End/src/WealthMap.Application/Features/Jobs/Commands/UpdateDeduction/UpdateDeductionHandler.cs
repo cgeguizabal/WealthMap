@@ -10,11 +10,14 @@ public class UpdateDeductionHandler : ICommandHandler<UpdateDeductionCommand, Jo
 {
     private readonly IJobRepository _jobs;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
-    public UpdateDeductionHandler(IJobRepository jobs, IUnitOfWork unitOfWork)
+    public UpdateDeductionHandler(IJobRepository jobs, IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _jobs = jobs;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<JobDto> Handle(UpdateDeductionCommand request, CancellationToken ct)
@@ -29,6 +32,6 @@ public class UpdateDeductionHandler : ICommandHandler<UpdateDeductionCommand, Jo
 
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return JobDto.FromEntity(job);
+        return JobDto.FromEntity(job, _clock.Today);
     }
 }

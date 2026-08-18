@@ -16,7 +16,11 @@ public record DebtDto(
     string Status,
     DateTime CreatedAt)
 {
-    public static DebtDto FromEntity(Debt debt) => new(
+    /// <param name="today">
+    /// The caller's own date, from IUserClock — "the next time the due day comes
+    /// around" is a month wrong if computed from a UTC date that has rolled over.
+    /// </param>
+    public static DebtDto FromEntity(Debt debt, DateOnly today) => new(
         debt.Id,
         debt.Name,
         debt.OriginalAmount.Amount,
@@ -27,7 +31,7 @@ public record DebtDto(
         debt.Status == DebtStatus.PaidOff
             ? null
             : PaymentSchedule.NextPaymentDates(
-                DateOnly.FromDateTime(DateTime.UtcNow), [debt.MonthlyDueDay], 1).FirstOrDefault(),
+                today, [debt.MonthlyDueDay], 1).FirstOrDefault(),
         debt.Status.ToString(),
         debt.CreatedAt);
 }

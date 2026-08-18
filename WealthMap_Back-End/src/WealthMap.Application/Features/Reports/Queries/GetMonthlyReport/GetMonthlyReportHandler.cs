@@ -23,6 +23,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
     private readonly IJobRepository _jobs;
     private readonly IPaymentRepository _paymentsRepo;
     private readonly IStoreRepository _stores;
+    private readonly IUserClock _clock;
 
     public GetMonthlyReportHandler(
         IUserRepository users,
@@ -35,7 +36,8 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         IProductGoalRepository productGoals,
         IJobRepository jobs,
         IPaymentRepository paymentsRepo,
-        IStoreRepository stores)
+        IStoreRepository stores,
+        IUserClock clock)
     {
         _stores = stores;
         _paymentsRepo = paymentsRepo;
@@ -48,6 +50,7 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         _savingsGoals = savingsGoals;
         _productGoals = productGoals;
         _jobs = jobs;
+        _clock = clock;
     }
 
     public async Task<MonthlyReportDto> Handle(GetMonthlyReportQuery request, CancellationToken ct)
@@ -58,7 +61,9 @@ public class GetMonthlyReportHandler : IQueryHandler<GetMonthlyReportQuery, Mont
         var localStart = DateTime.ParseExact(
             request.Month, "yyyy-MM", CultureInfo.InvariantCulture);
 
-        var zone = ResolveZone(request.TimeZone);
+        // The explicit parameter wins, so an existing client that sends ?tz= keeps
+        // working; otherwise the zone comes from the header every request carries.
+        var zone = string.IsNullOrWhiteSpace(request.TimeZone) ? _clock.Zone : ResolveZone(request.TimeZone);
 
         // The instants the user's own month begins and ends. Everything stored is
         // UTC, so these are what the queries below compare against; the dates the

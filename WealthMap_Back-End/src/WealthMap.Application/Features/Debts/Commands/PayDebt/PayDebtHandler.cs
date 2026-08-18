@@ -16,19 +16,22 @@ public class PayDebtHandler : ICommandHandler<PayDebtCommand, DebtPaymentResultD
     private readonly IAccountMovementRepository _movements;
     private readonly IPaymentRepository _payments;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserClock _clock;
 
     public PayDebtHandler(
         IDebtRepository debts,
         IAccountRepository accounts,
         IAccountMovementRepository movements,
         IPaymentRepository payments,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IUserClock clock)
     {
         _debts = debts;
         _accounts = accounts;
         _movements = movements;
         _payments = payments;
         _unitOfWork = unitOfWork;
+        _clock = clock;
     }
 
     public async Task<DebtPaymentResultDto> Handle(PayDebtCommand request, CancellationToken ct)
@@ -56,7 +59,7 @@ public class PayDebtHandler : ICommandHandler<PayDebtCommand, DebtPaymentResultD
                     request.Notes), ct);
             }, ct);
 
-            return new DebtPaymentResultDto(DebtDto.FromEntity(debt), null);
+            return new DebtPaymentResultDto(DebtDto.FromEntity(debt, _clock.Today), null);
         }
 
         var account = await _accounts.GetByIdForUserAsync(request.SourceAccountId!.Value, request.UserId, ct)
@@ -93,7 +96,7 @@ public class PayDebtHandler : ICommandHandler<PayDebtCommand, DebtPaymentResultD
         }, ct);
 
         return new DebtPaymentResultDto(
-            DebtDto.FromEntity(debt),
+            DebtDto.FromEntity(debt, _clock.Today),
             AccountMovementDto.FromEntity(movement));
     }
 }
