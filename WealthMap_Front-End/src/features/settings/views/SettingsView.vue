@@ -19,12 +19,15 @@ import BaseTable from '@/components/base/BaseTable.vue'
 import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BankDefaultFormModal from '../components/BankDefaultFormModal.vue'
 import DeleteAccountModal from '../components/DeleteAccountModal.vue'
+import ProfileCard from '../components/ProfileCard.vue'
+import ChangePasswordModal from '../components/ChangePasswordModal.vue'
 
 const { t } = useI18n()
 const toast = useToast()
 const confirmTwice = useDoubleConfirm()
 const tour = useTourStore()
 const deleteAccountOpen = ref(false)
+const changePasswordOpen = ref(false)
 
 const { data: defaults, loading, run: loadDefaults } = useAsync(
   bankDefaultsApi.list, { initialData: [] })
@@ -117,6 +120,15 @@ function replayTours() {
       </BaseButton>
     </BaseCard>
 
+    <ProfileCard />
+
+    <BaseCard :title="t('settings.security')" :subtitle="t('settings.securitySubtitle')">
+      <BaseButton variant="secondary" @click="changePasswordOpen = true">
+        <template #icon><BaseIcon name="lock" :size="15" /></template>
+        {{ t('settings.changePassword') }}
+      </BaseButton>
+    </BaseCard>
+
     <BaseCard data-tour="settings-defaults" :title="t('bankDefaults.title')" :subtitle="t('bankDefaults.explain')" :padded="false">
       <template #actions>
         <BaseButton variant="primary" size="sm" @click="openCreate">
@@ -178,6 +190,8 @@ function replayTours() {
         </template>
       </BaseTable>
     </BaseCard>
+
+    <ChangePasswordModal v-model="changePasswordOpen" />
 
     <DeleteAccountModal v-model="deleteAccountOpen" />
 

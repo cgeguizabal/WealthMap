@@ -72,6 +72,24 @@ export const useAuthStore = defineStore('auth', () => {
    * correction path: the dashboard response is authoritative if the profile
    * changed in another session, and this is a no-op when the two agree.
    */
+  /**
+   * Applies a profile edit to the session, so the header and every formatted
+   * amount update without a reload.
+   *
+   * The name shows in the header and drives the initials; the currency labels
+   * every total. Both are read from here rather than refetched, so both have to
+   * be written here when they change.
+   */
+  function setProfile({ fullName, currency }) {
+    if (!user.value) return
+
+    setUser({
+      ...user.value,
+      fullName: fullName ?? user.value.fullName,
+      currency: currency ?? user.value.currency
+    })
+  }
+
   function setCurrency(code) {
     if (!code || !user.value || user.value.currency === code) return
 
@@ -97,6 +115,6 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     token, user, loading, error,
     isAuthenticated, currency, initials,
-    login, register, logout, setCurrency
+    login, register, logout, setCurrency, setProfile
   }
 })

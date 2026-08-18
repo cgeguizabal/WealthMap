@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { authApi } from '@/api/auth.api'
 import { useForm } from '@/composables/useForm'
-import { useAuthStore } from '@/stores/auth.store'
+import { clearSession } from '@/api/session'
 
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
@@ -24,8 +24,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-
-const auth = useAuthStore()
 
 /** Matched case-sensitively, and deliberately not translated — see the label. */
 const CONFIRMATION_WORD = 'DELETE'
@@ -57,10 +55,13 @@ async function onSubmit() {
   const result = await submit()
   if (!result && formError.value) return
 
-  // The session it named no longer exists, so there is nothing to sign out of —
-  // clearing local state and reloading is the whole of it. A full reload rather
-  // than a route push, to leave no store holding data that has been deleted.
-  auth.$reset?.()
+  // The account it named no longer exists, so there is nothing to sign out of.
+  // Clearing the stored token is the whole of it — leaving it would reload into
+  // a dashboard that could not fetch anything.
+  clearSession()
+
+  // A full reload rather than a route push, to leave no store holding data that
+  // has just been deleted.
   window.location.href = '/login'
 }
 </script>

@@ -1,0 +1,37 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.form__error {
+  padding: var(--sp-3);
+  border: 1px solid var(--negative);
+  border-radius: var(--radius);
+  background: var(--negative-soft);
+  color: var(--negative);
+  font-size: var(--fs-sm);
+}
+
+// States a consequence rather than warning about one, so it reads as
+// information instead of as a danger banner.
+.form__note {
+  padding: var(--sp-3);
+  border: var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--canvas-alt);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profile__loading {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-8);
+}

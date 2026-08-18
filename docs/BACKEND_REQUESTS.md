@@ -39,20 +39,26 @@ loaded.
 
 ---
 
-## 2. No endpoint to read or update the user profile
+## 2. No endpoint to read or update the user profile — *resolved*
 
-**Found:** planning the account/settings area.
+**Resolved 18 August 2026.** `GET`/`PUT /api/v1/users/me` and `POST /api/v1/users/me/password`.
 
-There is no `GET /api/v1/users/me` and no way to update name, country or currency.
-`User.UpdateProfile(...)` and `ChangePassword(...)` exist on the domain entity but no command,
-handler or controller action exposes them.
+The profile carries name, country and reporting currency. Email is not editable there: it identifies
+the account and carries a unique blind index, so changing it is a separate operation with its own
+failure mode rather than a field on a form.
 
-**Impact:** the frontend cannot offer a profile or settings screen. The header shows the name and
-initials from the login response, which is enough for navigation but cannot be edited.
+Changing the password ends every session, including the caller's. That is the point — a password is
+usually changed because a session is believed to be compromised, and a refresh token an intruder
+holds does not care what the password is.
 
-**Workaround in place:** no profile screen is built. The user menu offers logout only.
+---
 
-**Ideal fix:** `GET /api/v1/users/me`, `PUT /api/v1/users/me`, `POST /api/v1/users/me/password`.
+**Original report, for the record.**
+
+There was no `GET /api/v1/users/me` and no way to update name, country or currency.
+`User.UpdateProfile(...)` and `ChangePassword(...)` existed on the domain entity but no command,
+handler or controller action exposed them — so the terms told people to change their password after
+a suspected compromise, and nothing let them.
 
 ---
 

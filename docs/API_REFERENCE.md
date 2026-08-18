@@ -120,6 +120,43 @@ the message does not distinguish the two, so it cannot be used to discover which
 
 ---
 
+## Users
+
+Every route reads the id from the token. There is no route that can name someone else.
+
+### `GET /api/v1/users/me`
+
+```json
+{ "id": "...", "email": "you@example.com", "fullName": "Your Name", "country": "GT",
+  "currency": "GTQ", "termsAcceptedAt": "2026-08-18T02:14:00Z",
+  "acceptedPolicyVersion": "1.0", "createdAt": "2026-08-01T10:00:00Z" }
+```
+
+### `PUT /api/v1/users/me`
+
+```json
+{ "fullName": "Your Name", "country": "GT", "currency": "GTQ" }
+```
+
+Email is **not** editable here — it identifies the account and carries a unique blind index.
+
+Changing `currency` converts nothing. It is the reporting currency: it decides which accounts are
+aggregated into the totals, since holdings in other currencies are excluded rather than converted.
+
+### `POST /api/v1/users/me/password` → **204**
+
+```json
+{ "currentPassword": "...", "newPassword": "at-least-8-chars" }
+```
+
+**400** if the current password is wrong, or if the new one matches it.
+
+**Ends every session, including the caller's**, and clears the refresh cookie. The client has to sign
+in again. That is deliberate: a password is usually changed because a session is believed to be
+compromised, and the refresh token an intruder holds is unaffected by the password itself.
+
+---
+
 ## Accounts
 
 ### `POST /api/v1/accounts` → **201**
@@ -1045,6 +1082,8 @@ app**, which need not match the browser's.
 | Method | Route |
 |---|---|
 | POST | `/api/v1/auth/register` · `/api/v1/auth/login` |
+| GET PUT | `/api/v1/users/me` |
+| POST | `/api/v1/users/me/password` |
 | GET POST | `/api/v1/accounts` |
 | GET PUT | `/api/v1/accounts/{id}` |
 | POST | `/api/v1/accounts/{id}/deposit` · `/withdraw` · `/block` · `/unblock` · `/api/v1/accounts/transfer` |

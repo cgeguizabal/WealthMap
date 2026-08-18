@@ -41,10 +41,24 @@ public class User : BaseEntity
         Currency = ValidateCurrency(currency);
     }
 
-    public void UpdateProfile(string fullName, string country)
+    /// <summary>Changes the details a person can correct about themselves.</summary>
+    /// <remarks>
+    /// Currency is included, and that is a real decision rather than an oversight.
+    /// It is the reporting currency: changing it does not convert a single stored
+    /// amount, it changes which accounts are aggregated into the totals, since
+    /// holdings in other currencies are excluded rather than converted. Someone
+    /// who picked the wrong one at registration would otherwise be stuck with
+    /// every total on the dashboard reading as the wrong money forever.
+    ///
+    /// Email is deliberately not here. It identifies the account, carries a unique
+    /// blind index, and changing it means rewriting that index — a separate
+    /// operation with its own failure mode, not a field on a profile form.
+    /// </remarks>
+    public void UpdateProfile(string fullName, string country, string currency)
     {
         FullName = ValidateName(fullName);
         Country = ValidateCountry(country);
+        Currency = ValidateCurrency(currency);
         Touch();
     }
 
