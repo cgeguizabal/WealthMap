@@ -225,7 +225,7 @@ onMounted(load)
             </div>
           </header>
 
-          <div class="job__figures">
+          <div class="job__figures" data-tour="job-salary">
             <div class="job__figure">
               <span class="job__label">{{ t('job.grossMonthly') }}</span>
               <p class="numeric">{{ format(job.grossMonthlySalary, { currency: job.currency }) }}</p>

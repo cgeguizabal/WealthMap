@@ -5,6 +5,7 @@ import { useMediaQuery, DESKTOP_QUERY } from '@/composables/useMediaQuery'
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
 import OfflineBanner from './OfflineBanner.vue'
+import AppTour from '@/components/tour/AppTour.vue'
 
 const STORAGE_KEY = 'wm_sidebar_collapsed'
 
@@ -66,6 +67,10 @@ watch(drawerOpen, (open) => {
         <slot />
       </main>
     </div>
+
+    <!-- Inside the shell, so it only ever runs on authenticated screens: there
+         is nothing to tour on the login page. -->
+    <AppTour />
   </div>
 </template>
 

@@ -130,7 +130,7 @@ onMounted(loadAccounts)
           {{ t('accounts.transfer') }}
         </BaseButton>
 
-        <BaseButton variant="primary" @click="openCreate">
+        <BaseButton data-tour="accounts-add" variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ t('accounts.newAccount') }}
         </BaseButton>
@@ -167,6 +167,7 @@ onMounted(loadAccounts)
     <motion.div
       v-else
       class="grid"
+      data-tour="accounts-list"
       v-bind="fadeUp()"
     >
       <AccountCard

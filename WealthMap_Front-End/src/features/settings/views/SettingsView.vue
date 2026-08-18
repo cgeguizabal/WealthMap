@@ -8,6 +8,7 @@ import { useAsync } from '@/composables/useAsync'
 import { useToast } from '@/composables/useToast'
 import { useDoubleConfirm } from '@/composables/useDoubleConfirm'
 import { useI18n } from '@/composables/useI18n'
+import { useTourStore } from '@/stores/tour.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -21,6 +22,7 @@ import BankDefaultFormModal from '../components/BankDefaultFormModal.vue'
 const { t } = useI18n()
 const toast = useToast()
 const confirmTwice = useDoubleConfirm()
+const tour = useTourStore()
 
 const { data: defaults, loading, run: loadDefaults } = useAsync(
   bankDefaultsApi.list, { initialData: [] })
@@ -77,13 +79,30 @@ async function remove(row) {
     toast.error(err.message)
   }
 }
+
+/**
+ * Clears the record of which tours have played, so each one runs again the next
+ * time its screen is opened. Not a confirm-twice action: the worst case is
+ * seeing a tour you did not need, which is a click to dismiss.
+ */
+function replayTours() {
+  tour.resetAll()
+  toast.success(t('tour.replayed'))
+}
 </script>
 
 <template>
   <motion.div v-bind="fadeUp()">
     <PageHeader :title="t('settings.title')" :subtitle="t('settings.subtitle')" />
 
-    <BaseCard :title="t('bankDefaults.title')" :subtitle="t('bankDefaults.explain')" :padded="false">
+    <BaseCard :title="t('tour.replay')" :subtitle="t('tour.replayHint')">
+      <BaseButton variant="secondary" @click="replayTours">
+        <template #icon><BaseIcon name="info" :size="15" /></template>
+        {{ t('tour.replay') }}
+      </BaseButton>
+    </BaseCard>
+
+    <BaseCard data-tour="settings-defaults" :title="t('bankDefaults.title')" :subtitle="t('bankDefaults.explain')" :padded="false">
       <template #actions>
         <BaseButton variant="primary" size="sm" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>

@@ -110,7 +110,7 @@ onMounted(loadDebts)
   <div>
     <PageHeader :title="t('debts.title')" :subtitle="t('debts.subtitle')">
       <template #actions>
-        <BaseButton variant="primary" @click="openCreate">
+        <BaseButton data-tour="debts-add" variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ t('debts.newDebt') }}
         </BaseButton>

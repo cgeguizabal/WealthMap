@@ -119,7 +119,7 @@ onMounted(load)
       :subtitle="t('goals.subtitle')"
     >
       <template #actions>
-        <BaseButton variant="primary" @click="openCreate">
+        <BaseButton data-tour="goals-add" variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ isSavingsTab ? t('composed.newSavingsGoal') : t('composed.newProductGoal') }}
         </BaseButton>

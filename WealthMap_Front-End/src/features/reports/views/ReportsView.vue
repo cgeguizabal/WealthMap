@@ -96,7 +96,13 @@ onMounted(load)
   <div>
     <PageHeader :title="t('reports.title')" :subtitle="t('reports.subtitle')">
       <template #actions>
-        <input v-model="month" class="month-input" type="month" :aria-label="t('reports.reportMonth')" />
+        <input
+          v-model="month"
+          data-tour="reports-month"
+          class="month-input"
+          type="month"
+          :aria-label="t('reports.reportMonth')"
+        />
 
         <BaseButton variant="secondary" :loading="loading" @click="load">{{ t('reports.view') }}</BaseButton>
 

@@ -6,6 +6,146 @@
  * screen's strings stay together when it is edited.
  */
 export default {
+  tour: {
+    skip: 'Skip',
+    back: 'Back',
+    next: 'Next',
+    done: 'Got it',
+    replay: 'Show the tours again',
+    replayHint: 'Plays the short walkthrough on each screen the next time you open it.',
+    replayed: 'Tours reset. Open any screen to see it again.',
+
+    dashboard: {
+      welcome: {
+        title: 'Welcome to WealthMap',
+        body: 'A short tour on each screen, once. Skip any of them — you can replay them all from Settings.'
+      },
+      stats: {
+        title: 'Where you stand',
+        body: 'Available cash, credit still open, everything you owe, and what is safe to spend. All computed from what you have entered, never guessed.'
+      },
+      safeToSpend: {
+        title: 'Safe to spend',
+        body: 'What you can spend across accounts and cards and still pay every cutoff and due date on time. Salary you have not been paid yet counts, because a card lets you spend against it.'
+      },
+      alerts: {
+        title: 'What needs attention',
+        body: 'Cutoffs, due dates and goals that have fallen behind. Anything here has a date attached and will not wait.'
+      }
+    },
+
+    accounts: {
+      intro: {
+        title: 'Accounts',
+        body: 'Every place your money actually sits. Balances here are the ones the rest of the app reasons about.'
+      },
+      add: {
+        title: 'Add an account',
+        body: 'Name it, pick the bank and currency, and set the balance you can see in your bank right now. You can record the account number and a linked debit card too.'
+      },
+      list: {
+        title: 'Your accounts',
+        body: 'Deposit, withdraw or transfer from any card. Open one to see every movement with the balance recorded after it.'
+      }
+    },
+
+    'credit-cards': {
+      intro: {
+        title: 'Credit cards',
+        body: 'A card is not just a balance. What matters is how much falls in this statement, and when it must be paid.'
+      },
+      add: {
+        title: 'Add a card',
+        body: 'The cutoff day and payment due day are what let WealthMap tell you what is owed now versus next month. Get those two right and everything else follows.'
+      },
+      cutoff: {
+        title: 'This statement vs next',
+        body: 'Each card shows what falls in the closing statement separately from what rolls into the next one. Owing 100 does not mean paying 100 this month.'
+      }
+    },
+
+    purchases: {
+      intro: {
+        title: 'Purchases',
+        body: 'Record what you spend. Each purchase moves the account or card it was paid with, so balances stay true without editing them by hand.'
+      },
+      add: {
+        title: 'Record a purchase',
+        body: 'Pick how you paid — account, card or cash. Paying by card raises what that card owes; paying from an account lowers its balance.'
+      },
+      list: {
+        title: 'Fixing mistakes',
+        body: 'Edit or delete any purchase. A deletion reverses everything it did: the balance, the movement, and the credit it used.'
+      }
+    },
+
+    installments: {
+      intro: {
+        title: 'Installment plans',
+        body: 'Interest-free purchases split over months. The card is charged the full price up front, and the plan repays it.'
+      },
+      list: {
+        title: 'What is left',
+        body: 'Each plan shows the payments remaining and which card it belongs to. Those payments are already counted in what is safe to spend.'
+      }
+    },
+
+    debts: {
+      intro: {
+        title: 'Debts',
+        body: 'Loans and anything else you are paying down over time, separate from credit cards.'
+      },
+      add: {
+        title: 'Add a debt',
+        body: 'Record the original amount, what is left and the monthly due day. The monthly payment is then treated as committed money.'
+      }
+    },
+
+    goals: {
+      intro: {
+        title: 'Goals',
+        body: 'Two kinds: saving an amount by a date, and saving up for a specific thing.'
+      },
+      add: {
+        title: 'Set a goal',
+        body: 'Give it a target and a deadline, and WealthMap works out what you need to put aside each month to arrive on time.'
+      }
+    },
+
+    job: {
+      intro: {
+        title: 'Income',
+        body: 'Your salary and anything else that arrives regularly. This is what makes future money real to the projections.'
+      },
+      salary: {
+        title: 'Gross, deductions, net',
+        body: 'Enter your gross salary and its deductions rather than the net figure. Storing the parts means the net is always right, even when a deduction changes.'
+      }
+    },
+
+    reports: {
+      intro: {
+        title: 'Monthly report',
+        body: 'A full picture of one month: income, spending by category, every account and card, and how your goals moved.'
+      },
+      month: {
+        title: 'Pick a month',
+        body: 'Choose any month and view it, or download it as a PDF. The PDF is generated in whichever language you are using now.'
+      }
+    },
+
+    settings: {
+      intro: {
+        title: 'Settings',
+        body: 'Appearance, language and the defaults the app falls back on.'
+      },
+      bankDefaults: {
+        title: 'Bank defaults',
+        body: 'Which account to assume when a bank names none. One per bank, per direction — money in and money out can differ.'
+      }
+    }
+  },
+
   theme: {
     label: 'Appearance',
     light: 'Light',

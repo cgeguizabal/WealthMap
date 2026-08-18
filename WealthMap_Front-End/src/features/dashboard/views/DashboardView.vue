@@ -81,10 +81,13 @@ onMounted(() => {
         :currency="data.currency"
       />
 
-      <AlertsPanel :alerts="alerts" />
+      <div data-tour="dashboard-alerts">
+        <AlertsPanel :alerts="alerts" />
+      </div>
 
       <motion.section
         class="stats"
+        data-tour="dashboard-stats"
       v-bind="fadeUp()"
       >
         <StatTile
@@ -129,6 +132,7 @@ onMounted(() => {
         </StatTile>
 
         <StatTile
+          data-tour="dashboard-safe"
           :label="t('dashboard.safeToSpend')"
           :value="format(data.safeToSpend)"
           icon="target"

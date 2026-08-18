@@ -119,6 +119,7 @@ onMounted(loadPlans)
       <motion.div
         v-else
         class="grid"
+        data-tour="installments-list"
       v-bind="fadeUp()"
       >
         <PlanCard v-for="plan in visible" :key="plan.id" :plan="plan" @pay="openPay" />

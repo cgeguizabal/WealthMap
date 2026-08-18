@@ -167,7 +167,7 @@ onMounted(load)
   <motion.div v-bind="fadeUp()">
     <PageHeader :title="t('purchases.title')" :subtitle="t('purchases.subtitle')">
       <template #actions>
-        <BaseButton variant="primary" @click="openCreate">
+        <BaseButton data-tour="purchases-add" variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ t('purchases.newPurchase') }}
         </BaseButton>
@@ -208,6 +208,7 @@ onMounted(load)
       </template>
 
       <BaseTable
+        data-tour="purchases-list"
         :columns="COLUMNS"
         :rows="purchases"
         :loading="loading"

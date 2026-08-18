@@ -1,0 +1,91 @@
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  // The children opt back in; the container itself must not eat clicks meant
+  // for the spotlight cut-out.
+  pointer-events: none;
+}
+
+.tour__blocker {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+// One element does all the dimming. The spread is larger than any viewport, so
+// everything outside this box is covered while the box itself stays clear —
+// which is what makes the highlighted control still look like itself.
+.tour__spot {
+  position: fixed;
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 9999px var(--scrim);
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+  pointer-events: none;
+  transition: top var(--dur) var(--ease), left var(--dur) var(--ease),
+              width var(--dur) var(--ease), height var(--dur) var(--ease);
+}
+
+.tour__card {
+  position: fixed;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  pointer-events: auto;
+
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-raised);
+}
+
+.tour__progress {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--sp-2);
+}
+
+.tour__title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--sp-2);
+}
+
+.tour__body {
+  font-size: var(--fs-sm);
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-5);
+}
+
+.tour__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.tour__skip {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  &:hover { color: var(--text); }
+}
+
+.tour__nav {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__spot { transition: none; }
+}

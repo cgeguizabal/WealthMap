@@ -5,6 +5,146 @@
  * Keys mirror en.js exactly; the dev-only check in index.js reports drift.
  */
 export default {
+  tour: {
+    skip: 'Omitir',
+    back: 'Atrás',
+    next: 'Siguiente',
+    done: 'Entendido',
+    replay: 'Volver a mostrar los recorridos',
+    replayHint: 'Vuelve a reproducir la guía breve de cada pantalla la próxima vez que la abras.',
+    replayed: 'Recorridos reiniciados. Abre cualquier pantalla para verlos otra vez.',
+
+    dashboard: {
+      welcome: {
+        title: 'Bienvenido a WealthMap',
+        body: 'Un recorrido breve en cada pantalla, una sola vez. Puedes omitir cualquiera: se reinician desde Ajustes.'
+      },
+      stats: {
+        title: 'Cómo estás',
+        body: 'Efectivo disponible, crédito libre, todo lo que debes y cuánto puedes gastar con seguridad. Todo calculado con lo que registraste, nunca estimado.'
+      },
+      safeToSpend: {
+        title: 'Puedes gastar',
+        body: 'Lo que puedes gastar entre cuentas y tarjetas sin dejar de pagar cada corte y cada fecha límite a tiempo. El salario que aún no recibes cuenta, porque una tarjeta te permite gastar contra él.'
+      },
+      alerts: {
+        title: 'Requiere atención',
+        body: 'Cortes, fechas de pago y metas que se quedaron atrás. Todo lo que aparece aquí tiene una fecha y no espera.'
+      }
+    },
+
+    accounts: {
+      intro: {
+        title: 'Cuentas',
+        body: 'Cada lugar donde realmente está tu dinero. Estos saldos son los que usa el resto de la aplicación.'
+      },
+      add: {
+        title: 'Agregar una cuenta',
+        body: 'Ponle nombre, elige el banco y la moneda, y registra el saldo que ves ahora en tu banco. También puedes anotar el número de cuenta y la tarjeta de débito vinculada.'
+      },
+      list: {
+        title: 'Tus cuentas',
+        body: 'Deposita, retira o transfiere desde cualquier tarjeta. Ábrela para ver cada movimiento con el saldo que quedó después.'
+      }
+    },
+
+    'credit-cards': {
+      intro: {
+        title: 'Tarjetas de crédito',
+        body: 'Una tarjeta no es solo un saldo. Lo que importa es cuánto cae en este estado de cuenta y cuándo hay que pagarlo.'
+      },
+      add: {
+        title: 'Agregar una tarjeta',
+        body: 'El día de corte y el día de pago son los que permiten a WealthMap decirte qué debes ahora y qué pasa al mes siguiente. Con esos dos bien, lo demás sale solo.'
+      },
+      cutoff: {
+        title: 'Este corte y el siguiente',
+        body: 'Cada tarjeta muestra por separado lo que cae en el corte que cierra y lo que pasa al siguiente. Deber 100 no significa pagar 100 este mes.'
+      }
+    },
+
+    purchases: {
+      intro: {
+        title: 'Compras',
+        body: 'Registra lo que gastas. Cada compra mueve la cuenta o la tarjeta con la que pagaste, así los saldos se mantienen correctos sin editarlos a mano.'
+      },
+      add: {
+        title: 'Registrar una compra',
+        body: 'Elige cómo pagaste: cuenta, tarjeta o efectivo. Pagar con tarjeta aumenta lo que esa tarjeta debe; pagar desde una cuenta baja su saldo.'
+      },
+      list: {
+        title: 'Corregir errores',
+        body: 'Edita o elimina cualquier compra. Al eliminarla se revierte todo lo que hizo: el saldo, el movimiento y el crédito que usó.'
+      }
+    },
+
+    installments: {
+      intro: {
+        title: 'Planes de cuotas',
+        body: 'Compras sin intereses divididas en meses. La tarjeta se carga con el precio completo desde el inicio, y el plan lo va pagando.'
+      },
+      list: {
+        title: 'Lo que falta',
+        body: 'Cada plan muestra las cuotas que faltan y a qué tarjeta pertenece. Esas cuotas ya están contadas en lo que puedes gastar con seguridad.'
+      }
+    },
+
+    debts: {
+      intro: {
+        title: 'Deudas',
+        body: 'Préstamos y todo lo demás que estás pagando poco a poco, aparte de las tarjetas de crédito.'
+      },
+      add: {
+        title: 'Agregar una deuda',
+        body: 'Registra el monto original, lo que falta y el día de pago mensual. La cuota pasa a contarse como dinero comprometido.'
+      }
+    },
+
+    goals: {
+      intro: {
+        title: 'Metas',
+        body: 'Dos tipos: ahorrar una cantidad para una fecha, y ahorrar para algo concreto.'
+      },
+      add: {
+        title: 'Crear una meta',
+        body: 'Ponle un objetivo y una fecha límite, y WealthMap calcula cuánto necesitas apartar cada mes para llegar a tiempo.'
+      }
+    },
+
+    job: {
+      intro: {
+        title: 'Ingresos',
+        body: 'Tu salario y todo lo demás que llega con regularidad. Esto es lo que hace que el dinero futuro sea real para las proyecciones.'
+      },
+      salary: {
+        title: 'Bruto, deducciones, neto',
+        body: 'Registra tu salario bruto y sus deducciones en lugar del neto. Guardar las partes hace que el neto siempre sea correcto, incluso si cambia una deducción.'
+      }
+    },
+
+    reports: {
+      intro: {
+        title: 'Reporte mensual',
+        body: 'La foto completa de un mes: ingresos, gasto por categoría, cada cuenta y tarjeta, y cómo avanzaron tus metas.'
+      },
+      month: {
+        title: 'Elige un mes',
+        body: 'Escoge cualquier mes y míralo, o descárgalo en PDF. El PDF se genera en el idioma que estés usando.'
+      }
+    },
+
+    settings: {
+      intro: {
+        title: 'Ajustes',
+        body: 'Apariencia, idioma y los valores por defecto a los que recurre la aplicación.'
+      },
+      bankDefaults: {
+        title: 'Cuentas por banco',
+        body: 'Qué cuenta suponer cuando un banco no nombra ninguna. Una por banco y por dirección: el dinero que entra y el que sale pueden ser distintas.'
+      }
+    }
+  },
+
   theme: {
     label: 'Apariencia',
     light: 'Claro',

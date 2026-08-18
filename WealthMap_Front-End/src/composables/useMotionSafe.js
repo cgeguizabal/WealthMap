@@ -4,7 +4,11 @@
  * the user has asked for reduced motion, instead of every component repeating
  * the check.
  */
-const prefersReduced = () =>
+/**
+ * Exported because the guided tour needs it too: it scrolls a target into view,
+ * and a smooth scroll is motion the same rule covers.
+ */
+export const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -31,7 +35,7 @@ const still = () => ({ initial: { opacity: 1 }, animate: { opacity: 1 }, transit
 
 /** Entrance for page sections and card grids. */
 export function fadeUp({ delay = 0, distance = 16 } = {}) {
-  if (prefersReduced()) return still()
+  if (prefersReducedMotion()) return still()
 
   return {
     initial: { opacity: 0, y: distance },
@@ -46,7 +50,7 @@ export function fadeUp({ delay = 0, distance = 16 } = {}) {
  * The stagger is capped so a long list does not turn into a slow wave.
  */
 export function fadeInRow(index, { step = 0.035, max = 0.2, distance = 10 } = {}) {
-  if (prefersReduced()) return still()
+  if (prefersReducedMotion()) return still()
 
   const delay = Math.min(index * step, max)
 

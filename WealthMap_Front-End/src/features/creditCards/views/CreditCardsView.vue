@@ -110,7 +110,7 @@ onMounted(loadCards)
   <div>
     <PageHeader :title="t('cards.title')" :subtitle="t('cards.subtitle')">
       <template #actions>
-        <BaseButton variant="primary" @click="openCreate">
+        <BaseButton data-tour="cards-add" variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ t('cards.newCard') }}
         </BaseButton>
@@ -155,6 +155,7 @@ onMounted(loadCards)
     <motion.div
       v-else
       class="grid"
+      data-tour="cards-list"
       v-bind="fadeUp()"
     >
       <CreditCardTile
