@@ -6,17 +6,17 @@ import lightArtwork from '@/assets/Logo/Logo_LightMode.png'
 import darkArtwork from '@/assets/Logo/Logo_DarkMode.png'
 
 /**
- * The full wordmark: "WealthMap" over the tagline.
+ * The WealthMap wordmark.
  *
- * Sized by width, because the artwork is 3.91:1 and the height follows. Callers
- * know how much horizontal room they have; none of them think in logo heights.
+ * Sized by width, and only by width: callers know how much horizontal room they
+ * have, and none of them think in logo heights. The ratio is deliberately not
+ * written down anywhere — not here either — because the artwork has already
+ * changed shape once and a number in a comment goes stale as quietly as one in
+ * a stylesheet.
  *
- * A note on the tagline. It occupies the bottom fifth of the artwork, which puts
- * it at roughly 2% of the logo's width in cap height — legible at about 320px
- * wide, a grey smudge below about 200px. That is a property of the file rather
- * than of this component: the small placements here render the name clearly and
- * the tagline decoratively, which is the usual fate of a lockup used at two very
- * different scales. A wordmark-only asset would fix it if it ever matters.
+ * The height is deliberately not declared anywhere — see the stylesheet. It
+ * comes from the file, so changing the artwork changes the shape and nothing
+ * needs updating to match.
  *
  * Theme picked in JavaScript for the same reason as WealthMapIcon: the app has
  * three theme states and CSS can only see two of them.

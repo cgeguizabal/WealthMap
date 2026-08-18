@@ -40,7 +40,7 @@ function isActive(item) {
       <!-- Small enough for the collapsed rail, where it is the only thing
            left standing for the app. -->
       <WealthMapIcon :size="28" />
-      <WealthMapLogo class="sidebar__wordmark" :width="122" />
+      <WealthMapLogo class="sidebar__wordmark" :width="132" />
 
       <button
         class="sidebar__toggle"

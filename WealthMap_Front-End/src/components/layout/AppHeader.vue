@@ -89,7 +89,7 @@ async function logout() {
 
     <RouterLink to="/" class="header__brand">
       <WealthMapIcon :size="26" />
-      <WealthMapLogo class="header__wordmark" :width="112" />
+      <WealthMapLogo class="header__wordmark" :width="118" />
     </RouterLink>
 
     <div class="header__spacer" />

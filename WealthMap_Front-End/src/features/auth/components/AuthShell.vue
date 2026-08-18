@@ -31,7 +31,7 @@ defineProps({
         <WealthMapIcon :size="64" />
 
         <div class="auth__names">
-          <WealthMapLogo :width="180" />
+          <WealthMapLogo :width="196" />
           <span class="auth__version">{{ VERSION_LABEL }}</span>
         </div>
       </header>

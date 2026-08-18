@@ -1,20 +1,34 @@
 .logo {
   /**
-   * Fluid by default so the logo shrinks with a narrow phone and stops growing
-   * once it is comfortably readable. Callers with a known slot pass `width`,
-   * which overrides this.
+   * Fluid by default so the wordmark shrinks with a narrow phone and stops
+   * growing once it is comfortably readable. Callers with a known slot pass
+   * `width`, which overrides this.
    */
   --logo-width: clamp(140px, 40vw, 260px);
 
   inline-size: var(--logo-width);
 
   /**
-   * Derived, never set. The artwork is 1053×269, and letting the height come
-   * from the ratio is what guarantees the lettering is never stretched — which
-   * is the one thing that would make a wordmark look counterfeit.
+   * Derived from the file, never declared.
+   *
+   * There was an `aspect-ratio: 1053 / 269` here, taken from the artwork at the
+   * time. The artwork changed to 1053×222 and the declaration did not, which
+   * stretched the lettering by a fifth — silently, because nothing about a
+   * wrong ratio looks like an error until you compare it to the original.
+   *
+   * With only `inline-size` set and the height left alone, the browser uses the
+   * image's own intrinsic ratio. That cannot drift from the file because it *is*
+   * the file. The cost is a small layout shift before the image loads, which for
+   * a 27 KB local asset is worth paying to never distort the wordmark again.
    */
   block-size: auto;
-  aspect-ratio: 1053 / 269;
+
+  /**
+   * Insurance, not layout. Nothing here sets a ratio, but if anyone reintroduces
+   * one this makes the failure a little extra padding rather than a stretched
+   * wordmark — which is the one thing that makes a brand look counterfeit.
+   */
+  object-fit: contain;
 
   // An image is not a flex item to be compressed.
   flex: none;

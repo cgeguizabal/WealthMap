@@ -15,8 +15,9 @@ import darkArtwork from '@/assets/Icon/Icon_DarkMode.png'
  * already resolved all three, including reacting when the OS flips while
  * "system" is selected.
  *
- * The two files are not square — 768×630 — so the artwork is contained inside
- * the square tile rather than filling it. Nothing here scales or crops the mark.
+ * The artwork is not square, so it is contained inside the square tile rather
+ * than filling it. Nothing here scales or crops the mark, and nothing records
+ * its dimensions — the logo component learned that lesson the hard way.
  */
 const props = defineProps({
   /**

@@ -60,7 +60,7 @@ const body = computed(() => renderMarkdown(source.value))
     -->
     <header class="legal__brand">
       <WealthMapIcon :size="56" />
-      <WealthMapLogo :width="240" />
+      <WealthMapLogo :width="232" />
     </header>
 
     <p class="legal__beta" role="note">
