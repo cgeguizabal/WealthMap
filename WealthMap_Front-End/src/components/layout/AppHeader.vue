@@ -8,6 +8,7 @@ import { useDashboardStore } from '@/stores/dashboard.store'
 import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import LanguageSelector from './LanguageSelector.vue'
+import ThemeSelector from './ThemeSelector.vue'
 
 defineProps({
   /** Only shown when the sidebar is off-screen — otherwise its own toggle is visible. */
@@ -118,6 +119,8 @@ async function logout() {
             <p class="menu__email">{{ auth.user?.email }}</p>
             <p class="menu__currency">{{ t('common.totalsShownIn', { currency: auth.currency }) }}</p>
           </div>
+
+          <ThemeSelector />
 
           <LanguageSelector />
 

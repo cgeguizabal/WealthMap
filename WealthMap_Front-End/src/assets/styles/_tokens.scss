@@ -1,4 +1,8 @@
-:root {
+/* ── Light palette ────────────────────────────
+   Every colour in the app comes from here. Nothing else in the codebase should
+   contain a hex value: a hardcoded colour is one that ignores the theme, and
+   the failure is silent — it looks right in whichever mode it was written in. */
+@mixin light-palette {
   /* ── Surfaces ─────────────────────────────── */
   --canvas:        #F3F2EE;
   --canvas-alt:    #ECE9E2;
@@ -7,6 +11,8 @@
 
   /* ── Ink & text ───────────────────────────── */
   --ink:           #201F1D;
+  /* Text placed *on* --ink, which is a background in several places. */
+  --on-ink:        #F3F2EE;
   --text:          #201F1D;
   --text-muted:    #6B6A65;
   --text-subtle:   #C0BFB7;
@@ -14,6 +20,8 @@
   /* ── Brand ────────────────────────────────── */
   --accent:        #212F46;
   --accent-hover:  #2C3D5A;
+  --accent-soft:   #E6E9EF;
+  --on-accent:     #FFFFFF;
   --gold:          #CBB697;
 
   /* ── Semantics (money) ────────────────────── */
@@ -21,22 +29,87 @@
   --positive-soft: #E4EBE4;
   --negative:      #8C3B32;
   --negative-soft: #F3E3E1;
+  --negative-hover: #7A332B;
+  --on-negative:   #FFFFFF;
   --warning:       #8A6A2F;
   --warning-soft:  #F5EDDD;
 
   /* ── Shape ────────────────────────────────── */
-  --radius:        6px;
-  --radius-sm:     4px;
   /* Softer than ink so outlines frame content without stamping it. */
   --border-color:  #5C5A55;
-  --border:        1.4px solid var(--border-color);
-  --border-subtle: 1px solid var(--line);
 
   /* ── Flat shadows (hard offset, zero blur) ──
      Warm mid-grey rather than ink: keeps the stamped, flat character while
      reading far softer against the canvas. */
   --shadow-color:  #BDBAB2;
-  --shadow-color-modal: #4e4e4e;
+  --shadow-color-modal: #4E4E4E;
+
+  /* Dims the page behind a modal or the mobile drawer. */
+  --scrim: rgba(32, 31, 29, 0.45);
+}
+
+/* ── Dark palette ─────────────────────────────
+   Not an inversion. The light theme is warm — a paper canvas, hard offset
+   shadows, a stamped look — and a mechanical flip produces cold grey and loses
+   that entirely. These are warm near-blacks, and every colour the light theme
+   uses at full strength is lightened rather than reused: --accent at #212F46 is
+   nearly black, and would vanish against the canvas here. */
+@mixin dark-palette {
+  /* ── Surfaces ─────────────────────────────── */
+  --canvas:        #171614;
+  --canvas-alt:    #201E1B;
+  /* Lighter than the canvas: cards lift by being paler, as they do in light. */
+  --surface:       #1E1C1A;
+  --line:          #322F2B;
+
+  /* ── Ink & text ───────────────────────────── */
+  --ink:           #F0EEE9;
+  --on-ink:        #171614;
+  --text:          #EDEBE6;
+  --text-muted:    #A6A29A;
+  --text-subtle:   #6E6A63;
+
+  /* ── Brand ────────────────────────────────── */
+  --accent:        #93AACF;
+  --accent-hover:  #A9BCDB;
+  --accent-soft:   #28323F;
+  /* The accent is now the light colour, so what sits on it must be dark. */
+  --on-accent:     #171614;
+  --gold:          #D6C3A6;
+
+  /* ── Semantics (money) ────────────────────── */
+  /* Lightened until they carry against the dark canvas. The light theme's
+     #3F5D45 and #8C3B32 are legible on paper and nearly invisible here. */
+  --positive:      #86B394;
+  --positive-soft: #22301F;
+  --negative:      #E09287;
+  --negative-soft: #3A2723;
+  --negative-hover: #C97C71;
+  --on-negative:   #171614;
+  --warning:       #DCB878;
+  --warning-soft:  #362D1C;
+
+  /* ── Shape ────────────────────────────────── */
+  --border-color:  #55504A;
+
+  /* ── Flat shadows ─────────────────────────── */
+  /* Darker than the canvas rather than lighter: a hard offset only reads as a
+     shadow if it is the darker thing. */
+  --shadow-color:  #0C0B0A;
+  --shadow-color-modal: #000000;
+
+  --scrim: rgba(0, 0, 0, 0.65);
+}
+
+:root {
+  @include light-palette;
+
+  /* ── Shape (theme-independent) ────────────── */
+  --radius:        6px;
+  --radius-sm:     4px;
+  --border:        1.4px solid var(--border-color);
+  --border-subtle: 1px solid var(--line);
+
   --shadow-sm:     3px 3px 0 var(--shadow-color);
   --shadow:        6px 6px 0 var(--shadow-color);
   --shadow-lg:     6px 6px 0 var(--shadow-color);
@@ -65,3 +138,30 @@
   --dur-fast: 120ms;
   --dur: 200ms;
 }
+
+/* Following the system is the default, and the only state with no attribute on
+   the root element. `:not([data-theme='light'])` is what lets an explicit light
+   choice win on a machine set to dark — without it, choosing light would do
+   nothing there. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-palette;
+  }
+}
+
+/* An explicit choice, set by the theme store. Last so it beats the media query
+   in both directions. */
+:root[data-theme='dark'] {
+  @include dark-palette;
+}
+
+:root[data-theme='light'] {
+  @include light-palette;
+}
+
+/* The browser's own surfaces — form controls, scrollbars, the space past the
+   end of a scroll. Without this they stay light and the page looks bolted onto
+   the wrong chrome. */
+:root[data-theme='dark'] { color-scheme: dark; }
+:root[data-theme='light'] { color-scheme: light; }
+:root:not([data-theme]) { color-scheme: light dark; }

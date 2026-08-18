@@ -74,7 +74,7 @@
   border-radius: 9px;
 
   background: var(--negative);
-  color: #fff;
+  color: var(--on-negative);
   font-size: 10px;
   font-weight: var(--fw-semibold);
   line-height: 1;
@@ -104,7 +104,7 @@
   height: 26px;
 
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-radius: 50%;
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);

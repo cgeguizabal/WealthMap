@@ -1,0 +1,47 @@
+// Deliberately the same shape as LanguageSelector: both live in the same menu,
+// and two segmented controls that almost match would read as a mistake.
+.theme {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.theme__label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.theme__options {
+  display: flex;
+  gap: var(--sp-1);
+  padding: 2px;
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--canvas-alt);
+}
+
+.theme__option {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-1) var(--sp-2);
+
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-sm) - 1px);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+
+  @include focus-ring;
+
+  &:hover { color: var(--text); }
+
+  &.is-active {
+    background: var(--surface);
+    border-color: var(--border-color);
+    color: var(--text);
+  }
+}

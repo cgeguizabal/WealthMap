@@ -5,6 +5,13 @@
  * Keys mirror en.js exactly; the dev-only check in index.js reports drift.
  */
 export default {
+  theme: {
+    label: 'Apariencia',
+    light: 'Claro',
+    dark: 'Oscuro',
+    system: 'Según el sistema'
+  },
+
   language: {
     label: 'Idioma',
     english: 'English',

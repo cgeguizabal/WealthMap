@@ -6,6 +6,13 @@
  * screen's strings stay together when it is edited.
  */
 export default {
+  theme: {
+    label: 'Appearance',
+    light: 'Light',
+    dark: 'Dark',
+    system: 'Match system'
+  },
+
   language: {
     label: 'Language',
     english: 'English',

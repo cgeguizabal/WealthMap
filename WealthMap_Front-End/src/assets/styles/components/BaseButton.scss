@@ -35,7 +35,7 @@
 /* ── Variants ──────────────────────────────── */
 .btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   border-color: var(--border-color);
 
   &:hover:not(:disabled) { background: var(--accent-hover); }
@@ -43,9 +43,9 @@
 
 .btn--danger {
   background: var(--negative);
-  color: #fff;
+  color: var(--on-negative);
 
-  &:hover:not(:disabled) { background: #7a332b; }
+  &:hover:not(:disabled) { background: var(--negative-hover); }
 }
 
 .btn--ghost {
