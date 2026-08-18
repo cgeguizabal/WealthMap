@@ -58,8 +58,8 @@ digits that identify your accounts are encrypted before they are stored, so a
 stolen copy of the database does not show whose figures it holds. Two limits
 come with that, and the [Privacy Policy](./PRIVACY_POLICY.md) sets both out in
 section 5: amounts, dates and categories are not encrypted, because the app has
-to calculate with them; and the operator holds the keys, so the operator can
-read your data. Nothing here should be read as a promise that no one can.
+to calculate with them; and the operator can read your data. Nothing here should
+be read as a promise that no one can.
 
 ## 6. Acceptable use
 
@@ -124,4 +124,4 @@ means accepting the new version; if you do not accept it, ask for deletion.
 
 ## 13. Contact
 
-**cgeguizabal@gmail.com**
+**[Contact address to be added before launch.]**

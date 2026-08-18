@@ -127,7 +127,9 @@ deliberate — an app that boots and fails later fails somewhere nobody is watch
 - [ ] Both Spanish translations reviewed too — `PRIVACY_POLICY.es.md` and
       `TERMS_OF_SERVICE.es.md` carry the same commitments and need the same scrutiny.
 - [ ] `POLICY_VERSION` in `src/config/legal.js` matches the version headers in all four Markdown files.
-- [ ] The contact address in both documents is one that is actually monitored.
+- [ ] **A contact address is still missing from all four legal documents.** They carry a visible
+      placeholder. A privacy policy needs a way to reach the operator for access and portability
+      requests — deletion is self-service now, but those are not.
 - [ ] The privacy policy still describes what the software does. It currently states that the
       operator holds the keys and can read user data — if that ever stops being true, say so; if it
       stays true, do not soften it.

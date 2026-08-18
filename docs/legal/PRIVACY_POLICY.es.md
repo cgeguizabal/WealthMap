@@ -21,7 +21,7 @@ tarjetas, compras y metas, y la aplicación calcula cuánto puedes gastar sin qu
 ## 2. Quién es responsable
 
 WealthMap lo opera un desarrollador individual ("el operador", "nosotros").
-Contacto: **cgeguizabal@gmail.com**.
+Contacto: **[Dirección de contacto pendiente de agregar antes del lanzamiento.]**
 
 Al ser un proyecto personal y no una empresa, no hay un delegado de protección de datos ni un
 equipo de privacidad. Las solicitudes llegan a esa dirección y las atiende una sola persona.
@@ -35,7 +35,7 @@ Todo lo de esta lista lo escribes tú. No hay ninguna otra fuente.
 | Categoría | Ejemplos | Para qué |
 |---|---|---|
 | Identidad de la cuenta | Nombre completo, correo electrónico, país, moneda de referencia | Crear tu cuenta, iniciar sesión y dar formato a montos y fechas |
-| Credenciales | Contraseña | Se guarda únicamente como hash con sal — ver 5.4 |
+| Credenciales | Contraseña | Se guarda solo en una forma que no puede leerse de vuelta — ver 5.4 |
 | Cuentas bancarias | Nombre de la cuenta, banco, tipo, saldo, últimos cuatro dígitos, tarjeta de débito vinculada, notas | Los saldos con los que razona la aplicación |
 | Tarjetas de crédito | Nombre de la tarjeta, banco, límite, saldo adeudado, tasa de interés, fechas de corte y pago, últimos cuatro dígitos, notas | Proyectar cuánto debes y cuándo |
 | Gastos | Compras, montos, fechas, categorías, comercios, planes de cuotas, notas | Dar seguimiento al gasto y a los compromisos a plazos |
@@ -72,8 +72,7 @@ nada.
 
 ### 5.1 Cifrado en reposo
 
-Estas columnas se cifran individualmente antes de escribirse, con AES-256-GCM y una llave de
-256 bits:
+Estas columnas se cifran antes de escribirse:
 
 - tu nombre completo, correo electrónico y país;
 - nombres de cuentas, notas, dígitos de cuenta y dígitos de tarjeta de débito;
@@ -81,12 +80,11 @@ Estas columnas se cifran individualmente antes de escribirse, con AES-256-GCM y 
 - nombres de deudas, notas de compras, nombres de metas de ahorro y de producto;
 - títulos y mensajes de las notificaciones, y su contenido.
 
-GCM es un modo autenticado, lo que significa que un valor alterado directamente en la base de
-datos falla al descifrarse en lugar de devolver en silencio algo que parezca válido.
+Un valor alterado directamente en la base de datos falla al descifrarse en lugar de devolver en
+silencio algo que parezca válido.
 
-Tu correo electrónico se guarda además como un hash con llave, bajo una llave **distinta**, para
-que el inicio de sesión pueda encontrar tu cuenta sin que la base de datos guarde una copia
-consultable de la dirección.
+Tu correo electrónico se guarda además en una forma que permite al inicio de sesión encontrar tu
+cuenta sin que la base de datos guarde una copia legible de la dirección.
 
 ### 5.2 Qué logra y qué no logra este cifrado
 
@@ -95,8 +93,8 @@ filtrado, una cuenta de hosting comprometida, una instantánea mal configurada�
 las llaves, y las llaves no están guardadas en ella.
 
 **No pone tus datos fuera del alcance del operador.** La aplicación descifra tus datos en cada
-pantalla que abres, así que las llaves viven en su configuración, y el operador controla esa
-configuración. Esto es seudonimización, no cifrado de extremo a extremo ni de conocimiento cero.
+pantalla que abres, así que las llaves tienen que estar a su alcance, y el operador las controla.
+Esto no es cifrado de extremo a extremo ni de conocimiento cero.
 
 Dicho sin rodeos: **el operador tiene la capacidad técnica de leer tus datos.** Quien te diga que
 un diseño como este lo impide está describiendo otro sistema. Si no te sentirías cómodo con que
@@ -128,14 +126,14 @@ reposo.
 
 ### 5.4 Contraseñas
 
-Tu contraseña se guarda únicamente como un hash con sal. No se cifra, porque cifrar implicaría que
-se puede revertir. El operador no puede leer tu contraseña ni decirte cuál es: una contraseña
-olvidada solo puede reemplazarse.
+Tu contraseña no se guarda, y tampoco se cifra: cifrar implicaría que se puede revertir. Lo que se
+guarda no puede convertirse de vuelta en tu contraseña. El operador no puede leerla ni decirte cuál
+es; una contraseña olvidada solo puede reemplazarse.
 
 ### 5.5 En tránsito
 
-El tráfico viaja por HTTPS. Las cookies de sesión son HttpOnly y Secure, de modo que el JavaScript
-del navegador no puede leerlas.
+El tráfico viaja cifrado. Las cookies de sesión no pueden ser leídas por scripts que se ejecuten en
+tu navegador.
 
 ## 6. Dónde se guarda y quién más lo toca
 
@@ -151,8 +149,9 @@ Según la región de alojamiento, los datos pueden almacenarse fuera de tu país
 
 ## 7. Cookies
 
-Una sola cookie: el token de renovación que te mantiene con la sesión iniciada. Es HttpOnly, Secure,
-SameSite y expira. No hay cookies de analítica ni de publicidad, así que no hay nada que rechazar.
+Una sola cookie: el token que te mantiene con la sesión iniciada. Expira y no puede ser leída por
+scripts que se ejecuten en tu navegador. No hay cookies de analítica ni de publicidad, así que no
+hay nada que rechazar.
 
 ## 8. Cuánto tiempo se conserva
 
@@ -186,4 +185,4 @@ queda registrada en tu cuenta, así que siempre es posible saber qué texto acep
 
 ## 12. Contacto
 
-**cgeguizabal@gmail.com**
+**[Dirección de contacto pendiente de agregar antes del lanzamiento.]**

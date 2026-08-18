@@ -22,7 +22,7 @@ purchases and goals, and it works out what you can safely spend.
 ## 2. Who is responsible
 
 WealthMap is operated by an individual developer ("the operator", "we").
-Contact: **cgeguizabal@gmail.com**.
+Contact: **[Contact address to be added before launch.]**
 
 Because WealthMap is a personal project rather than a company, there is no data
 protection officer and no formal privacy team. Requests go to the address above
@@ -37,7 +37,7 @@ Everything in this list is typed in by you. There is no other source.
 | Category | Examples | Why |
 |---|---|---|
 | Account identity | Full name, email address, country, display currency | To create your account, sign you in, and format money and dates |
-| Credentials | Password | Stored only as a salted hash — see 5.4 |
+| Credentials | Password | Stored only in a form that cannot be read back — see 5.4 |
 | Bank accounts | Account name, bank, type, balance, last four digits, linked debit card, notes | The balances the app reasons about |
 | Credit cards | Card name, bank, limit, balance owed, interest rate, cutoff and due days, last four digits, notes | To project what is owed and when |
 | Spending | Purchases, amounts, dates, categories, stores, installment plans, notes | To track spending and installment commitments |
@@ -74,8 +74,7 @@ market anything to you.
 
 ### 5.1 Encryption at rest
 
-These columns are encrypted individually before being written, using AES-256-GCM
-with a 256-bit key:
+These columns are encrypted before being written:
 
 - your full name, email address and country;
 - account names, notes, account digits and debit card digits;
@@ -83,12 +82,11 @@ with a 256-bit key:
 - debt names, purchase notes, savings and product goal names;
 - notification titles, messages and their contents.
 
-GCM is an authenticated mode, which means a value altered directly in the
-database fails to decrypt rather than quietly returning something plausible.
+A value altered directly in the database fails to decrypt rather than quietly
+returning something plausible.
 
-Your email address is additionally stored as a keyed hash, under a **separate**
-key, so that sign-in can find your account without the database holding a
-searchable copy of the address itself.
+Your email address is also stored in a form that lets sign-in find your account
+without the database holding a readable copy of the address itself.
 
 ### 5.2 What encryption here does and does not do
 
@@ -97,9 +95,9 @@ backup, a compromised hosting account, a misconfigured snapshot — is not
 readable without the keys, which are not stored in it.
 
 **It does not put your data beyond the operator's reach.** The application
-decrypts your data on every page you load, so the keys live in the
-application's configuration, and the operator controls that configuration. This
-is pseudonymisation, not end-to-end or zero-knowledge encryption.
+decrypts your data on every page you load, so the keys have to be available to
+it, and the operator controls them. This is not end-to-end or zero-knowledge
+encryption.
 
 Stated plainly: **the operator is technically able to read your data.** Anyone
 who tells you a design like this one prevents that is describing a different
@@ -135,14 +133,15 @@ things qualify it:
 
 ### 5.4 Passwords
 
-Your password is stored only as a salted hash. It is not encrypted, because
-encryption implies it could be reversed. The operator cannot read your password
-and cannot tell you what it is — a forgotten password can only be replaced.
+Your password is not stored, and not encrypted either — encryption implies it
+could be reversed. What is stored cannot be turned back into your password. The
+operator cannot read it and cannot tell you what it is; a forgotten password can
+only be replaced.
 
 ### 5.5 In transit
 
-Traffic is served over HTTPS. Session cookies are marked HttpOnly and Secure,
-so browser JavaScript cannot read them.
+Traffic is encrypted in transit. Session cookies cannot be read by scripts
+running in your browser.
 
 ## 6. Where it is stored and who else touches it
 
@@ -158,9 +157,9 @@ Depending on the hosting region, data may be stored outside your country.
 
 ## 7. Cookies
 
-One cookie: the refresh token that keeps you signed in. It is HttpOnly, Secure,
-SameSite, and expires. There are no analytics or advertising cookies, so there
-is nothing to opt out of.
+One cookie: the token that keeps you signed in. It expires, and it cannot be
+read by scripts running in your browser. There are no analytics or advertising
+cookies, so there is nothing to opt out of.
 
 ## 8. How long it is kept
 
@@ -198,4 +197,4 @@ to tell which text you agreed to.
 
 ## 12. Contact
 
-**cgeguizabal@gmail.com**
+**[Contact address to be added before launch.]**
