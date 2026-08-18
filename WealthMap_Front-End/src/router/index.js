@@ -99,6 +99,22 @@ const routes = [
     name: 'settings',
     component: () => import('@/features/settings/views/SettingsView.vue')
   },
+  // Public, and reachable while signed in: someone who wants to re-read what
+  // they agreed to should not have to sign out to do it. The guard below sends
+  // authenticated visitors away from other public routes, so these are named
+  // explicitly as the exception.
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: () => import('@/features/legal/views/LegalDocumentView.vue'),
+    meta: { public: true, layout: 'blank', alwaysPublic: true }
+  },
+  {
+    path: '/terms',
+    name: 'terms',
+    component: () => import('@/features/legal/views/LegalDocumentView.vue'),
+    meta: { public: true, layout: 'blank', alwaysPublic: true }
+  },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -121,8 +137,14 @@ router.beforeEach((to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  // Already logged in, visiting login/register → send home
-  if (to.meta.public && auth.isAuthenticated && to.name !== 'not-found') {
+  // Already logged in, visiting login/register → send home. The legal pages and
+  // the 404 stay reachable either way.
+  if (
+    to.meta.public &&
+    auth.isAuthenticated &&
+    to.name !== 'not-found' &&
+    !to.meta.alwaysPublic
+  ) {
     return { name: 'dashboard' }
   }
 

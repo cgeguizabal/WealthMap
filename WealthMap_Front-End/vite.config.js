@@ -83,6 +83,16 @@ export default defineConfig({
 
   server: {
     port: 5173,
+
+    fs: {
+      // The legal pages import docs/legal/*.md directly, which sits above the
+      // Vite root. One copy of that text exists, and it is the one a lawyer will
+      // eventually mark up — a duplicate inside src/ would drift the moment
+      // either was edited. The build resolves these fine on its own; only the
+      // dev server needs telling.
+      allow: ['..']
+    },
+
     proxy: {
       '/api': {
         target: 'http://localhost:5015',

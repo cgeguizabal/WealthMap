@@ -138,7 +138,17 @@ export default {
     signUp: 'Create account',
     createOne: 'Create one',
     noAccount: 'No account yet?',
-    haveAccount: 'Already have an account?'
+    haveAccount: 'Already have an account?',
+    acceptTerms: 'I accept the {terms} and the {privacy}.',
+    acceptTermsRequired: 'You must accept the Terms of Service and Privacy Policy.'
+  },
+
+  legal: {
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
+    backToApp: '← Back to WealthMap',
+    draftLabel: 'Draft.',
+    draftNotice: 'This document has not been reviewed by a lawyer. It describes what the software does today, and is not legal advice.'
   },
 
   dashboard: {

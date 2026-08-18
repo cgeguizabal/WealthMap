@@ -3,6 +3,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { NAV_GROUPS } from './navigation.js'
 import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
+import { LEGAL_ROUTES } from '@/config/legal'
 
 defineProps({
   /** Drives the mobile drawer; ignored at desktop widths. */
@@ -68,6 +69,17 @@ function isActive(item) {
         </RouterLink>
       </div>
     </nav>
+
+    <!-- Hidden when the rail is collapsed: at that width there is no room for
+         text, and an icon for "Privacy Policy" would be a guess. -->
+    <footer v-if="!collapsed" class="sidebar__legal">
+      <RouterLink :to="LEGAL_ROUTES.privacy" @click="emit('navigate')">
+        {{ t('legal.privacy') }}
+      </RouterLink>
+      <RouterLink :to="LEGAL_ROUTES.terms" @click="emit('navigate')">
+        {{ t('legal.terms') }}
+      </RouterLink>
+    </footer>
   </aside>
 </template>
 

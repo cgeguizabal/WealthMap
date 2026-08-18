@@ -1,0 +1,123 @@
+.legal {
+  max-width: 74ch;
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-5) var(--sp-16);
+}
+
+.legal__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+  font-size: var(--fs-sm);
+}
+
+// Loud on purpose. This is the one thing on the page a reader must not miss,
+// and it stops being true only when someone deletes the flag in config/legal.js.
+.legal__draft {
+  border: var(--border);
+  border-left-width: 4px;
+  border-left-color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  margin-bottom: var(--sp-8);
+
+  strong { margin-right: var(--sp-1); }
+}
+
+// Everything below styles markup produced by renderMarkdown, which is why the
+// selectors are bare elements rather than classes: there is no template here to
+// hang a class on.
+.legal-doc {
+  color: var(--text);
+  line-height: 1.65;
+  font-size: var(--fs-base);
+
+  h1 {
+    font-size: var(--fs-2xl);
+    line-height: 1.2;
+    margin-bottom: var(--sp-2);
+  }
+
+  h2 {
+    font-size: var(--fs-lg);
+    margin: var(--sp-10) 0 var(--sp-3);
+    padding-bottom: var(--sp-2);
+    border-bottom: var(--border-subtle);
+  }
+
+  h3 {
+    font-size: var(--fs-md);
+    margin: var(--sp-6) 0 var(--sp-2);
+  }
+
+  p { margin-bottom: var(--sp-4); }
+
+  ul {
+    margin: 0 0 var(--sp-4) var(--sp-5);
+    padding: 0;
+  }
+
+  li { margin-bottom: var(--sp-2); }
+
+  hr {
+    border: 0;
+    border-top: var(--border-subtle);
+    margin: var(--sp-8) 0;
+  }
+
+  blockquote {
+    margin: 0 0 var(--sp-6);
+    padding: var(--sp-4);
+    background: var(--canvas-alt);
+    border-left: 4px solid var(--text-subtle);
+    border-radius: var(--radius-sm);
+
+    p:last-child { margin-bottom: 0; }
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    background: var(--canvas-alt);
+    padding: 1px 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  strong { font-weight: var(--fw-semibold); }
+
+  // The data table is the widest thing on either page, and the only element
+  // that would otherwise force the whole document to scroll sideways on a phone.
+  .legal-doc__table-scroll {
+    overflow-x: auto;
+    margin-bottom: var(--sp-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: var(--border-subtle);
+    vertical-align: top;
+  }
+
+  th {
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+  }
+}

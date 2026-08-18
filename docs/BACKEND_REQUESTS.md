@@ -5,31 +5,37 @@ workaround — but each costs something, noted below. The backend was not modifi
 
 ---
 
-## 1. `AuthResultDto` does not return the user's currency
+## 1. `AuthResultDto` does not return the user's currency — *resolved*
+
+**Resolved 18 August 2026.** `currency` is now part of the auth response, added alongside the PII
+encryption work:
+
+```json
+{ "userId": "...", "email": "...", "fullName": "...", "currency": "USD", "token": "..." }
+```
+
+`auth.store.js` reads it in `persist`, so money is formatted correctly from the first render after
+both register and login. `setCurrency` survives as the correction path from the dashboard response,
+which still matters if the profile changed in another session.
+
+---
+
+**Original report, for the record.**
 
 **Found:** building `useMoney`, which formats every monetary value in the user's profile currency.
 
-`POST /api/v1/auth/register` and `/login` return:
+`POST /api/v1/auth/register` and `/login` returned:
 
 ```json
 { "userId": "...", "email": "...", "fullName": "...", "token": "..." }
 ```
 
 The user's `currency` is stored on the `users` row and drives the dashboard and monthly report, but
-it is never sent to the client. `src/stores/auth.store.js` already reads `response.currency`, which
-is always `undefined`, so it silently falls back to `"USD"`.
+was never sent to the client, so `response.currency` was always `undefined` and the store fell back
+to `"USD"`.
 
-**Impact:** a user whose profile currency is MXN would see every amount in the UI labelled USD until
-they open the dashboard.
-
-**Workaround in place:**
-- On **register**, the currency is in the form the user just submitted, so the store persists that.
-- On **login**, it is unknown. The dashboard response includes `currency`, so `dashboard.store.js`
-  calls `auth.setCurrency(...)` once loaded, correcting it for the session.
-- Until that first dashboard load, formatting falls back to `USD`.
-
-**Ideal fix:** add `currency` to `AuthResultDto` (one field, no new endpoint), or add
-`GET /api/v1/users/me` returning the full profile.
+**Impact:** a user whose profile currency was MXN saw every amount labelled USD until the dashboard
+loaded.
 
 ---
 
@@ -37,7 +43,7 @@ they open the dashboard.
 
 **Found:** planning the account/settings area.
 
-There is no `GET /api/v1/users/me` and no way to update name, country, birth date or currency.
+There is no `GET /api/v1/users/me` and no way to update name, country or currency.
 `User.UpdateProfile(...)` and `ChangePassword(...)` exist on the domain entity but no command,
 handler or controller action exposes them.
 

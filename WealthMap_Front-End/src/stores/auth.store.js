@@ -67,9 +67,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * The auth response does not carry the profile currency (see
-   * docs/BACKEND_REQUESTS.md #1), so it is set from the value the user typed at
-   * registration and corrected from the dashboard response after login.
+   * The auth response now carries the profile currency, so this is no longer
+   * how the currency first arrives — `persist` above sets it. It remains as the
+   * correction path: the dashboard response is authoritative if the profile
+   * changed in another session, and this is a no-op when the two agree.
    */
   function setCurrency(code) {
     if (!code || !user.value || user.value.currency === code) return

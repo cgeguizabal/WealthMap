@@ -7,6 +7,7 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
+import { POLICY_VERSION, LEGAL_ROUTES } from '@/config/legal'
 
 const { t, locale } = useI18n()
 
@@ -45,16 +46,44 @@ const values = reactive({
   currency: 'USD'
 })
 
+const acceptedTerms = ref(false)
+
 const fieldErrors = ref({})
 const formError = ref(null)
 
 const submitting = computed(() => auth.loading)
 
+/**
+ * The consent sentence, split around its two link placeholders.
+ *
+ * Built this way rather than concatenated in the template because word order
+ * differs between languages — "I accept the {terms} and the {privacy}" against
+ * "Acepto los {terms} y la {privacy}" — and hard-coding the order in markup
+ * would quietly mistranslate one of them.
+ */
+const consentParts = computed(() =>
+  t('auth.acceptTerms')
+    .split(/(\{terms\}|\{privacy\})/)
+    .filter((part) => part !== '')
+)
+
 async function onSubmit() {
   fieldErrors.value = {}
   formError.value = null
 
-  const ok = await auth.register({ ...values })
+  // Checked here as well as by the API. The server is the authority — a client
+  // that skipped this would still be refused — but a round trip to be told
+  // about a checkbox on screen is a poor way to find out.
+  if (!acceptedTerms.value) {
+    fieldErrors.value = { acceptedTerms: t('auth.acceptTermsRequired') }
+    return
+  }
+
+  const ok = await auth.register({
+    ...values,
+    acceptedTerms: acceptedTerms.value,
+    policyVersion: POLICY_VERSION
+  })
 
   if (!ok) {
     const error = auth.error
@@ -62,9 +91,6 @@ async function onSubmit() {
     else formError.value = error?.message ?? 'Could not create your account.'
     return
   }
-
-  // The API does not echo the currency back, so keep the one just chosen.
-  auth.setCurrency(values.currency)
 
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
   router.replace(redirect)
@@ -127,7 +153,42 @@ async function onSubmit() {
         :error="fieldErrors.currency"
       />
 
-      <BaseButton type="submit" variant="primary" size="lg" block :loading="submitting">
+      <div class="consent">
+        <label class="consent__row">
+          <input v-model="acceptedTerms" type="checkbox" class="consent__box" />
+
+          <span class="consent__text">
+            <template v-for="(part, index) in consentParts" :key="index">
+              <RouterLink v-if="part === '{terms}'" :to="LEGAL_ROUTES.terms" target="_blank">
+                {{ t('legal.terms') }}
+              </RouterLink>
+              <RouterLink
+                v-else-if="part === '{privacy}'"
+                :to="LEGAL_ROUTES.privacy"
+                target="_blank"
+              >
+                {{ t('legal.privacy') }}
+              </RouterLink>
+              <template v-else>{{ part }}</template>
+            </template>
+          </span>
+        </label>
+
+        <p v-if="fieldErrors.acceptedTerms" class="consent__error" role="alert">
+          {{ fieldErrors.acceptedTerms }}
+        </p>
+      </div>
+
+      <!-- Disabled until the box is ticked, so the requirement is visible before
+           the click rather than after it. -->
+      <BaseButton
+        type="submit"
+        variant="primary"
+        size="lg"
+        block
+        :loading="submitting"
+        :disabled="!acceptedTerms"
+      >
         {{ t('auth.signUp') }}
       </BaseButton>
     </form>

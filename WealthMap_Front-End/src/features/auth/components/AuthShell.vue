@@ -1,7 +1,9 @@
 <script setup>
 import { motion } from 'motion-v'
 import { fadeUp } from '@/composables/useMotionSafe'
+import { RouterLink } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
+import { LEGAL_ROUTES } from '@/config/legal'
 
 const { t } = useI18n()
 
@@ -35,6 +37,15 @@ defineProps({
     </motion.div>
 
     <p class="auth__legal">{{ t('auth.brandTagline') }}</p>
+
+    <!-- Reachable before signing up, not only from inside the app. Someone
+         deciding whether to create an account is exactly who needs to read
+         these. -->
+    <nav class="auth__links">
+      <RouterLink :to="LEGAL_ROUTES.privacy">{{ t('legal.privacy') }}</RouterLink>
+      <span aria-hidden="true">·</span>
+      <RouterLink :to="LEGAL_ROUTES.terms">{{ t('legal.terms') }}</RouterLink>
+    </nav>
   </main>
 </template>
 
