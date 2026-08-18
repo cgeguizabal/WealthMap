@@ -9,6 +9,7 @@ import { useToast } from '@/composables/useToast'
 import { useDashboardStore } from '@/stores/dashboard.store'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
+import { useDoubleConfirm } from '@/composables/useDoubleConfirm'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -26,11 +27,13 @@ const { t, locale } = useI18n()
 const { format } = useMoney()
 const toast = useToast()
 const dashboard = useDashboardStore()
+const confirmTwice = useDoubleConfirm()
 const pagination = usePagination({ pageSize: 20 })
 
 const purchases = ref([])
 const loading = ref(false)
 const formOpen = ref(false)
+const editing = ref(null)
 
 const now = new Date()
 const filters = ref({ year: now.getFullYear(), month: now.getMonth() + 1, category: null })
@@ -70,7 +73,8 @@ const COLUMNS = computed(() => [
   { key: 'storeName', label: t('purchases.store'), width: '160px' },
   { key: 'category', label: t('common.category'), width: '150px' },
   { key: 'paymentMethod', label: t('purchases.method'), width: '150px' },
-  { key: 'amount', label: t('common.amount'), align: 'right', width: '130px' }
+  { key: 'amount', label: t('common.amount'), align: 'right', width: '130px' },
+  { key: 'actions', label: '', align: 'right', width: '96px' }
 ])
 
 const { label: serverLabel } = useServerText()
@@ -113,9 +117,46 @@ function clearFilters() {
   applyFilters()
 }
 
+function openCreate() {
+  editing.value = null
+  formOpen.value = true
+}
+
+function openEdit(purchase) {
+  editing.value = purchase
+  formOpen.value = true
+}
+
 function onSaved() {
   applyFilters()
   dashboard.invalidate()
+}
+
+/**
+ * Correcting a purchase moves money back, so the confirmation says which way and
+ * how much rather than asking a generic "are you sure".
+ */
+async function remove(purchase) {
+  const confirmed = await confirmTwice({
+    title: t('purchases.deleteTitle'),
+    message: t('purchases.deleteMessage', {
+      name: purchase.productName,
+      amount: format(purchase.amount, { currency: purchase.currency })
+    }),
+    secondMessage: t('purchases.deleteSecond')
+  })
+
+  if (!confirmed) return
+
+  try {
+    await purchasesApi.remove(purchase.id)
+    toast.success(t('purchases.deletedToast', { name: purchase.productName }))
+    onSaved()
+  } catch (err) {
+    // The server refuses when a card has been paid below the charge — that
+    // message explains why, so it is shown rather than a generic failure.
+    toast.error(err.message)
+  }
 }
 
 watch(pagination.page, load)
@@ -126,7 +167,7 @@ onMounted(load)
   <motion.div v-bind="fadeUp()">
     <PageHeader :title="t('purchases.title')" :subtitle="t('purchases.subtitle')">
       <template #actions>
-        <BaseButton variant="primary" @click="formOpen = true">
+        <BaseButton variant="primary" @click="openCreate">
           <template #icon><BaseIcon name="plus" :size="15" /></template>
           {{ t('purchases.newPurchase') }}
         </BaseButton>
@@ -208,6 +249,33 @@ onMounted(load)
         <template #cell-amount="{ row }">
           <span class="numeric amount">{{ format(row.amount, { currency: row.currency }) }}</span>
         </template>
+
+        <!-- Icon-only, since the row is already dense. Both carry a title and an
+             aria-label so the action is named for a pointer and a screen reader. -->
+        <template #cell-actions="{ row }">
+          <div class="row-actions">
+            <BaseButton
+              size="sm"
+              variant="ghost"
+              :title="t('common.edit')"
+              :aria-label="t('purchases.editAria', { name: row.productName })"
+              @click="openEdit(row)"
+            >
+              <template #icon><BaseIcon name="pencil" :size="14" /></template>
+            </BaseButton>
+
+            <BaseButton
+              class="row-actions__delete"
+              size="sm"
+              variant="ghost"
+              :title="t('common.delete')"
+              :aria-label="t('purchases.deleteAria', { name: row.productName })"
+              @click="remove(row)"
+            >
+              <template #icon><BaseIcon name="trash" :size="14" /></template>
+            </BaseButton>
+          </div>
+        </template>
       </BaseTable>
 
       <template v-if="purchases.length" #footer>
@@ -228,7 +296,7 @@ onMounted(load)
       @update:page="pagination.goTo($event)"
     />
 
-    <PurchaseFormModal v-model="formOpen" @saved="onSaved" />
+    <PurchaseFormModal v-model="formOpen" :purchase="editing" @saved="onSaved" />
   </motion.div>
 </template>
 

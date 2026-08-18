@@ -43,7 +43,7 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Offline | vite-plugin-pwa |
 
 **18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
-**82** component stylesheets, **780** translation keys per language.
+**82** component stylesheets, **789** translation keys per language.
 
 ---
 
@@ -971,6 +971,18 @@ The purchase form swaps its required field by payment method and clears the prev
 switch, matching the API's constructor invariant. Cash is the only method that asks for a currency.
 Stores are a shared catalogue: `isMine` controls whether an edit button renders, and a broken
 `logoUrl` falls back to a monogram. The store picker creates inline and selects what it created.
+
+**Every row can be corrected or removed.** The same modal serves both — passing a `purchase` prop
+puts it in edit mode, and it translates `paymentMethod` back from the response name to the integer a
+request needs, keyed off the same map the labels use so the two cannot drift.
+
+Deleting moves money back, so the confirmation **says which way and how much** rather than asking a
+generic "are you sure", and it runs through the double confirmation used everywhere destructive. The
+second dialog is explicit that the purchase and its movement are gone for good.
+
+The catch block shows the server's own message rather than a generic failure. Reversing a charge on a
+card that has since been paid down is refused, and that message explains why — replacing it would
+leave the user with no idea what to do next.
 
 ### 8.7 Installments — `/installments`, `/installments/:id`
 

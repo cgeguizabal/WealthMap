@@ -112,6 +112,33 @@ public class CreditCard : BaseEntity
         Touch();
     }
 
+    /// <summary>
+    /// Undoes a charge that should never have been made.
+    /// </summary>
+    /// <remarks>
+    /// Distinct from <see cref="RegisterPayment"/> even though both reduce the
+    /// balance, because they mean opposite things: a payment is money that left an
+    /// account, while this is the correction of a record. Routing a correction
+    /// through RegisterPayment would put a payment the user never made into the
+    /// arithmetic that decides what is still owed.
+    ///
+    /// Refused when the balance has already fallen below the charge — paid down
+    /// since, most likely. Allowing it would drive UsedCredit negative, which the
+    /// card cannot represent, and would quietly invent credit that is not there.
+    /// </remarks>
+    public void ReverseCharge(Money amount)
+    {
+        EnsureValidAmount(amount);
+
+        if (amount > UsedCredit)
+            throw new DomainException(
+                $"Cannot reverse {amount} on '{CardName}': only {UsedCredit} is still owed. " +
+                "The balance has been paid down since this charge was made.");
+
+        UsedCredit = UsedCredit - amount;
+        Touch();
+    }
+
     public void RegisterPayment(Money amount)
     {
         EnsureValidAmount(amount);

@@ -50,6 +50,75 @@ public class Purchase : BaseEntity
         if (occurredAt.Kind != DateTimeKind.Utc)
             throw new DomainException("Purchase date must be UTC.");
 
+        EnsureInstrumentMatchesMethod(paymentMethod, accountId, creditCardId);
+
+        UserId = userId;
+        ProductName = ValidateText(productName, "Product name");
+        Amount = amount;
+        OccurredAt = occurredAt;
+        StoreId = storeId;
+        Category = ValidateText(category, "Category");
+        PaymentMethod = paymentMethod;
+        AccountId = accountId;
+        CreditCardId = creditCardId;
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+    }
+
+    /// <summary>
+    /// Corrects a purchase that was recorded wrongly.
+    /// </summary>
+    /// <remarks>
+    /// Every field is editable, including the payment method and the instrument,
+    /// because "I put it on the wrong card" is the correction people actually need
+    /// and forcing a delete-and-retype to get it would lose the record's identity.
+    ///
+    /// This changes the *record* only. The money it moved is reversed and reapplied
+    /// by the caller, which is the one place that can see the account and card
+    /// involved — an entity cannot reach across to another aggregate to do it.
+    /// </remarks>
+    public void Update(
+        string productName,
+        Money amount,
+        DateTime occurredAt,
+        Guid? storeId,
+        string category,
+        PaymentMethod paymentMethod,
+        Guid? accountId,
+        Guid? creditCardId,
+        string? notes)
+    {
+        if (amount.IsZero || amount.IsNegative)
+            throw new DomainException("Purchase amount must be greater than zero.");
+
+        if (occurredAt.Kind != DateTimeKind.Utc)
+            throw new DomainException("Purchase date must be UTC.");
+
+        EnsureInstrumentMatchesMethod(paymentMethod, accountId, creditCardId);
+
+        ProductName = ValidateText(productName, "Product name");
+        Amount = amount;
+        OccurredAt = occurredAt;
+        StoreId = storeId;
+        Category = ValidateText(category, "Category");
+        PaymentMethod = paymentMethod;
+        AccountId = accountId;
+        CreditCardId = creditCardId;
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+
+        Touch();
+    }
+
+    /// <summary>
+    /// A purchase names exactly the instrument its method implies, and no other.
+    /// </summary>
+    /// <remarks>
+    /// Shared by the constructor and <see cref="Update"/>. Two copies would let a
+    /// correction write a combination creation refuses — a debit purchase pointing
+    /// at a credit card, say — and nothing downstream is prepared for that.
+    /// </remarks>
+    private static void EnsureInstrumentMatchesMethod(
+        PaymentMethod paymentMethod, Guid? accountId, Guid? creditCardId)
+    {
         switch (paymentMethod)
         {
             case PaymentMethod.DebitAccount when accountId is null || accountId == Guid.Empty:
@@ -67,17 +136,6 @@ public class Purchase : BaseEntity
                     throw new DomainException("Payment method must be DebitAccount, CreditCard or Cash.");
                 break;
         }
-
-        UserId = userId;
-        ProductName = ValidateText(productName, "Product name");
-        Amount = amount;
-        OccurredAt = occurredAt;
-        StoreId = storeId;
-        Category = ValidateText(category, "Category");
-        PaymentMethod = paymentMethod;
-        AccountId = accountId;
-        CreditCardId = creditCardId;
-        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
     }
 
     private static string ValidateText(string value, string field) =>

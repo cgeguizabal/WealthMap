@@ -565,6 +565,35 @@ purchase response carries it, including the one returned by `POST /purchases`.
 
 ### `GET /api/v1/purchases/{id}`
 
+### `PUT /api/v1/purchases/{id}`
+
+Same body as `POST`. **200** → the corrected `PurchaseDto`.
+
+Everything is editable, **including the payment method and the instrument** — "it went on the other
+card" is the correction people actually need. The server reverses what the purchase did and applies
+it afresh rather than adjusting by a difference, so a method change is handled by the same path as an
+amount change.
+
+Currency follows the instrument. Moving a purchase from a dollar card to a peso account re-denominates
+the amount; only cash carries an explicit `currency`.
+
+Same validation as creating one. **400** if the method and instrument disagree, the amount is not
+positive, or the date is in the future.
+
+### `DELETE /api/v1/purchases/{id}` → **204**
+
+A **real delete**, unlike accounts and cards, which archive. The money is put back: a debit purchase
+refunds the account and removes the movement it wrote, a credit purchase un-charges the card, a cash
+purchase moves nothing.
+
+Later movements on that account are **rebased**, so the running balance still adds up after the
+removal. What is lost is the record that this purchase ever existed — accepted deliberately, because
+a mistyped purchase is noise in every total rather than history worth keeping.
+
+**400 when the card has been paid below the charge**: *"Cannot reverse 55.00 USD on 'Visa': only
+20.00 USD is still owed."* Reversing would drive used credit negative, which the card cannot
+represent. Pay history has moved on; the purchase can no longer be un-charged.
+
 ---
 
 ## Installment purchases (tasa 0)

@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<Common.Services.SessionIssuer>();
         services.AddScoped<Common.Services.CardStatementLoader>();
         services.AddScoped<Common.Services.InstallmentContextLoader>();
+        services.AddScoped<Common.Services.PurchaseEffects>();
 
         services.RegisterImplementationsOf(assembly, typeof(IRequestHandler<,>));
         services.RegisterImplementationsOf(assembly, typeof(IValidator<>));

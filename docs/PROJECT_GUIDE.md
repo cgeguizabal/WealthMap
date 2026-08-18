@@ -491,7 +491,8 @@ No delete endpoint — purchases reference stores, and deleting one would orphan
 The DTO exposes `isMine` rather than the creator's id, so other users' ids never leak.
 
 ### 4.7 Purchases
-`GET|POST /api/v1/purchases`, `GET /{id}`. Filters: `?year=&month=&category=&page=&pageSize=`.
+`GET|POST /api/v1/purchases`, `GET|PUT|DELETE /{id}`.
+Filters: `?year=&month=&category=&page=&pageSize=`.
 
 The constructor enforces method-specific invariants: debit requires an account and forbids a card,
 credit the inverse, cash forbids both. Then:
@@ -511,6 +512,34 @@ are a shared catalogue behind their own repository and a `Purchase` holds only t
 handler resolves a whole page in one lookup, and create returns the name too — it already had the
 store in hand to prove it existed. `null` stays meaningful: cash purchases frequently name no store,
 and a store leaving the catalogue does not invalidate the purchases that referenced it.
+
+**Correcting a purchase.** `PUT` and `DELETE` both go through `PurchaseEffects`, which puts a
+purchase's money effects on and takes them off again. A purchase is not a row: depending on its
+method it withdrew from an account and wrote a movement, or charged a card, or did neither.
+
+- **`DELETE`** reverses exactly what it did — refunds the account or un-charges the card, removes the
+  movement, and drops the row.
+- **`PUT`** is a reversal followed by a fresh application. Adjusting by the difference would only
+  hold while the method and instrument stayed the same, and the correction people most need is the
+  one that breaks that: *"it went on the other card."* Undoing and redoing handles every case through
+  one path and reuses the code creation already trusts. Reversing happens **first**, so moving a
+  purchase within a nearly-full card still fits.
+
+**A real delete, not an archive** — unlike accounts and cards (§6.11). Nothing points at a purchase,
+and a mistyped one is not history worth keeping; it is noise in every total it touches. The accepted
+cost is that the movement it wrote is destroyed, so nothing records that the purchase ever existed.
+
+**What is not sacrificed is the coherence of what remains.** Every later movement on that account
+recorded a `BalanceAfter` that assumed this one happened. `AccountMovement.RebaseBalanceAfter` shifts
+them by the reversed amount — the single mutation on an otherwise immutable record, and it exists to
+keep that record honest rather than to edit it. Without it the running balance would visibly stop
+adding up while the account itself was correct.
+
+`CreditCard.ReverseCharge` is deliberately distinct from `RegisterPayment` even though both reduce
+the balance: a payment is money that left an account, this is the correction of a record, and routing
+one through the other would put a payment the user never made into the arithmetic deciding what is
+owed. It **refuses** when the balance has already been paid below the charge, rather than driving
+used credit negative and inventing credit that is not there.
 
 ### 4.8 Installment purchases (tasa 0)
 `GET|POST /api/v1/installment-purchases`, `GET /{id}`, `POST /{id}/pay`.

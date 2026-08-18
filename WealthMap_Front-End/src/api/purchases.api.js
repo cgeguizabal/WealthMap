@@ -7,7 +7,19 @@ export const purchasesApi = {
    */
   list: (params = {}) => client.get('/purchases', { params }),
   get: (id) => client.get(`/purchases/${id}`),
-  create: (payload) => client.post('/purchases', payload)
+  create: (payload) => client.post('/purchases', payload),
+
+  /**
+   * Same body as `create`. The server reverses what the purchase did and reapplies
+   * it, so the payment method and instrument can change too.
+   */
+  update: (id, payload) => client.put(`/purchases/${id}`, payload),
+
+  /**
+   * A real delete, not an archive: the account is refunded or the card un-charged,
+   * and the movement it wrote is removed.
+   */
+  remove: (id) => client.delete(`/purchases/${id}`)
 }
 
 export const PAYMENT_METHOD = { DEBIT: 1, CREDIT: 2, CASH: 3 }
