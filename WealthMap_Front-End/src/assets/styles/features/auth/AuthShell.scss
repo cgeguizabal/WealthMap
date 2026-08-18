@@ -21,20 +21,27 @@
 }
 
 .auth__brand {
-  display: flex;
+  /**
+   * Grid rather than nested flex boxes, so the wordmark centres against the
+   * icon alone. Stacking the icon and the version in a column first would make
+   * that column taller than the tile, and a flex row would then centre the
+   * wordmark against the pair — sitting it visibly low, and needing a hand-
+   * calculated offset to correct. Numbers like that go stale the moment either
+   * size changes.
+   */
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
   align-items: center;
-  gap: var(--sp-4);
+
+  column-gap: var(--sp-4);
+  row-gap: var(--sp-2);
+
   margin-bottom: var(--sp-8);
 }
 
-// The name and the version sit together beside the tile, so the tile's height
-// governs the row rather than the type doing it.
-.auth__names {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--sp-1);
-}
+.auth__icon { grid-area: 1 / 1; }
+.auth__logo { grid-area: 1 / 2; }
 
 .auth__heading { margin-bottom: var(--sp-6); }
 
@@ -86,7 +93,12 @@
 
 // A quiet maturity marker, not a decoration: it sits with the wordmark so the
 // claim travels with the name.
+// Under the icon and centred on it. The chip is narrower than the tile, so
+// aligning it left would read as a misalignment rather than as a label.
 .auth__version {
+  grid-area: 2 / 1;
+  justify-self: center;
+
   font-size: var(--fs-xs);
   color: var(--text-muted);
   border: var(--border-subtle);

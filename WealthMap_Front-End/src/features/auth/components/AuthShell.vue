@@ -27,13 +27,15 @@ defineProps({
         screen with room for the actual application icon, and the one where a
         person is deciding whether to trust the thing in front of them.
       -->
+      <!--
+        Two columns, two rows. The icon and the wordmark share the first row and
+        centre on each other; the version sits in the second, under the icon,
+        because it describes the application rather than the brand.
+      -->
       <header class="auth__brand">
-        <WealthMapIcon :size="64" />
-
-        <div class="auth__names">
-          <WealthMapLogo :width="196" />
-          <span class="auth__version">{{ VERSION_LABEL }}</span>
-        </div>
+        <WealthMapIcon class="auth__icon" :size="64" />
+        <WealthMapLogo class="auth__logo" :width="196" />
+        <span class="auth__version">{{ VERSION_LABEL }}</span>
       </header>
 
       <div class="auth__heading">
