@@ -13,22 +13,35 @@
 .sidebar__brand {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-5);
+
+  /**
+   * The row did not fit. Icon, wordmark and toggle came to 214px inside 192px
+   * of usable width, and the wordmark could not give any back — it is an image
+   * carrying flex: none, which outranks a flex: 1 set from here. So the toggle
+   * lost the difference and sat crushed against the edge.
+   *
+   * Narrower horizontal padding and a tighter gap buy the room; the toggle then
+   * takes what is left rather than what is spare.
+   */
+  gap: var(--sp-2);
+  padding: var(--sp-5) var(--sp-4);
   flex: none;
 }
 
 
 
-// Takes the room left between the icon and the collapse toggle. The logo sets
-// its own width; this only stops the row from distributing space oddly.
-.sidebar__wordmark { flex: 1; }
+// Pushes the toggle to the right edge. Not flex: 1 — the logo is an image and
+// declines to be stretched, so asking it to fill the row did nothing.
+.sidebar__wordmark { margin-inline-end: auto; }
 
 .sidebar__toggle {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+
+  // 34 rather than 30: it is the only control in the brand row and was the one
+  // thing being squeezed. A little larger is also a better pointer target.
+  width: 34px;
+  height: 34px;
   flex: none;
 
   border: 1px solid transparent;
