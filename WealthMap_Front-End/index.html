@@ -2,8 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
+    <!--
+      The dark mark on navy. It is opaque on purpose: a tab strip can be light
+      or dark, and the near-white lettering on transparency would be a blank
+      square on a light one. Two sizes because browsers pick, and 32 is what
+      most of them actually draw.
+    -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+
+    <!-- The light mark on white, which is what a home screen installs. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#201F1D" />
     <meta name="description" content="What you have, what you owe, and what is safe to spend." />
     <link rel="preconnect" href="https://fonts.googleapis.com">

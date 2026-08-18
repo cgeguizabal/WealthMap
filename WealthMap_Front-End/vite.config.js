@@ -8,7 +8,11 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon.svg', 'icon-maskable.svg'],
+      includeAssets: [
+        'favicon-32.png',
+        'favicon-64.png',
+        'apple-touch-icon.png'
+      ],
 
       manifest: {
         name: 'WealthMap',
@@ -21,14 +25,24 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         categories: ['finance', 'productivity'],
+        // The light mark on an opaque white square. Both properties matter:
+        // a non-square icon gets letterboxed by the launcher, and iOS renders
+        // transparency in a home-screen icon as solid black — which would put
+        // navy lettering on black.
+        //
+        // The maskable one carries far more padding because Android crops to a
+        // circle of 80% diameter and keeps only what survives.
         icons: [
-          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: '/icon-maskable.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' }
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
 
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        // png is here for the app icons: an installed PWA that cannot draw its
+        // own icon offline is a poor look, and they are a few KB each.
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
 
         // The shell is served from cache so the app opens offline; any deep link
         // falls back to index.html and the router takes it from there.
