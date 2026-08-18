@@ -46,6 +46,16 @@
 
   /* Dims the page behind a modal or the mobile drawer. */
   --scrim: rgba(32, 31, 29, 0.45);
+
+  /* ── App icon tile ────────────────────────────
+     The one surface that carries the brand mark rather than content, so it gets
+     its own tokens: a white card, a metallic ring just inside the gold border,
+     and a soft shadow. Soft rather than the flat offset used everywhere else —
+     this is an application tile, not a panel, and the hard stamp reads as UI. */
+  --tile-surface:      #FFFFFF;
+  --tile-ring:         rgb(203 182 151 / 22%);
+  --tile-shadow-near:  rgb(32 31 29 / 6%);
+  --tile-shadow-far:   rgb(32 31 29 / 8%);
 }
 
 /* ── Dark palette ─────────────────────────────
@@ -99,6 +109,16 @@
   --shadow-color-modal: #000000;
 
   --scrim: rgba(0, 0, 0, 0.65);
+
+  /* ── App icon tile ────────────────────────────
+     The brand navy, which is --accent's light-mode value. It does not follow
+     --accent here: that token flips to a pale blue in dark mode because it is
+     read as text, and a pale blue tile would be a lamp rather than a card. The
+     navy sits clearly above the warm near-black canvas without glowing. */
+  --tile-surface:      #212F46;
+  --tile-ring:         rgb(255 255 255 / 7%);
+  --tile-shadow-near:  rgb(0 0 0 / 45%);
+  --tile-shadow-far:   rgb(0 0 0 / 35%);
 }
 
 :root {

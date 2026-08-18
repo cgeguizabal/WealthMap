@@ -1,0 +1,77 @@
+.tile {
+  /**
+   * Everything below is derived from one length, so the component has no fixed
+   * dimensions and no breakpoints. Overriding `--tile-size` — which the `size`
+   * prop does — rescales the radius, the padding and the ring together.
+   *
+   * The default is fluid rather than a number: on a phone it shrinks with the
+   * viewport, on a desktop it stops growing at 112px, which is about where an
+   * application tile stops reading as an icon and starts reading as a picture.
+   */
+  --tile-size: clamp(64px, 16vw, 112px);
+
+  /**
+   * Roughly 23% of the width — the proportion Apple and Google both settled on
+   * for application icons, and the reason a rounded square reads as an app at
+   * any size. A fixed 24–28px would be nearly circular at 64px and barely
+   * rounded at 200px; the clamp keeps it in that band where the tile is around
+   * the size the brief describes.
+   */
+  --tile-radius: clamp(9px, calc(var(--tile-size) * 0.23), 28px);
+
+  /** Generous, and proportional: the mark never crowds the gold ring. */
+  --tile-padding: calc(var(--tile-size) * 0.15);
+
+  display: inline-grid;
+  place-items: center;
+
+  inline-size: var(--tile-size);
+  aspect-ratio: 1 / 1;
+  padding: var(--tile-padding);
+
+  border-radius: var(--tile-radius);
+  background: var(--tile-surface);
+
+  /**
+   * A hairline of gold, not an outline of it. `border` rather than `outline` so
+   * it follows the radius, and 1px rather than a scaled width so it stays a
+   * hairline at every size — a 2px gold edge on a 64px tile reads as a frame.
+   */
+  border: 1px solid var(--gold);
+
+  /**
+   * Three layers, all faint. The inset ring sits just inside the border and is
+   * what makes the gold read as metal rather than as a drawn line; the two
+   * shadows lift the tile off the canvas the way a physical card would.
+   *
+   * Deliberately not the flat offset shadow the rest of the app uses. That is
+   * the language of panels and buttons — of interface — and this is an object
+   * sitting on the page rather than a piece of the page.
+   *
+   * The far shadow is expressed as a fraction of the tile rather than in fixed
+   * pixels, which is what lets one rule serve a 48px tile and a 112px one. At
+   * 96px it works out to roughly the 0 8px 24px the brief describes; at 48px it
+   * halves, instead of spreading further than the tile is wide and reading as a
+   * blur rather than as depth.
+   */
+  box-shadow:
+    inset 0 0 0 1px var(--tile-ring),
+    0 1px 2px var(--tile-shadow-near),
+    0 calc(var(--tile-size) * 0.083) calc(var(--tile-size) * 0.25) var(--tile-shadow-far);
+}
+
+.tile__art {
+  /**
+   * Contained, never cropped or stretched. The artwork is 768×630, so a square
+   * tile has to letterbox it — `contain` is what keeps the mark the shape its
+   * designer drew.
+   */
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+
+  // Nothing here should be draggable as a loose image out of the tile.
+  user-select: none;
+  -webkit-user-drag: none;
+}
+

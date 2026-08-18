@@ -4,6 +4,7 @@ import { fadeUp } from '@/composables/useMotionSafe'
 import { RouterLink } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import { LEGAL_ROUTES } from '@/config/legal'
+import WealthMapIcon from '@/components/brand/WealthMapIcon.vue'
 import { VERSION_LABEL } from '@/config/app'
 
 const { t } = useI18n()
@@ -20,10 +21,18 @@ defineProps({
       class="auth__panel"
       v-bind="fadeUp()"
     >
+      <!--
+        The tile replaces the WM lettermark here and only here. This is the one
+        screen with room for the actual application icon, and the one where a
+        person is deciding whether to trust the thing in front of them.
+      -->
       <header class="auth__brand">
-        <span class="auth__mark">WM</span>
-        <span class="auth__wordmark">WealthMap</span>
-        <span class="auth__version">{{ VERSION_LABEL }}</span>
+        <WealthMapIcon :size="64" />
+
+        <div class="auth__names">
+          <span class="auth__wordmark">WealthMap</span>
+          <span class="auth__version">{{ VERSION_LABEL }}</span>
+        </div>
       </header>
 
       <div class="auth__heading">
