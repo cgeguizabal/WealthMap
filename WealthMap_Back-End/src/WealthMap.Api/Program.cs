@@ -19,6 +19,11 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // startup, so paydays that passed while the app was stopped are not skipped.
 builder.Services.AddHostedService<WealthMap.Api.BackgroundServices.SalaryPostingRunner>();
 
+// Removes long-expired refresh tokens. Rotation writes a row per refresh, so
+// this is the one table that would otherwise grow for the lifetime of the app.
+builder.Services
+    .AddHostedService<WealthMap.Api.BackgroundServices.RefreshTokenCleanupRunner>();
+
 
 
 

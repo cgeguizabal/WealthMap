@@ -141,8 +141,6 @@ deliberate — an app that boots and fails later fails somewhere nobody is watch
 
 Real, and not addressed by this work:
 
-- **Expired refresh tokens are never purged.** `DeleteExpiredAsync` exists; nothing calls it. The
-  table grows without bound.
 - **Account deletion is by email request**, not self-service. The cascade is in place; the endpoint
   is not.
 - **No key rotation procedure.** The `v1:` prefix makes rotation *possible* — a `v2` service can
