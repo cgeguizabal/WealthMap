@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Common;
 
 namespace WealthMap.Infrastructure.Persistence;
@@ -17,7 +18,11 @@ namespace WealthMap.Infrastructure.Persistence;
 /// decrypts (a no-op on plaintext, by design), write encrypts — so the column
 /// list lives in the entity configurations and nowhere else. A hand-written SQL
 /// version would be a second copy of that list, free to drift from the first.
-/// Saving users also fills email_lookup, because SaveChanges syncs it.
+///
+/// One step cannot work that way. users.email_lookup has to be seeded with raw
+/// SQL first, because EF cannot read a users row until it holds a value — see
+/// SeedEmailLookupAsync. Everything after that, users included, goes through the
+/// model.
 ///
 /// Re-running is a genuine no-op, not merely a harmless one: each table is asked
 /// which rows still lack the v1: envelope, and an already-converted database
@@ -27,11 +32,16 @@ namespace WealthMap.Infrastructure.Persistence;
 public sealed class PiiEncryptionRunner
 {
     private readonly WealthMapDbContext _db;
+    private readonly IEncryptionService _encryption;
     private readonly ILogger<PiiEncryptionRunner> _logger;
 
-    public PiiEncryptionRunner(WealthMapDbContext db, ILogger<PiiEncryptionRunner> logger)
+    public PiiEncryptionRunner(
+        WealthMapDbContext db,
+        IEncryptionService encryption,
+        ILogger<PiiEncryptionRunner> logger)
     {
         _db = db;
+        _encryption = encryption;
         _logger = logger;
     }
 
@@ -48,8 +58,11 @@ public sealed class PiiEncryptionRunner
     {
         var results = new List<TableResult>
         {
-            // users first: everything else is meaningless without an account that
-            // can still sign in, so if the blind index is going to fail, fail here.
+            // Must come first, and must not go through EF. See the method below.
+            new("users.email_lookup", await SeedEmailLookupAsync(ct)),
+
+            // users next: everything else is meaningless without an account that
+            // can still sign in, so if this is going to fail, fail here.
             new("users", await EncryptAsync(
                 _db.Users, "users", "email NOT LIKE 'v1:%' OR email_lookup IS NULL", ct)),
 
@@ -78,6 +91,82 @@ public sealed class PiiEncryptionRunner
         };
 
         return results;
+    }
+
+    /// <summary>
+    /// Fills <c>users.email_lookup</c> with raw SQL, before EF touches the table.
+    /// </summary>
+    /// <remarks>
+    /// This exists because of a mismatch the rest of the runner does not have.
+    /// The EF model describes the *finished* state, where email_lookup is NOT
+    /// NULL; this runner executes in the *intermediate* state, where the column
+    /// exists and is empty. Loading a User through the model therefore fails on
+    /// materialisation — Npgsql is asked for a non-nullable string and finds NULL
+    /// — before EF can write the value that would fix it.
+    ///
+    /// So the blind index cannot be bootstrapped through a model that already
+    /// assumes it exists. It is seeded here instead, then every other table
+    /// (users included) goes through EF as normal.
+    ///
+    /// The email read here may be plaintext on a first run or ciphertext on a
+    /// re-run after an interruption. Decrypt handles both — it passes unprefixed
+    /// values through untouched — so the index is always computed from the
+    /// plaintext address, and always comes out the same.
+    /// </remarks>
+    private async Task<int> SeedEmailLookupAsync(CancellationToken ct)
+    {
+        var connection = _db.Database.GetDbConnection();
+        await _db.Database.OpenConnectionAsync(ct);
+
+        try
+        {
+            // Read fully before writing: Npgsql allows one active reader per
+            // connection, so updating inside the loop would fail.
+            var pending = new List<(Guid Id, string Email)>();
+
+            await using (var read = connection.CreateCommand())
+            {
+                read.CommandText = "SELECT id, email FROM users WHERE email_lookup IS NULL";
+
+                await using var reader = await read.ExecuteReaderAsync(ct);
+
+                while (await reader.ReadAsync(ct))
+                    pending.Add((reader.GetGuid(0), reader.GetString(1)));
+            }
+
+            if (pending.Count == 0)
+            {
+                _logger.LogInformation("users.email_lookup: already seeded.");
+                return 0;
+            }
+
+            _logger.LogInformation(
+                "users.email_lookup: seeding {Count} row(s).", pending.Count);
+
+            foreach (var (id, email) in pending)
+            {
+                await using var write = connection.CreateCommand();
+                write.CommandText = "UPDATE users SET email_lookup = @lookup WHERE id = @id";
+
+                var lookup = write.CreateParameter();
+                lookup.ParameterName = "lookup";
+                lookup.Value = _encryption.BlindIndex(_encryption.Decrypt(email));
+                write.Parameters.Add(lookup);
+
+                var key = write.CreateParameter();
+                key.ParameterName = "id";
+                key.Value = id;
+                write.Parameters.Add(key);
+
+                await write.ExecuteNonQueryAsync(ct);
+            }
+
+            return pending.Count;
+        }
+        finally
+        {
+            await _db.Database.CloseConnectionAsync();
+        }
     }
 
     /// <summary>
