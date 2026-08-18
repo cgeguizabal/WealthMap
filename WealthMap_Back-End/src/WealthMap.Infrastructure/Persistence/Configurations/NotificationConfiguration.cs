@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
 
 namespace WealthMap.Infrastructure.Persistence.Configurations;
@@ -9,6 +10,10 @@ namespace WealthMap.Infrastructure.Persistence.Configurations;
 public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 {
     private static readonly JsonSerializerOptions JsonOptions = new();
+
+    private readonly IEncryptionService _encryption;
+
+    public NotificationConfiguration(IEncryptionService encryption) => _encryption = encryption;
 
     public void Configure(EntityTypeBuilder<Notification> builder)
     {
@@ -24,23 +29,34 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .IsRequired()
             .HasConversion<int>();
 
+        // Encrypted, though the task's column list did not name it. The title is a
+        // built sentence: "'Visa Clasica' payment due in 2 day(s)" — the card's
+        // nickname is inside it. Encrypting params while leaving this in plaintext
+        // would protect nothing.
         builder.Property(n => n.Title)
             .IsRequired()
-            .HasMaxLength(200);
+            .IsEncrypted(_encryption);
 
+        // Same, and worse: the message carries the name and the amount together.
         builder.Property(n => n.Message)
             .IsRequired()
-            .HasMaxLength(1000);
+            .IsEncrypted(_encryption);
 
-        // jsonb rather than columns: the keys differ per alert type, and nothing
-        // queries them — they exist to be handed back to whoever renders the text.
+        // Serialised, then encrypted. The audit this task asked for found that
+        // params carries ["name"] on three alert rules — the card, debt or goal
+        // nickname the sentence was built from.
+        //
+        // The column type drops from jsonb to text as a result. Nothing queried
+        // inside it, so no index or operator is lost; the JSON structure survives
+        // intact because it is serialised before the encryption sees it.
         builder.Property(n => n.Params)
             .HasColumnName("params")
-            .HasColumnType("jsonb")
+            .HasColumnType("text")
             .IsRequired()
             .HasConversion(
-                v => JsonSerializer.Serialize(v, JsonOptions),
-                v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, JsonOptions)
+                v => _encryption.Encrypt(JsonSerializer.Serialize(v, JsonOptions)),
+                v => JsonSerializer.Deserialize<Dictionary<string, string>>(
+                         _encryption.Decrypt(v), JsonOptions)
                      ?? new Dictionary<string, string>())
             // Without a comparer EF compares dictionaries by reference and reports
             // a change on every load, rewriting rows that never changed.

@@ -1,11 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
 
 namespace WealthMap.Infrastructure.Persistence.Configurations;
 
 public class ProductGoalConfiguration : IEntityTypeConfiguration<ProductGoal>
 {
+    private readonly IEncryptionService _encryption;
+
+    public ProductGoalConfiguration(IEncryptionService encryption) => _encryption = encryption;
+
     public void Configure(EntityTypeBuilder<ProductGoal> builder)
     {
         builder.ToTable("product_goals");
@@ -14,7 +19,7 @@ public class ProductGoalConfiguration : IEntityTypeConfiguration<ProductGoal>
 
         builder.Property(g => g.Name)
             .IsRequired()
-            .HasMaxLength(120);
+            .IsEncrypted(_encryption);
 
         builder.ComplexProperty(g => g.TargetAmount, money =>
         {

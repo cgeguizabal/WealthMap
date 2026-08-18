@@ -8,4 +8,6 @@ public record RegisterCommand(
     string Password,
     string FullName,
     string Country,
-    string Currency) : ICommand<AuthSessionDto>;
+    string Currency,
+    bool AcceptedTerms,
+    string PolicyVersion) : ICommand<AuthSessionDto>;

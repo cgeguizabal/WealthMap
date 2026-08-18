@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
 using WealthMap.Domain.Enums;
 
@@ -7,6 +8,10 @@ namespace WealthMap.Infrastructure.Persistence.Configurations;
 
 public class CreditCardConfiguration : IEntityTypeConfiguration<CreditCard>
 {
+    private readonly IEncryptionService _encryption;
+
+    public CreditCardConfiguration(IEncryptionService encryption) => _encryption = encryption;
+
     public void Configure(EntityTypeBuilder<CreditCard> builder)
     {
         builder.ToTable("credit_cards");
@@ -15,7 +20,7 @@ public class CreditCardConfiguration : IEntityTypeConfiguration<CreditCard>
 
         builder.Property(c => c.CardName)
             .IsRequired()
-            .HasMaxLength(120);
+            .IsEncrypted(_encryption);
 
         builder.Property(c => c.BankName)
             .IsRequired()
@@ -32,16 +37,16 @@ public class CreditCardConfiguration : IEntityTypeConfiguration<CreditCard>
             .IsRequired();
 
         builder.Property(c => c.Notes)
-            .HasMaxLength(1000);
+            .IsEncrypted(_encryption);
 
         builder.Property(c => c.IsArchived)
             .IsRequired()
             .HasDefaultValue(false);
 
-        // char(4): the value is always four digits or absent, never a range.
+        // Was char(4); ciphertext needs text. Still nullable, which is all the
+        // tracking-mode CHECK constraint looks at.
         builder.Property(c => c.LastFour)
-            .HasMaxLength(4)
-            .IsFixedLength();
+            .IsEncrypted(_encryption);
 
         // The sentinel is the CLR default, 0, which is not a member of the enum.
         // Without it EF cannot tell "the caller left this alone" from "the caller

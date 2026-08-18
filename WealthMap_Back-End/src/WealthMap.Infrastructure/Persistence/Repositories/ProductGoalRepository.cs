@@ -11,9 +11,11 @@ public class ProductGoalRepository : Repository<ProductGoal>, IProductGoalReposi
     public async Task<ProductGoal?> GetByIdForUserAsync(Guid id, Guid userId, CancellationToken ct = default) =>
         await Set.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId, ct);
 
-    public async Task<IReadOnlyList<ProductGoal>> GetAllForUserAsync(Guid userId, CancellationToken ct = default) =>
-        await Set.Where(g => g.UserId == userId)
-                 .OrderBy(g => g.Name)
-                 .AsNoTracking()
-                 .ToListAsync(ct);
+    /// <remarks>Ordered in memory: `name` is encrypted, so the database cannot sort it.</remarks>
+    public async Task<IReadOnlyList<ProductGoal>> GetAllForUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        var goals = await Set.Where(g => g.UserId == userId).AsNoTracking().ToListAsync(ct);
+
+        return goals.OrderBy(g => g.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+    }
 }

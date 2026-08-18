@@ -1,11 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
 
 namespace WealthMap.Infrastructure.Persistence.Configurations;
 
 public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
 {
+    private readonly IEncryptionService _encryption;
+
+    public PurchaseConfiguration(IEncryptionService encryption) => _encryption = encryption;
+
     public void Configure(EntityTypeBuilder<Purchase> builder)
     {
         builder.ToTable("purchases");
@@ -25,7 +30,7 @@ public class PurchaseConfiguration : IEntityTypeConfiguration<Purchase>
             .HasConversion<int>();
 
         builder.Property(p => p.Notes)
-            .HasMaxLength(500);
+            .IsEncrypted(_encryption);
 
         builder.ComplexProperty(p => p.Amount, money =>
         {

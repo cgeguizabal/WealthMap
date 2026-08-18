@@ -10,7 +10,16 @@ public class User : BaseEntity
     public string FullName { get; private set; }
     public string Country { get; private set; }
     public string Currency { get; private set; }
-    public DateOnly? BirthDate { get; private set; }
+
+    /// <summary>When this user accepted the Terms and Privacy Policy, if they have.</summary>
+    /// <remarks>
+    /// Nullable because every account created before consent was collected has no
+    /// answer, and inventing one would be a false record of something legal.
+    /// </remarks>
+    public DateTime? TermsAcceptedAt { get; private set; }
+
+    /// <summary>The version they accepted, so a later revision can be re-consented.</summary>
+    public string? AcceptedPolicyVersion { get; private set; }
 
     private User()
 {
@@ -32,21 +41,29 @@ public class User : BaseEntity
         Currency = ValidateCurrency(currency);
     }
 
-    public void UpdateProfile(string fullName, string country, DateOnly? birthDate)
+    public void UpdateProfile(string fullName, string country)
     {
         FullName = ValidateName(fullName);
         Country = ValidateCountry(country);
+        Touch();
+    }
 
-        if (birthDate.HasValue)
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            if (birthDate.Value > today)
-                throw new DomainException("Birth date cannot be in the future.");
-            if (birthDate.Value < today.AddYears(-120))
-                throw new DomainException("Birth date is not valid.");
-        }
+    /// <summary>Records that this user accepted a given version of the terms.</summary>
+    /// <remarks>
+    /// The version is stored alongside the timestamp because "they agreed" is not
+    /// a useful record on its own — a revised policy has to be re-accepted, and
+    /// that comparison needs to know which text they saw.
+    /// </remarks>
+    public void AcceptTerms(string version, DateTime acceptedAtUtc)
+    {
+        if (string.IsNullOrWhiteSpace(version))
+            throw new DomainException("Policy version is required.");
 
-        BirthDate = birthDate;
+        if (acceptedAtUtc.Kind != DateTimeKind.Utc)
+            throw new DomainException("Terms acceptance date must be UTC.");
+
+        AcceptedPolicyVersion = version.Trim();
+        TermsAcceptedAt = acceptedAtUtc;
         Touch();
     }
 

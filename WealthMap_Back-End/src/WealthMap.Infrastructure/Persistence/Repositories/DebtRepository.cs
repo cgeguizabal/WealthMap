@@ -11,9 +11,11 @@ public class DebtRepository : Repository<Debt>, IDebtRepository
     public async Task<Debt?> GetByIdForUserAsync(Guid id, Guid userId, CancellationToken ct = default) =>
         await Set.FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId, ct);
 
-    public async Task<IReadOnlyList<Debt>> GetAllForUserAsync(Guid userId, CancellationToken ct = default) =>
-        await Set.Where(d => d.UserId == userId)
-                 .OrderBy(d => d.Name)
-                 .AsNoTracking()
-                 .ToListAsync(ct);
+    /// <remarks>Ordered in memory: `name` is encrypted, so the database cannot sort it.</remarks>
+    public async Task<IReadOnlyList<Debt>> GetAllForUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        var debts = await Set.Where(d => d.UserId == userId).AsNoTracking().ToListAsync(ct);
+
+        return debts.OrderBy(d => d.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+    }
 }

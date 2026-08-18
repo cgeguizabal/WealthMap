@@ -20,9 +20,9 @@ public class CreditCardRepository : Repository<CreditCard>, ICreditCardRepositor
         if (!includeArchived)
             query = query.Where(c => !c.IsArchived);
 
-        return await query
-            .OrderBy(c => c.CardName)
-            .AsNoTracking()
-            .ToListAsync(ct);
+        // In memory after decryption — see AccountRepository for why.
+        var cards = await query.AsNoTracking().ToListAsync(ct);
+
+        return cards.OrderBy(c => c.CardName, StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 }

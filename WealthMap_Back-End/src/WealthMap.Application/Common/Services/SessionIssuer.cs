@@ -45,7 +45,7 @@ public class SessionIssuer
         await _repository.AddAsync(refreshToken, ct);
 
         return new AuthSessionDto(
-            new AuthResultDto(user.Id, user.Email, user.FullName, accessToken),
+            new AuthResultDto(user.Id, user.Email, user.FullName, user.Currency, accessToken),
             rawRefreshToken);
     }
 }

@@ -20,10 +20,12 @@ public class AccountRepository : Repository<Account>, IAccountRepository
         if (!includeArchived)
             query = query.Where(a => !a.IsArchived);
 
-        return await query
-            .OrderBy(a => a.Name)
-            .AsNoTracking()
-            .ToListAsync(ct);
+        // Sorted in memory, after decryption. `name` is ciphertext in the database,
+        // so ORDER BY there would sort by base64 — a stable but meaningless order
+        // that looks plausible enough nobody would notice it was wrong.
+        var accounts = await query.AsNoTracking().ToListAsync(ct);
+
+        return accounts.OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
     public async Task<bool> ExistsForUserAsync(Guid id, Guid userId, CancellationToken ct = default) =>

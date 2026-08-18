@@ -1,11 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
 
 namespace WealthMap.Infrastructure.Persistence.Configurations;
 
 public class DebtConfiguration : IEntityTypeConfiguration<Debt>
 {
+    private readonly IEncryptionService _encryption;
+
+    public DebtConfiguration(IEncryptionService encryption) => _encryption = encryption;
+
     public void Configure(EntityTypeBuilder<Debt> builder)
     {
         builder.ToTable("debts", t =>
@@ -18,7 +23,7 @@ public class DebtConfiguration : IEntityTypeConfiguration<Debt>
 
         builder.Property(d => d.Name)
             .IsRequired()
-            .HasMaxLength(120);
+            .IsEncrypted(_encryption);
 
         builder.Property(d => d.MonthlyDueDay)
             .IsRequired();

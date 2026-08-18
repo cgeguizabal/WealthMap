@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
+using WealthMap.Infrastructure.Persistence.Configurations;
 
 
 
@@ -26,9 +28,21 @@ public class WealthMapDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<BankDefault> BankDefaults => Set<BankDefault>();
 
-    public WealthMapDbContext(DbContextOptions<WealthMapDbContext> options)
+    /// <summary>
+    /// The encryption service reaches the entity configurations through here.
+    /// </summary>
+    /// <remarks>
+    /// EF builds the model once per context type, so the converters close over
+    /// whatever instance was injected. The service is a stateless singleton, which
+    /// is what makes that safe.
+    /// </remarks>
+    private readonly IEncryptionService _encryption;
+
+    public WealthMapDbContext(
+        DbContextOptions<WealthMapDbContext> options, IEncryptionService encryption)
         : base(options)
     {
+        _encryption = encryption;
     }
 
     // DbSet<Account> Accounts, DbSet<CreditCard> CreditCards
@@ -37,8 +51,26 @@ public class WealthMapDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Automatically applies every IEntityTypeConfiguration<T> in this assembly.
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(WealthMapDbContext).Assembly);
+        // Everything that needs nothing from the container is still discovered
+        // automatically. The predicate is what keeps the two groups apart:
+        // ApplyConfigurationsFromAssembly builds each configuration with
+        // Activator.CreateInstance and no arguments, so a configuration taking the
+        // encryption service would throw if it were swept up here.
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(WealthMapDbContext).Assembly,
+            type => type.GetConstructor(Type.EmptyTypes) is not null);
+
+        // The rest are handed the service explicitly. Listing them is the point:
+        // this is the complete inventory of tables holding encrypted columns, and
+        // adding one is a visible edit rather than an invisible convention.
+        modelBuilder.ApplyConfiguration(new UserConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new AccountConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new CreditCardConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new DebtConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new PurchaseConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new SavingsGoalConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new ProductGoalConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new NotificationConfiguration(_encryption));
 
         // Ids come from BaseEntity (Guid.CreateVersion7()), never from the database.
         // Without this, EF treats aggregate children discovered via navigations
@@ -50,5 +82,38 @@ public class WealthMapDbContext : DbContext
             if (id is not null)
                 id.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
         }
+    }
+
+    /// <summary>
+    /// Keeps <c>email_lookup</c> in step with <c>email</c> on every write.
+    /// </summary>
+    /// <remarks>
+    /// Done here rather than in the repository so it cannot be forgotten. A user
+    /// saved without its blind index would be invisible to sign-in and to the
+    /// duplicate check — a silent failure, and the worst kind: registration would
+    /// appear to succeed and the account would then not exist.
+    /// </remarks>
+    private void SyncEmailLookup()
+    {
+        foreach (var entry in ChangeTracker.Entries<User>())
+        {
+            if (entry.State is not (EntityState.Added or EntityState.Modified)) continue;
+
+            entry.Property(UserConfiguration.EmailLookup).CurrentValue =
+                _encryption.BlindIndex(entry.Entity.Email);
+        }
+    }
+
+    public override int SaveChanges()
+    {
+        SyncEmailLookup();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        SyncEmailLookup();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 }

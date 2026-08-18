@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WealthMap.Application.Common.Interfaces;
 using WealthMap.Domain.Entities;
 using WealthMap.Domain.Enums;
 
@@ -7,6 +8,10 @@ namespace WealthMap.Infrastructure.Persistence.Configurations;
 
 public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
+    private readonly IEncryptionService _encryption;
+
+    public AccountConfiguration(IEncryptionService encryption) => _encryption = encryption;
+
     public void Configure(EntityTypeBuilder<Account> builder)
     {
         builder.ToTable("accounts");
@@ -15,7 +20,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Property(a => a.Name)
             .IsRequired()
-            .HasMaxLength(120);
+            .IsEncrypted(_encryption);
 
         builder.Property(a => a.BankName)
             .IsRequired()
@@ -26,16 +31,16 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasConversion<int>();
 
         builder.Property(a => a.Notes)
-            .HasMaxLength(1000);
+            .IsEncrypted(_encryption);
 
         builder.Property(a => a.IsArchived)
             .IsRequired()
             .HasDefaultValue(false);
 
-        // char(4): the value is always four digits or absent, never a range.
+        // Was char(4). Ciphertext is far longer, so the column becomes text — but it
+        // stays nullable, which is what the tracking-mode CHECK constraint reads.
         builder.Property(a => a.LastFour)
-            .HasMaxLength(4)
-            .IsFixedLength();
+            .IsEncrypted(_encryption);
 
         // The sentinel is the CLR default, 0, which is not a member of the enum.
         // Without it EF cannot tell "the caller left this alone" from "the caller
@@ -49,8 +54,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasSentinel(default(TrackingMode));
 
         builder.Property(a => a.DebitCardLastFour)
-            .HasMaxLength(4)
-            .IsFixedLength();
+            .IsEncrypted(_encryption);
 
         builder.Property(a => a.DebitCardType)
             .IsRequired()

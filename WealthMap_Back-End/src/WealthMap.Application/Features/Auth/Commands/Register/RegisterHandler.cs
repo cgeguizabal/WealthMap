@@ -40,6 +40,11 @@ public class RegisterHandler : ICommandHandler<RegisterCommand, AuthSessionDto>
             request.Country,
             request.Currency);
 
+        // Recorded before the user is saved, so an account cannot exist without the
+        // acceptance that created it. The version is stored alongside the timestamp
+        // because "accepted the terms" means nothing without knowing which terms.
+        user.AcceptTerms(request.PolicyVersion, DateTime.UtcNow);
+
         AuthSessionDto? session = null;
 
         // The refresh token carries a foreign key to the user, so both rows have to

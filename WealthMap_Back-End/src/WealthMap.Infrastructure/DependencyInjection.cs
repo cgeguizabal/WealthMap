@@ -6,6 +6,7 @@ using WealthMap.Application.Common.Interfaces;
 using WealthMap.Infrastructure.Persistence.Repositories;
 using WealthMap.Infrastructure.Auth;
 using WealthMap.Infrastructure.Reports;
+using WealthMap.Infrastructure.Security;
 
 
 
@@ -21,6 +22,12 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException(
                 "Connection string 'WealthMapDb' was not found. " +
                 "Did you set it via user-secrets?");
+
+        // Registered before the DbContext: the context takes it as a constructor
+        // dependency, and the entity configurations build their converters from it.
+        services.Configure<EncryptionSettings>(
+            configuration.GetSection(EncryptionSettings.SectionName));
+        services.AddSingleton<IEncryptionService, AesGcmEncryptionService>();
 
         services.AddDbContext<WealthMapDbContext>(options =>
            options.UseNpgsql(connectionString)
