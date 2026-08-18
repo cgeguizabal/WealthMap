@@ -153,6 +153,14 @@ export default {
     },
 
     job: {
+      freelance: {
+        title: 'Freelance work',
+        body: 'Work with no schedule. Add what you agreed, mark it delivered when you finish, and record the payment when the client actually pays — which may be a month later, or never.'
+      },
+      freelancePaid: {
+        title: 'Unpaid work is not money',
+        body: 'What a client owes you is shown here but counts toward nothing. Only once you press Got paid does the amount land in an account, and from that moment it raises what is safe to spend like any other balance.'
+      },
       deductions: {
         title: 'Adding a deduction',
         body: 'Press Add on this card for every item your payslip subtracts — tax, social security, a pension, a loan repayment. Give it a name and a value, and WealthMap recalculates your net immediately.'
@@ -211,6 +219,61 @@ export default {
         title: 'Bank defaults',
         body: 'Which account to assume when a bank names none. One per bank, per direction — money in and money out can differ.'
       }
+    }
+  },
+
+  freelance: {
+    title: 'Freelance work',
+    subtitle: 'Paid whenever the client pays. Record it when it happens.',
+    emptyTitle: 'No freelance work recorded',
+    emptyMessage: 'Add a piece of work to track what you agreed and what has actually been paid.',
+
+    newWork: 'Add freelance work',
+    addWork: 'Add work',
+    editWork: 'Edit freelance work',
+    workTitle: 'What is the work?',
+    workTitlePlaceholder: 'Landing page redesign',
+    client: 'Client',
+    clientPlaceholder: 'Acme Ltd',
+    clientHint: 'Optional. Encrypted, like every other name you enter.',
+    agreedAmount: 'Agreed amount',
+    agreedAmountHint: 'What you expect to be paid. The actual figure is recorded separately.',
+    dueOn: 'Agreed delivery date',
+    dueOnHint: 'Optional. Nothing happens on this date — it is your own reminder.',
+    notesPlaceholder: 'Scope, rate, anything worth remembering',
+
+    added: '{title} added.',
+    updated: 'Work updated.',
+    deleted: 'Work removed.',
+
+    markDelivered: 'Mark as delivered',
+    markedDelivered: 'Marked as delivered. No money has moved.',
+    gotPaid: 'Got paid',
+
+    recordPayment: 'Record payment',
+    agreedWas: 'Agreed: {amount}',
+    amountReceived: 'Amount received',
+    amountReceivedHint: 'Whatever actually arrived, even if it differs from what was agreed.',
+    depositTo: 'Landed in',
+    depositToHint: 'The balance rises now, and this money counts toward what is safe to spend.',
+    paidOn: 'Paid on',
+    confirmPayment: 'Record payment',
+    paymentRecorded: '{amount} deposited.',
+    noAccountInCurrency: 'You have no account in {currency}. Add one before recording this payment.',
+
+    paidOnDate: 'paid {date}',
+    dueBy: 'due {date}',
+    outstandingLabel: 'Still owed to you',
+
+    deleteTitle: 'Remove this work?',
+    deleteMessage: 'Removes {title}. Nothing else changes.',
+    deletePaidMessage: 'Removes {title} and takes the payment back out of the account it landed in. Cancel instead if the work was called off.',
+
+    status: {
+      InProgress: 'In progress',
+      Delivered: 'Delivered',
+      Paid: 'Paid',
+      Cancelled: 'Cancelled'
     }
   },
 

@@ -4,6 +4,7 @@ import { motion } from 'motion-v'
 import { fadeUp } from '@/composables/useMotionSafe'
 import { jobsApi } from '@/api/jobs.api'
 import { incomesApi, toMonthly } from '@/api/incomes.api'
+import { freelanceJobsApi, FREELANCE_STATUS_VARIANT } from '@/api/freelanceJobs.api'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
 import { useUiStore } from '@/stores/ui.store'
@@ -20,6 +21,8 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import JobFormModal from '../components/JobFormModal.vue'
 import DeductionFormModal from '../components/DeductionFormModal.vue'
 import IncomeFormModal from '../components/IncomeFormModal.vue'
+import FreelanceFormModal from '../components/FreelanceFormModal.vue'
+import FreelancePaymentModal from '../components/FreelancePaymentModal.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
 
@@ -33,11 +36,16 @@ const dashboard = useDashboardStore()
 
 const job = ref(null)
 const incomes = ref([])
+const freelanceJobs = ref([])
 const loading = ref(false)
 
 const jobOpen = ref(false)
 const deductionOpen = ref(false)
 const incomeOpen = ref(false)
+const freelanceOpen = ref(false)
+const freelancePaymentOpen = ref(false)
+const editingFreelance = ref(null)
+const payingFreelance = ref(null)
 const editingDeduction = ref(null)
 const editingIncome = ref(null)
 
@@ -54,14 +62,16 @@ async function load() {
   loading.value = true
 
   try {
-    const [jobResult, incomeResult] = await Promise.allSettled([
+    const [jobResult, incomeResult, freelanceResult] = await Promise.allSettled([
       jobsApi.list(),
-      incomesApi.list()
+      incomesApi.list(),
+      freelanceJobsApi.list()
     ])
 
     // One job per user, so the list holds at most one.
     job.value = jobResult.status === 'fulfilled' ? (jobResult.value[0] ?? null) : null
     incomes.value = incomeResult.status === 'fulfilled' ? incomeResult.value : []
+    freelanceJobs.value = freelanceResult.status === 'fulfilled' ? freelanceResult.value : []
   } finally {
     loading.value = false
   }
@@ -164,6 +174,64 @@ function onIncomeSaved() {
 }
 
 onMounted(load)
+
+/**
+ * What clients still owe. Shown for awareness only — it is deliberately absent
+ * from every figure that feeds "safe to spend", because unpaid work is not money.
+ * Once paid it stops being counted here and becomes an ordinary account balance,
+ * which is where it starts affecting what can be spent.
+ */
+const totalOutstanding = computed(() =>
+  freelanceJobs.value.reduce((sum, work) => sum + work.outstanding, 0)
+)
+
+async function loadFreelance() {
+  freelanceJobs.value = await freelanceJobsApi.list()
+}
+
+function openFreelance(work = null) {
+  editingFreelance.value = work
+  freelanceOpen.value = true
+}
+
+function openPayment(work) {
+  payingFreelance.value = work
+  freelancePaymentOpen.value = true
+}
+
+async function markDelivered(work) {
+  try {
+    await freelanceJobsApi.markDelivered(work.id, new Date().toISOString().slice(0, 10))
+    toast.success(t('freelance.markedDelivered'))
+    await loadFreelance()
+  } catch (err) {
+    toast.error(err.message)
+  }
+}
+
+async function removeFreelance(work) {
+  // Paid work moved money, so removing it moves it back. That is worth spelling
+  // out before the click rather than surprising someone with a changed balance.
+  const confirmed = await ui.confirm({
+    title: t('freelance.deleteTitle'),
+    message: work.status === 'Paid'
+      ? t('freelance.deletePaidMessage', { title: work.title })
+      : t('freelance.deleteMessage', { title: work.title }),
+    confirmLabel: t('common.delete'),
+    variant: 'danger'
+  })
+
+  if (!confirmed) return
+
+  try {
+    await freelanceJobsApi.remove(work.id)
+    toast.success(t('freelance.deleted'))
+    await loadFreelance()
+    if (work.status === 'Paid') dashboard.load()
+  } catch (err) {
+    toast.error(err.message)
+  }
+}
 </script>
 
 <template>
@@ -319,6 +387,116 @@ onMounted(load)
         </BaseCard>
       </motion.div>
 
+
+      <!-- ── Freelance work ──────────────────── -->
+      <BaseCard
+        data-tour="job-freelance"
+        :title="t('freelance.title')"
+        :subtitle="t('freelance.subtitle')"
+        :padded="false"
+        class="incomes-card"
+      >
+        <template #actions>
+          <BaseButton size="sm" variant="secondary" @click="openFreelance()">
+            <template #icon><BaseIcon name="plus" :size="14" /></template>
+            {{ t('common.add') }}
+          </BaseButton>
+        </template>
+
+        <BaseEmptyState
+          v-if="!freelanceJobs.length"
+          icon="briefcase"
+          :title="t('freelance.emptyTitle')"
+          :message="t('freelance.emptyMessage')"
+          compact
+        />
+
+        <ul v-else class="incomes">
+          <li v-for="work in freelanceJobs" :key="work.id" class="income">
+            <div class="income__main">
+              <span class="income__name">{{ work.title }}</span>
+
+              <span class="income__meta">
+                <BaseBadge size="sm" :variant="FREELANCE_STATUS_VARIANT[work.status]">
+                  {{ t(`freelance.status.${work.status}`) }}
+                </BaseBadge>
+
+                <template v-if="work.client"> · {{ work.client }}</template>
+                <template v-if="work.status === 'Paid' && work.paidOn">
+                  · {{ t('freelance.paidOnDate', { date: work.paidOn }) }}
+                </template>
+                <template v-else-if="work.dueOn">
+                  · {{ t('freelance.dueBy', { date: work.dueOn }) }}
+                </template>
+              </span>
+            </div>
+
+            <span class="income__amount numeric">
+              {{ format(work.status === 'Paid' ? work.amountPaid : work.agreedAmount,
+                        { currency: work.currency }) }}
+            </span>
+
+            <div class="income__actions">
+              <!-- Delivered is a fact about the work, not about money, so it is
+                   offered on its own before any payment exists. -->
+              <BaseButton
+                v-if="work.status === 'InProgress'"
+                size="sm"
+                variant="ghost"
+                :title="t('freelance.markDelivered')"
+                @click="markDelivered(work)"
+              >
+                <template #icon><BaseIcon name="check" :size="14" /></template>
+                <span class="sr-only">{{ t('freelance.markDelivered') }}</span>
+              </BaseButton>
+
+              <BaseButton
+                v-if="work.status === 'InProgress' || work.status === 'Delivered'"
+                size="sm"
+                variant="secondary"
+                @click="openPayment(work)"
+              >
+                {{ t('freelance.gotPaid') }}
+              </BaseButton>
+
+              <BaseButton
+                v-if="work.status !== 'Paid' && work.status !== 'Cancelled'"
+                size="sm"
+                variant="ghost"
+                :title="t('common.edit')"
+                @click="openFreelance(work)"
+              >
+                <template #icon><BaseIcon name="pencil" :size="14" /></template>
+                <span class="sr-only">{{ t('common.edit') }}</span>
+              </BaseButton>
+
+              <BaseButton
+                size="sm"
+                variant="ghost"
+                :title="t('common.remove')"
+                @click="removeFreelance(work)"
+              >
+                <template #icon><BaseIcon name="trash" :size="14" /></template>
+                <span class="sr-only">{{ t('common.remove') }}</span>
+              </BaseButton>
+            </div>
+          </li>
+        </ul>
+
+        <!--
+          Outstanding is shown, and deliberately kept out of every total that
+          feeds "safe to spend". Work that has not been paid for is a hope with a
+          name on it; treating it as money would be the one place this app told
+          you to spend what may never arrive.
+        -->
+        <template v-if="freelanceJobs.length" #footer>
+          <div class="incomes__footer">
+            <span>{{ t('freelance.outstandingLabel') }}</span>
+            <span class="numeric">{{ format(totalOutstanding) }}</span>
+          </div>
+        </template>
+      </BaseCard>
+
       <!-- ── Additional incomes ──────────────── -->
       <BaseCard
         :title="t('job.otherIncome')"
@@ -388,6 +566,18 @@ onMounted(load)
     />
 
     <IncomeFormModal v-model="incomeOpen" :income="editingIncome" @saved="onIncomeSaved" />
+
+    <FreelanceFormModal
+      v-model="freelanceOpen"
+      :job="editingFreelance"
+      @saved="loadFreelance"
+    />
+
+    <FreelancePaymentModal
+      v-model="freelancePaymentOpen"
+      :job="payingFreelance"
+      @saved="loadFreelance"
+    />
   </div>
 </template>
 

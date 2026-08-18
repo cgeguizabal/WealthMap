@@ -152,6 +152,14 @@ export default {
     },
 
     job: {
+      freelance: {
+        title: 'Trabajo independiente',
+        body: 'Trabajo sin calendario. Agrega lo que acordaste, márcalo como entregado al terminar, y registra el pago cuando el cliente realmente pague, que puede ser un mes después o nunca.'
+      },
+      freelancePaid: {
+        title: 'El trabajo sin cobrar no es dinero',
+        body: 'Lo que un cliente te debe se muestra aquí pero no cuenta para nada. Solo cuando pulsas Me pagaron el monto entra en una cuenta, y desde ese momento sube lo que puedes gastar con seguridad como cualquier otro saldo.'
+      },
       deductions: {
         title: 'Agregar una deducción',
         body: 'Pulsa Agregar en esta tarjeta por cada concepto que tu boleta descuenta: impuestos, seguro social, una pensión, el pago de un préstamo. Ponle nombre y valor, y WealthMap recalcula tu neto al instante.'
@@ -210,6 +218,61 @@ export default {
         title: 'Cuentas por banco',
         body: 'Qué cuenta suponer cuando un banco no nombra ninguna. Una por banco y por dirección: el dinero que entra y el que sale pueden ser distintas.'
       }
+    }
+  },
+
+  freelance: {
+    title: 'Trabajo independiente',
+    subtitle: 'Se paga cuando el cliente paga. Regístralo cuando ocurra.',
+    emptyTitle: 'No hay trabajos registrados',
+    emptyMessage: 'Agrega un trabajo para llevar control de lo acordado y de lo que realmente te han pagado.',
+
+    newWork: 'Agregar trabajo independiente',
+    addWork: 'Agregar trabajo',
+    editWork: 'Editar trabajo independiente',
+    workTitle: '¿Cuál es el trabajo?',
+    workTitlePlaceholder: 'Rediseño de la página de inicio',
+    client: 'Cliente',
+    clientPlaceholder: 'Acme S.A.',
+    clientHint: 'Opcional. Se cifra, igual que cualquier otro nombre que registres.',
+    agreedAmount: 'Monto acordado',
+    agreedAmountHint: 'Lo que esperas cobrar. La cifra real se registra por separado.',
+    dueOn: 'Fecha de entrega acordada',
+    dueOnHint: 'Opcional. No pasa nada en esta fecha: es solo tu recordatorio.',
+    notesPlaceholder: 'Alcance, tarifa, cualquier cosa que convenga recordar',
+
+    added: '{title} agregado.',
+    updated: 'Trabajo actualizado.',
+    deleted: 'Trabajo eliminado.',
+
+    markDelivered: 'Marcar como entregado',
+    markedDelivered: 'Marcado como entregado. No se movió dinero.',
+    gotPaid: 'Me pagaron',
+
+    recordPayment: 'Registrar pago',
+    agreedWas: 'Acordado: {amount}',
+    amountReceived: 'Monto recibido',
+    amountReceivedHint: 'Lo que realmente llegó, aunque sea distinto de lo acordado.',
+    depositTo: 'Entró en',
+    depositToHint: 'El saldo sube ahora, y este dinero cuenta para lo que puedes gastar con seguridad.',
+    paidOn: 'Fecha de pago',
+    confirmPayment: 'Registrar pago',
+    paymentRecorded: '{amount} depositados.',
+    noAccountInCurrency: 'No tienes ninguna cuenta en {currency}. Agrega una antes de registrar este pago.',
+
+    paidOnDate: 'pagado el {date}',
+    dueBy: 'para el {date}',
+    outstandingLabel: 'Aún te deben',
+
+    deleteTitle: '¿Eliminar este trabajo?',
+    deleteMessage: 'Elimina {title}. No cambia nada más.',
+    deletePaidMessage: 'Elimina {title} y saca el pago de la cuenta en la que entró. Si el trabajo se canceló, usa cancelar en su lugar.',
+
+    status: {
+      InProgress: 'En curso',
+      Delivered: 'Entregado',
+      Paid: 'Pagado',
+      Cancelled: 'Cancelado'
     }
   },
 

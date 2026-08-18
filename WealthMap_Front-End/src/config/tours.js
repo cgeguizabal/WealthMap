@@ -70,7 +70,9 @@ export const TOURS = {
     { key: 'deductions', target: '[data-tour="job-deductions"]' },
     { key: 'deductionKinds', target: '[data-tour="job-deductions"]' },
     { key: 'paydays', target: '[data-tour="job-days"]' },
-    { key: 'extraIncome', target: '[data-tour="job-income"]' }
+    { key: 'extraIncome', target: '[data-tour="job-income"]' },
+    { key: 'freelance', target: '[data-tour="job-freelance"]' },
+    { key: 'freelancePaid', target: '[data-tour="job-freelance"]' }
   ],
 
   reports: [
