@@ -28,11 +28,24 @@
 -- HOW TO APPLY
 --
 --   1. Connect to the WealthMap database as the owner (the Neon default role).
---   2. Replace the password on line 44 with one you generate. Do not reuse the
---      owner's password.
---   3. Run this whole file.
---   4. Point the application's connection string at wealthmap_app, and keep the
+--   2. Run section 0 and substitute both answers into sections 2 and 4.
+--   3. Replace the password in section 1 with one you generate. Do not reuse
+--      the owner's password.
+--   4. Run this whole file.
+--   5. Point the application's connection string at wealthmap_app, and keep the
 --      owner connection for `dotnet ef database update` only.
+--
+-- CREATE THE ROLE HERE, NOT IN THE NEON CONSOLE
+--
+-- A role created through the Neon console, CLI or API is granted membership in
+-- neon_superuser, which carries broadly the privileges this file exists to
+-- withhold. A role created with CREATE ROLE in SQL inherits nothing it is not
+-- given. Section 5 checks which kind you ended up with.
+--
+-- The console will not show a connection string for a SQL-created role either.
+-- Build it from the owner's by swapping the user and password:
+--
+--   Host=<same>;Database=<same>;Username=wealthmap_app;Password=<yours>;SSL Mode=Require
 --
 -- Run it again after any migration that creates a table: grants apply to tables
 -- that exist at the time, and the ALTER DEFAULT PRIVILEGES below only covers
@@ -41,6 +54,16 @@
 -- No connection string in this repository is changed by this script. Switching
 -- the application over is a deployment decision, made once, by hand.
 -- =============================================================================
+
+
+-- -----------------------------------------------------------------------------
+-- 0. Find the two values this script cannot know
+-- -----------------------------------------------------------------------------
+-- Run these first, as the owner, and substitute the answers below. Guessing
+-- either one produces a script that appears to succeed and grants nothing.
+
+SELECT current_database();   -- Neon's default is neondb, not wealthmap
+SELECT current_user;         -- the role that runs your migrations
 
 
 -- -----------------------------------------------------------------------------
@@ -66,6 +89,7 @@ CREATE ROLE wealthmap_app WITH
 -- CONNECT and USAGE are the minimum to see the schema at all. USAGE explicitly
 -- does not include CREATE, so this role cannot add a table to public.
 
+-- Replace `wealthmap` with the answer to SELECT current_database() above.
 GRANT CONNECT ON DATABASE wealthmap TO wealthmap_app;
 GRANT USAGE   ON SCHEMA public      TO wealthmap_app;
 
@@ -99,9 +123,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 -- production as "permission denied for table X" long after the migration looked
 -- successful.
 --
--- Replace `neondb_owner` with whichever role actually runs the migrations. It
--- must be the migrating role: default privileges attach to the creator, not to
--- the grantee.
+-- Replace `neondb_owner` with the answer to SELECT current_user above. It must
+-- be the migrating role: default privileges attach to the creator, not to the
+-- grantee, so naming the wrong one means future tables are silently ungranted
+-- and the failure surfaces in production as "permission denied for table X".
 
 ALTER DEFAULT PRIVILEGES FOR ROLE neondb_owner IN SCHEMA public
     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO wealthmap_app;
@@ -115,6 +140,18 @@ ALTER DEFAULT PRIVILEGES FOR ROLE neondb_owner IN SCHEMA public
 SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolbypassrls
 FROM   pg_roles
 WHERE  rolname = 'wealthmap_app';
+
+-- Expect ZERO rows. This is the Neon-specific check: a role created through the
+-- Neon console, CLI or API is granted membership in neon_superuser, which would
+-- hand back everything this script withholds. A role created with CREATE ROLE in
+-- SQL, as above, inherits nothing. If this returns neon_superuser, the role was
+-- made in the console — drop it and run this file instead.
+
+SELECT r.rolname AS member_of
+FROM   pg_auth_members m
+JOIN   pg_roles r ON r.oid = m.roleid
+JOIN   pg_roles u ON u.oid = m.member
+WHERE  u.rolname = 'wealthmap_app';
 
 -- Expect: has_schema_privilege(..., 'CREATE') = false.
 
