@@ -65,57 +65,79 @@
 }
 
 /* ── Dark palette ─────────────────────────────
-   Not an inversion. The light theme is warm — a paper canvas, hard offset
-   shadows, a stamped look — and a mechanical flip produces cold grey and loses
-   that entirely. These are warm near-blacks, and every colour the light theme
-   uses at full strength is lightened rather than reused: --accent at #212F46 is
-   nearly black, and would vanish against the canvas here. */
+   Not an inversion, and no longer a separate colour story either.
+
+   This used to be warm near-blacks — a reasonable dark theme, but one with no
+   relationship to the brand: the navy appeared only under the app icon and
+   nowhere else. The surfaces are now the brand navy taken down toward black, so
+   the theme is the brand at low light rather than a neutral that happens to sit
+   beside it.
+
+   Mixed rather than hand-picked. Every surface below is a percentage of
+   --brand-navy, which means the ramp cannot drift out of tune with the brand,
+   and changing the navy moves the whole theme with it.
+
+   What did not change is the colour you read. --accent still inverts to a pale
+   blue, because the navy at full strength is nearly black and would vanish
+   against these surfaces; the golds and the money colours keep the values that
+   were already carrying. */
 @mixin dark-palette {
   /* ── Surfaces ─────────────────────────────── */
-  --canvas:        #171614;
-  --canvas-alt:    #201E1B;
+  /* The ramp, darkest first. The percentages track the lightness the warm
+     palette had, so nothing shifts in contrast — only in hue. */
+  --canvas:        color-mix(in srgb, var(--brand-navy) 42%, #000);
   /* Lighter than the canvas: cards lift by being paler, as they do in light. */
-  --surface:       #1E1C1A;
-  --line:          #322F2B;
+  --surface:       color-mix(in srgb, var(--brand-navy) 56%, #000);
+  --canvas-alt:    color-mix(in srgb, var(--brand-navy) 66%, #000);
+  /* Lighter than the card it divides, but only just. Still a mix toward black
+     rather than white, so nothing in the ramp is diluted. */
+  --line:          color-mix(in srgb, var(--brand-navy) 90%, #000);
 
   /* ── Ink & text ───────────────────────────── */
-  --ink:           #F0EEE9;
-  --on-ink:        #171614;
-  --text:          #EDEBE6;
-  --text-muted:    #A6A29A;
-  --text-subtle:   #6E6A63;
+  /* Cooled to match. A warm near-white on navy reads as slightly stained. */
+  --ink:           #EDF1F7;
+  --on-ink:        var(--canvas);
+  --text:          #E4EAF3;
+  --text-muted:    #9BA6BA;
+  --text-subtle:   #626E85;
 
   /* ── Brand ────────────────────────────────── */
-  /* Unchanged: the brand navy is the brand navy in both themes. What changes is
-     where it is used — as a surface here rather than as a colour to read. */
+  /* The same value as light, and now the root the surfaces above grow from. */
   --brand-navy:    #212F46;
 
   --accent:        #93AACF;
   --accent-hover:  #A9BCDB;
-  --accent-soft:   #28323F;
+  /* The accent laid over the page rather than a separate dark blue, so the two
+     stay related if either moves. */
+  --accent-soft:   color-mix(in srgb, var(--accent) 18%, var(--canvas));
   /* The accent is now the light colour, so what sits on it must be dark. */
-  --on-accent:     #171614;
+  --on-accent:     var(--canvas);
   --gold:          #D6C3A6;
 
   /* ── Semantics (money) ────────────────────── */
   /* Lightened until they carry against the dark canvas. The light theme's
-     #3F5D45 and #8C3B32 are legible on paper and nearly invisible here. */
+     #3F5D45 and #8C3B32 are legible on paper and nearly invisible here.
+
+     The soft variants are each colour laid over the page. They used to be
+     warm-tinted darks, which turned muddy the moment the page went navy. */
   --positive:      #86B394;
-  --positive-soft: #22301F;
+  --positive-soft: color-mix(in srgb, var(--positive) 16%, var(--canvas));
   --negative:      #E09287;
-  --negative-soft: #3A2723;
+  --negative-soft: color-mix(in srgb, var(--negative) 16%, var(--canvas));
   --negative-hover: #C97C71;
-  --on-negative:   #171614;
+  --on-negative:   var(--canvas);
   --warning:       #DCB878;
-  --warning-soft:  #362D1C;
+  --warning-soft:  color-mix(in srgb, var(--warning) 16%, var(--canvas));
 
   /* ── Shape ────────────────────────────────── */
-  --border-color:  #55504A;
+  /* The one place white enters the ramp: a visible border has to be lighter
+     than the navy itself, and the navy is already the lightest surface. */
+  --border-color:  color-mix(in srgb, var(--brand-navy) 86%, #FFF);
 
   /* ── Flat shadows ─────────────────────────── */
   /* Darker than the canvas rather than lighter: a hard offset only reads as a
      shadow if it is the darker thing. */
-  --shadow-color:  #0C0B0A;
+  --shadow-color:  color-mix(in srgb, var(--brand-navy) 20%, #000);
   --shadow-color-modal: #000000;
 
   --scrim: rgba(0, 0, 0, 0.65);
@@ -123,10 +145,13 @@
   /* ── App icon tile ────────────────────────────
      --brand-navy rather than --accent. That token flips to a pale blue here
      because it is read as text, and a pale blue tile would be a lamp rather
-     than a card. The navy sits clearly above the warm near-black canvas
-     without glowing. The ring is --ink at low alpha, which is the near-white
-     of this palette — a faint highlight instead of the gold one light uses,
-     since gold on navy at 22% would disappear. */
+     than a card.
+
+     The navy at full strength, where every surface around it is the same navy
+     taken down toward black — so the tile is the lightest thing on the page
+     without being a different colour from it. The ring is --ink at low alpha,
+     a faint highlight rather than the gold one light uses, since gold on navy
+     at 22% would disappear. */
   --tile-surface:      var(--brand-navy);
   --tile-ring:         color-mix(in srgb, var(--ink) 7%, transparent);
   --tile-shadow-near:  color-mix(in srgb, var(--shadow-color-modal) 45%, transparent);
