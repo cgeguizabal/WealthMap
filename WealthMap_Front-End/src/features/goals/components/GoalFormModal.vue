@@ -12,6 +12,7 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
+import { CURRENCY_OPTIONS as CURRENCIES } from '@/config/currencies'
 
 const { t } = useI18n()
 
@@ -31,8 +32,6 @@ const accounts = ref([])
 const isEdit = computed(() => props.goal !== null)
 const isSavings = computed(() => props.kind === 'savings')
 
-const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
-  .map((code) => ({ value: code, label: code }))
 
 function today() {
   return new Date().toISOString().slice(0, 10)

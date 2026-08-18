@@ -13,6 +13,7 @@ import TrackingFields from '@/features/shared/components/TrackingFields.vue'
 import DebitCardFields from './DebitCardFields.vue'
 import { TRACKING_MODE, trackingModeValue, DEBIT_CARD_TYPE, debitCardTypeValue } from '@/api/tracking'
 import { useI18n } from '@/composables/useI18n'
+import { CURRENCY_OPTIONS as CURRENCIES } from '@/config/currencies'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
@@ -38,8 +39,6 @@ const auth = useAuthStore()
 
 const isEdit = computed(() => props.account !== null)
 
-const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
-  .map((code) => ({ value: code, label: code }))
 
 function blank() {
   return {

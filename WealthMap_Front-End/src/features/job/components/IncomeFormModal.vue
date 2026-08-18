@@ -13,6 +13,7 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
+import { CURRENCY_OPTIONS as CURRENCIES } from '@/config/currencies'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
@@ -39,8 +40,6 @@ const { format } = useMoney()
 const accounts = ref([])
 const isEdit = computed(() => props.income !== null)
 
-const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
-  .map((code) => ({ value: code, label: code }))
 
 function blank() {
   return { name: '', amount: null, currency: auth.currency, frequency: 3, depositAccountId: null }

@@ -120,10 +120,13 @@ deliberate — an app that boots and fails later fails somewhere nobody is watch
 
 ## 5. Before going public
 
-- [ ] **A lawyer has reviewed `docs/legal/`.** Both documents carry a DRAFT banner until then.
-- [ ] After review: remove the HTML comment at the top of each file, and set
-      `LEGAL_DOCS_ARE_DRAFT = false` in `src/config/legal.js`.
-- [ ] `POLICY_VERSION` in `src/config/legal.js` matches the version headers in both Markdown files.
+- [ ] **A lawyer has reviewed `docs/legal/`.** Still outstanding. The draft banner was
+      removed by product decision — the pages now carry the app's beta marker instead, which
+      says nothing about who has read the text. Review is no longer visible to users, so it is
+      only tracked here.
+- [ ] Both Spanish translations reviewed too — `PRIVACY_POLICY.es.md` and
+      `TERMS_OF_SERVICE.es.md` carry the same commitments and need the same scrutiny.
+- [ ] `POLICY_VERSION` in `src/config/legal.js` matches the version headers in all four Markdown files.
 - [ ] The contact address in both documents is one that is actually monitored.
 - [ ] The privacy policy still describes what the software does. It currently states that the
       operator holds the keys and can read user data — if that ever stops being true, say so; if it

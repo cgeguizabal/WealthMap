@@ -12,14 +12,14 @@
   font-size: var(--fs-sm);
 }
 
-// Loud on purpose. This is the one thing on the page a reader must not miss,
-// and it stops being true only when someone deletes the flag in config/legal.js.
-.legal__draft {
+// Quieter than the draft banner it replaced: this states maturity, not a
+// warning about who has read the text.
+.legal__beta {
   border: var(--border);
   border-left-width: 4px;
-  border-left-color: var(--warning);
-  background: var(--warning-soft);
-  color: var(--warning);
+  border-left-color: var(--accent);
+  background: var(--canvas-alt);
+  color: var(--text-muted);
   padding: var(--sp-4);
   border-radius: var(--radius);
   font-size: var(--fs-sm);

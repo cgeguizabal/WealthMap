@@ -4,6 +4,7 @@ import { NAV_GROUPS } from './navigation.js'
 import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import { LEGAL_ROUTES } from '@/config/legal'
+import { VERSION_LABEL } from '@/config/app'
 
 defineProps({
   /** Drives the mobile drawer; ignored at desktop widths. */
@@ -73,6 +74,8 @@ function isActive(item) {
     <!-- Hidden when the rail is collapsed: at that width there is no room for
          text, and an icon for "Privacy Policy" would be a guess. -->
     <footer v-if="!collapsed" class="sidebar__legal">
+      <span class="sidebar__version">{{ VERSION_LABEL }}</span>
+
       <RouterLink :to="LEGAL_ROUTES.privacy" @click="emit('navigate')">
         {{ t('legal.privacy') }}
       </RouterLink>

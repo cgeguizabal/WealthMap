@@ -11,13 +11,15 @@ export const POLICY_VERSION = '1.0'
 
 export const POLICY_EFFECTIVE_DATE = '2026-08-18'
 
-/**
- * Both documents are drafts until a lawyer has been through them. The banner
- * that says so is rendered from this flag, not hard-coded into the views, so
- * removing it after review is a one-line change in one place.
- */
-export const LEGAL_DOCS_ARE_DRAFT = true
+// Both documents are published as part of a beta, not as lawyer-reviewed text.
+// The visible draft banner was removed deliberately; legal review is still
+// outstanding and tracked in docs/DEPLOYMENT_CHECKLIST.md. The pages carry the
+// app's beta marker instead, which says less about who has read them.
 
+/**
+ * Where the two documents live. Also duplicated in PUBLIC_PATHS in
+ * api/client.js, which cannot import this file without a cycle.
+ */
 export const LEGAL_ROUTES = {
   privacy: '/privacy',
   terms: '/terms'

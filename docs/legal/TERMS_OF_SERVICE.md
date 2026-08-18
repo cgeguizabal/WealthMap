@@ -1,12 +1,6 @@
-<!-- DRAFT — must be reviewed by a lawyer before public launch. Not legal advice. -->
-
 # WealthMap Terms of Service
 
 **Version 1.0** · **Effective 18 August 2026**
-
-> **This document is a draft.** It has not been reviewed by a lawyer. Several
-> clauses below — the liability limit in particular — are exactly the kind that
-> vary by jurisdiction and are unenforceable if drafted carelessly.
 
 ---
 

@@ -5,20 +5,39 @@ import { motion } from 'motion-v'
 import { fadeUp } from '@/composables/useMotionSafe'
 import { useI18n } from '@/composables/useI18n'
 import { renderMarkdown } from '../renderMarkdown'
-import { LEGAL_DOCS_ARE_DRAFT, LEGAL_ROUTES } from '@/config/legal'
+import { LEGAL_ROUTES } from '@/config/legal'
+import { VERSION_LABEL } from '@/config/app'
 
-// The canonical text, imported from docs/legal as raw strings. Both are pulled
-// in rather than loaded per route: together they are a few kilobytes, and a
-// dynamic import keyed on the route would earn nothing but a loading state.
-import privacySource from '../../../../../docs/legal/PRIVACY_POLICY.md?raw'
-import termsSource from '../../../../../docs/legal/TERMS_OF_SERVICE.md?raw'
+// The canonical text, imported from docs/legal as raw strings — four documents,
+// two per language. All are pulled in rather than fetched per route: together
+// they are a few kilobytes, and a dynamic import keyed on route and locale would
+// earn nothing but a loading state on a page made entirely of text.
+import privacyEn from '../../../../../docs/legal/PRIVACY_POLICY.md?raw'
+import privacyEs from '../../../../../docs/legal/PRIVACY_POLICY.es.md?raw'
+import termsEn from '../../../../../docs/legal/TERMS_OF_SERVICE.md?raw'
+import termsEs from '../../../../../docs/legal/TERMS_OF_SERVICE.es.md?raw'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 
 const isPrivacy = computed(() => route.path === LEGAL_ROUTES.privacy)
 
-const body = computed(() => renderMarkdown(isPrivacy.value ? privacySource : termsSource))
+/**
+ * Falls back to English for any locale without its own translation.
+ *
+ * A missing translation must never mean a missing policy — an empty privacy
+ * page is worse than one in the wrong language, and these are the two documents
+ * where showing nothing is not an option.
+ */
+const source = computed(() => {
+  const spanish = locale.value?.startsWith('es')
+
+  if (isPrivacy.value) return spanish ? privacyEs : privacyEn
+
+  return spanish ? termsEs : termsEn
+})
+
+const body = computed(() => renderMarkdown(source.value))
 </script>
 
 <template>
@@ -31,18 +50,13 @@ const body = computed(() => renderMarkdown(isPrivacy.value ? privacySource : ter
       </RouterLink>
     </div>
 
-    <!--
-      The same warning the markdown carries as an HTML comment, said out loud.
-      A draft policy that looks finished is worse than no policy: someone reads
-      it as a commitment that nobody has checked.
-    -->
-    <p v-if="LEGAL_DOCS_ARE_DRAFT" class="legal__draft" role="note">
-      <strong>{{ t('legal.draftLabel') }}</strong>
-      {{ t('legal.draftNotice') }}
+    <p class="legal__beta" role="note">
+      <strong>{{ VERSION_LABEL }}</strong>
+      {{ t('legal.betaNotice') }}
     </p>
 
     <!--
-      eslint-disable-next-line vue/no-v-html — the input is two files in this
+      eslint-disable-next-line vue/no-v-html — the input is four files in this
       repository, and renderMarkdown escapes before it adds any markup.
     -->
     <article class="legal-doc" v-html="body"></article>

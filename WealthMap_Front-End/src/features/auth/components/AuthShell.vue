@@ -4,6 +4,7 @@ import { fadeUp } from '@/composables/useMotionSafe'
 import { RouterLink } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import { LEGAL_ROUTES } from '@/config/legal'
+import { VERSION_LABEL } from '@/config/app'
 
 const { t } = useI18n()
 
@@ -22,6 +23,7 @@ defineProps({
       <header class="auth__brand">
         <span class="auth__mark">WM</span>
         <span class="auth__wordmark">WealthMap</span>
+        <span class="auth__version">{{ VERSION_LABEL }}</span>
       </header>
 
       <div class="auth__heading">

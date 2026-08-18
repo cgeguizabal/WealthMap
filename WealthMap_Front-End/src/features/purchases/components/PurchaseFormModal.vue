@@ -19,6 +19,7 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import StorePicker from '@/features/shared/components/StorePicker.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
+import { CURRENCY_OPTIONS as CURRENCIES } from '@/config/currencies'
 
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
@@ -63,8 +64,6 @@ const auth = useAuthStore()
 const accounts = ref([])
 const cards = ref([])
 
-const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
-  .map((code) => ({ value: code, label: code }))
 
 /**
  * The value sent to the API stays the English name it stores; only the label

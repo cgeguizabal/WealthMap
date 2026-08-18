@@ -147,8 +147,7 @@ export default {
     privacy: 'Política de Privacidad',
     terms: 'Términos del Servicio',
     backToApp: '← Volver a WealthMap',
-    draftLabel: 'Borrador.',
-    draftNotice: 'Este documento no ha sido revisado por un abogado. Describe lo que el software hace hoy y no constituye asesoría legal.'
+    betaNotice: 'WealthMap está en beta. Este documento describe lo que el software hace hoy y puede cambiar con él.'
   },
 
   dashboard: {

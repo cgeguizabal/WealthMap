@@ -1,12 +1,6 @@
-<!-- DRAFT — must be reviewed by a lawyer before public launch. Not legal advice. -->
-
 # WealthMap Privacy Policy
 
 **Version 1.0** · **Effective 18 August 2026**
-
-> **This document is a draft.** It has not been reviewed by a lawyer. It
-> describes what the software actually does today, which is the necessary raw
-> material for a real policy but is not a substitute for one.
 
 ---
 
@@ -160,9 +154,7 @@ as the hosting platform retains them.
   form.
 - **Withdraw consent.** Stop using WealthMap and ask for deletion.
 
-Depending on where you live, you may have additional statutory rights — a
-lawyer's review, not this draft, should enumerate them for the jurisdictions
-WealthMap actually operates in.
+Depending on where you live, you may have additional statutory rights.
 
 ## 10. Children
 

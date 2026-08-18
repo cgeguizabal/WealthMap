@@ -11,6 +11,7 @@ import BaseButton from '@/components/base/BaseButton.vue'
 import TrackingFields from '@/features/shared/components/TrackingFields.vue'
 import { TRACKING_MODE, trackingModeValue } from '@/api/tracking'
 import { useI18n } from '@/composables/useI18n'
+import { CURRENCY_OPTIONS as CURRENCIES } from '@/config/currencies'
 
 const { t } = useI18n()
 
@@ -26,8 +27,6 @@ const auth = useAuthStore()
 
 const isEdit = computed(() => props.card !== null)
 
-const CURRENCIES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
-  .map((code) => ({ value: code, label: code }))
 
 const DAYS = Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))
 

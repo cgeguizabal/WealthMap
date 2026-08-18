@@ -95,3 +95,14 @@
     &:hover { color: var(--text); }
   }
 }
+
+// A quiet maturity marker, not a decoration: it sits with the wordmark so the
+// claim travels with the name.
+.auth__version {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  border: var(--border-subtle);
+  border-radius: 999px;
+  padding: 1px var(--sp-2);
+  letter-spacing: 0.02em;
+}

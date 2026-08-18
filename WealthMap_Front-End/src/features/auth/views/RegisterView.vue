@@ -8,6 +8,7 @@ import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import { useI18n } from '@/composables/useI18n'
 import { POLICY_VERSION, LEGAL_ROUTES } from '@/config/legal'
+import { CURRENCY_CODES } from '@/config/currencies'
 
 const { t, locale } = useI18n()
 
@@ -15,7 +16,6 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-const CURRENCY_CODES = ['USD', 'MXN', 'EUR', 'GBP', 'CAD', 'BRL', 'COP', 'ARS']
 
 /**
  * Currency names come from the browser's own locale data rather than a list
