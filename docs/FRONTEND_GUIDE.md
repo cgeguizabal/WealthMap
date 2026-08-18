@@ -915,8 +915,14 @@ not drag its styles along.
 
 ### 8.1 Auth — `/login`, `/register`
 Blank layout via `meta.layout`. Field errors from `error.fields`, form-level errors in a banner.
-Honours `?redirect=`. Registration captures the chosen currency into the auth store, because the API
-does not return it (§9).
+Honours `?redirect=`. The auth response now carries `currency`, so the store reads it directly and
+the old workaround of remembering the value from the form is gone.
+
+Registration requires a consent checkbox before the submit button enables, and sends
+`POLICY_VERSION` from `src/config/legal.js` with the account (§8.16). The sentence is split around
+its `{terms}` and `{privacy}` placeholders at render time rather than concatenated in the template,
+because word order differs between English and Spanish and hard-coding it would mistranslate one of
+them.
 
 ### 8.2 Dashboard — `/`
 The payoff screen. Four stat tiles, alerts, upcoming dues, month summary, goals. Loads dashboard and
@@ -1096,6 +1102,44 @@ one: a fallback that could never be honoured is refused at the point of nominati
 
 Its empty state is **informational, not an error**. Having no defaults is the normal starting
 position and nothing is broken without them, so the copy says so rather than prompting for a fix.
+
+---
+
+### 8.16 Legal — `/privacy`, `/terms`
+
+Both routes render one component, `LegalDocumentView`, which picks its document from the path. Blank
+layout, and the only two routes marked `alwaysPublic`: the router's guard normally bounces a signed-in
+user away from public routes, and someone who wants to re-read what they agreed to should not have
+to sign out first.
+
+**The text is not in the frontend.** `docs/legal/PRIVACY_POLICY.md` and `TERMS_OF_SERVICE.md` are
+imported with Vite's `?raw` and rendered at runtime:
+
+```js
+import privacySource from '../../../../../docs/legal/PRIVACY_POLICY.md?raw'
+```
+
+One copy of the text exists, and it is the one a lawyer will eventually mark up. A duplicate inside
+`src/` would drift the moment either was edited. The import reaches above the Vite root, which the
+build handles on its own; only the dev server needed telling, via `server.fs.allow` in
+`vite.config.js`.
+
+`renderMarkdown.js` handles the subset those two files use — headings, paragraphs, lists, tables,
+blockquotes, rules, bold, code, links. A parser dependency would be the obvious move, but the input
+is two files in this repository rather than arbitrary Markdown, and this keeps a library out of the
+bundle for two static pages. It escapes before adding any markup, and rejects any href that is not
+`http(s):`, `mailto:` or relative.
+
+Both documents are drafts until a lawyer reviews them, and each page says so in a banner driven by
+`LEGAL_DOCS_ARE_DRAFT` in `src/config/legal.js` — one flag to remove after review, rather than a
+warning copy-pasted into two views.
+
+`src/config/legal.js` also holds `POLICY_VERSION`, which registration sends with the account so the
+server records *which* text was accepted. Raise it when the documents change materially, and raise
+it in the Markdown headers at the same time.
+
+Links live in two places: the auth shell, so they are reachable before signing up, and the sidebar
+footer, hidden when the rail is collapsed because an icon for "Privacy Policy" would be a guess.
 
 ---
 

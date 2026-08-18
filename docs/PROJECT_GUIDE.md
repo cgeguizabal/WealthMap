@@ -306,12 +306,113 @@ volumes that cost is irrelevant, and correctness is not.
 
 ---
 
+### 3.10 Encryption at rest, without the domain knowing
+
+Identifying columns — names, emails, notes, card digits — are written as ciphertext. AES-256-GCM,
+a fresh 12-byte nonce per value, stored as `v1:{base64(nonce || ciphertext || tag)}`.
+
+The whole mechanism lives in two places: `AesGcmEncryptionService` in Infrastructure, and a
+one-line call in each entity configuration.
+
+```csharp
+builder.Property(a => a.Name)
+    .IsRequired()
+    .IsEncrypted(_encryption);
+```
+
+`Account.Name` is still a `string` holding a plaintext name. Nothing in Domain or Application
+changes, nothing takes an encryption dependency, no handler encrypts or decrypts. The conversion
+happens in the EF model, between the entity and the column, which is the only layer that should
+know how a value is stored. Persistence is Infrastructure's problem by definition — this is that
+rule applied to a case where it would have been easy to leak upward.
+
+**Why not encrypt every string?** Because most of them must stay queryable. Bank names are matched
+against `bank_defaults`, currencies are compared, categories are filtered. A blanket convention
+would have broken those silently, so each encrypted column is named deliberately in its
+configuration and the list is readable in one place.
+
+**GCM, not CBC**, because it is authenticated: a value altered directly in the database fails to
+decrypt loudly rather than yielding plausible garbage that then flows into a report.
+
+**The `v1:` prefix is mandatory and does two jobs.** It makes key rotation possible — a future `v2`
+can decrypt `v1` values on read and rewrite them — and it makes `Decrypt` idempotent, because a
+value without the prefix is plaintext that predates encryption and is returned unchanged. That
+second property is what lets the data migration run against a half-converted table and be re-run
+after an interruption.
+
+#### The blind index
+
+Encryption is randomised: the same email encrypts to a different value every time. That is the
+point, and it breaks two things at once — the unique constraint on `email`, and sign-in, which has
+to *find* a row by email.
+
+A blind index solves both. `email_lookup` holds `HMAC-SHA256(email.Trim().ToLowerInvariant(), key)`
+as lowercase hex, under a **separate key** from the encryption key. It is deterministic, so it can
+be indexed, compared and made unique. The unique constraint moved from `email` to `email_lookup`.
+
+```csharp
+var lookup = _encryption.BlindIndex(email);
+
+return await Set.FirstOrDefaultAsync(
+    u => EF.Property<string>(u, UserConfiguration.EmailLookup) == lookup, ct);
+```
+
+`email_lookup` is a shadow property. `User` has no such member, because the domain is not allowed
+to learn that its email is encrypted. `WealthMapDbContext.SaveChanges` keeps it in step on every
+write, rather than the repository doing it — a user saved without its blind index would be invisible
+to sign-in *and* to the duplicate check, so registration would appear to succeed and the account
+would then not exist.
+
+The normalisation inside `BlindIndex` must match `User.NormalizeEmail` exactly. If those two ever
+diverge, lookups miss silently.
+
+#### Sorting
+
+`ORDER BY name` on an encrypted column sorts ciphertext, which is to say it sorts nothing. Four
+repositories — accounts, credit cards, debts, product goals — now materialise first and sort in
+memory:
+
+```csharp
+var cards = await Query(userId).ToListAsync(ct);
+
+return cards
+    .OrderBy(c => c.CardName, StringComparer.CurrentCultureIgnoreCase)
+    .ToList();
+```
+
+At personal-finance row counts this is free. It would not be at scale, and that is a real cost of
+this design rather than a detail to gloss over.
+
+#### What this protects against, and what it does not
+
+It protects against a **stolen database**: a leaked backup or a compromised hosting account is not
+readable without the keys, which are not stored in it.
+
+It does not put the data beyond the operator's reach. The application decrypts on every page load,
+so the keys live in application configuration. **This is pseudonymisation, not zero-knowledge
+encryption**, and the privacy policy says so in those words. Claiming otherwise anywhere — code,
+docs, or policy — would be false.
+
+`docs/DB_ROLES.sql` addresses the other half of the problem: a role that can read and write rows
+but cannot drop a table.
+
+
 ## 4. The modules
 
 ### 4.1 Users & authentication
 `POST /api/v1/auth/register`, `POST /api/v1/auth/login`. Registration stores email (normalized
 lowercase), PBKDF2 hash, name, country, currency. The profile currency is the reporting currency
-used by the dashboard and monthly report.
+used by the dashboard and monthly report, and it now travels back in the auth response so the
+client can format money before the first dashboard load.
+
+Email, name and country are encrypted at rest; the email is additionally stored as a blind index so
+sign-in can still find the row (§3.10). The password hash is not encrypted — it is already a
+one-way hash with its own salt, and encrypting it would add nothing but a decryption on every
+sign-in.
+
+Registration requires accepting the Terms and Privacy Policy. The request carries `acceptedTerms`
+and `policyVersion`; `User.AcceptTerms` records both, refusing a non-UTC timestamp. Without the
+version, the stored consent would not say *what* was consented to.
 
 ### 4.2 Accounts
 `GET|POST /api/v1/accounts`, `GET|PUT|DELETE /{id}`, `POST /{id}/block`, `POST /{id}/unblock`,
@@ -713,28 +814,28 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 
 | Table | Purpose | Notable columns / constraints |
 |---|---|---|
-| `users` | identity + profile | `email` unique, `currency` = reporting currency |
-| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` + `tracking_mode`, `debit_card_type` + `debit_card_last_four`; CHECKs `(tracking_mode = 1) OR (last_four IS NOT NULL)` and `(debit_card_type <> 1) OR (debit_card_last_four IS NULL)` |
+| `users` | identity + profile | `email` **encrypted**, `email_lookup` (`char(64)`, **unique**) is the blind index that replaced the unique index on `email`; `full_name` and `country` encrypted; `currency` = reporting currency; `terms_accepted_at` + `accepted_policy_version` |
+| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` + `tracking_mode`, `debit_card_type` + `debit_card_last_four` (both `text`, encrypted); `name` and `notes` encrypted; CHECKs `(tracking_mode = 1) OR (last_four IS NOT NULL)` and `(debit_card_type <> 1) OR (debit_card_last_four IS NULL)` |
 | `account_movements` | immutable audit trail | `type`, `amount`, `balance_after`, `related_entity_id`; indexes `(user_id, occurred_at)`, `(account_id, occurred_at)` |
-| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`char(4)`, nullable) + `tracking_mode`; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
+| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`text`, nullable, encrypted) + `tracking_mode`; `card_name` and `notes` encrypted; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
 | `jobs` | one per user | `gross_monthly_salary`, `salary_posting_starts_on`; FK deposit account `RESTRICT` |
 | `salary_deposits` | one row per settled payday | `scheduled_date`, `amount`, `account_movement_id`; **unique `(job_id, scheduled_date)`** — the exactly-once guarantee |
 | `job_payment_days` | 1–3 per job | CHECK `day_of_month BETWEEN 1 AND 31` |
 | `deductions` | payslip deductions | `type` (Fixed/Percentage), CHECK `value > 0` |
 | `additional_incomes` | recurring extras | `frequency` |
 | `stores` | shared catalog | `created_by_user_id` **nullable**, `ON DELETE SET NULL` |
-| `purchases` | what you bought | `payment_method`, nullable `account_id`/`credit_card_id`/`store_id`; indexes `(user_id, occurred_at)`, `(user_id, category)` |
+| `purchases` | what you bought | `notes` encrypted; `payment_method`, nullable `account_id`/`credit_card_id`/`store_id`; indexes `(user_id, occurred_at)`, `(user_id, category)` |
 | `installment_purchases` | tasa 0 plans | `total_price`, `months_count`; CHECK 1–120 |
 | `installment_payments` | generated schedule | unique `(installment_purchase_id, number)` |
-| `debts` | loans | CHECK `remaining_amount <= original_amount` |
-| `savings_goals` | targets | nullable `linked_account_id`, `ON DELETE SET NULL` |
-| `product_goals` | product targets | nullable `deadline` |
-| `notifications` | persisted alerts | `type`, `severity`, `is_read`, `params` (`jsonb`); index `(user_id, is_read)` |
+| `debts` | loans | `name` encrypted; CHECK `remaining_amount <= original_amount` |
+| `savings_goals` | targets | `name` encrypted; nullable `linked_account_id`, `ON DELETE SET NULL` |
+| `product_goals` | product targets | `name` encrypted; nullable `deadline` |
+| `notifications` | persisted alerts | `type`, `severity`, `is_read`; `title`, `message` and `params` **encrypted** — `params` moved from `jsonb` to `text` to hold ciphertext; index `(user_id, is_read)` |
 | `payments` | every payment, any source | `target_type` + `target_id` (polymorphic, no FK), `source_type`, nullable `source_account_id` (FK `RESTRICT`); CHECK source and account agree; indexes `(user_id, occurred_at)`, `(target_type, target_id)` |
 | `refresh_tokens` | one row per issued refresh token | `token_hash` (SHA-256 hex, **unique**), `expires_at`, `revoked_at`, `replaced_by_token_hash`; FK `users` cascade |
 | `bank_defaults` | fallback account per bank, per direction | `bank_name`, `direction`, `default_account_id`; **unique `(user_id, bank_name, direction)`**; FK `users` cascade, FK `accounts` **`RESTRICT`** (§6.14) |
 
-Eighteen migrations, `InitialCreate` through `AddAccountDebitCard`.
+Twenty migrations, `InitialCreate` through `RequireEmailLookup`.
 
 `AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
 new table would have silently zeroed the report's historical figures — a regression introduced by an
@@ -937,6 +1038,26 @@ unpaid and dumped a year of back-salary into accounts on first run. `AddNotifica
 a `jsonb` column to `""`, which is not valid JSON and would have failed outright on Postgres. Neither
 is exotic; both were caught by reading the file.
 
+**Encryption arrived as three migrations, not one, and the order matters.**
+`EncryptPiiColumns` only widens the columns and adds `email_lookup` as nullable — applying it
+changes nothing that is running. Then `--encrypt-pii` rewrites the existing rows and fills the blind
+index. Only then does `RequireEmailLookup` add `NOT NULL` and the unique index.
+
+That third migration refuses to run while any row is still unconverted. EF's generated `AlterColumn`
+carried `defaultValue: ""`, which would have given every unconverted user a blank blind index —
+a migration that reports success and locks those accounts out. It was replaced with a check that
+raises instead:
+
+```sql
+IF missing > 0 THEN
+    RAISE EXCEPTION 'email_lookup is still null for % user(s). Run the encryption pass first', missing;
+END IF;
+```
+
+`Down` on `EncryptPiiColumns` is only valid while the data is still plaintext. Once anything is
+encrypted, ciphertext will not fit back into `char(4)` and the way back is a restore from backup,
+not a rollback.
+
 **Testing** has been manual through Postman, module by module. The natural next step is automated
 tests, and the architecture is already shaped for them:
 
@@ -1009,4 +1130,8 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Tracking mode** | Per-instrument opt-in for automatic transaction sync: `Manual` (the only working mode) or `EmailSync` (reserved, unselectable). Never `EmailSync` without a **last four** (§4.2, §6.14). |
 | **Last four** | The four digits a bank prints when it names an account or card in a notification email. Identifying data, stored as `char(4)`; nothing reads it yet (§6.14). |
 | **Debit card** | Whether a card reaches an account — `None`, `Physical` or `Digital` — and its own last four, which is a *different* number from the account's. No card means no digits, enforced by the entity and by a check constraint (§4.2). |
+| **Blind index** | A deterministic keyed hash of a value, stored beside its encrypted form so the column can still be searched and made unique. `users.email_lookup` is `HMAC-SHA256(normalised email)` under its own key. Encryption is randomised and cannot do either job (§3.10). |
+| **Envelope prefix** | The `v1:` in front of every ciphertext. Names the key generation, so a future `v2` can decrypt and rewrite old values — and makes decryption idempotent, since a value without it is plaintext that predates encryption (§3.10). |
+| **Pseudonymisation** | Storing data so it is unreadable without a key the *operator* holds. Distinct from zero-knowledge encryption, where the operator could not read it either. WealthMap does the former; the privacy policy says so plainly (§3.10). |
+| **Policy version** | Which text of the Terms and Privacy Policy a user accepted, stored with the timestamp. "They agreed" is not a useful record without it. |
 | **Bank default** | The account to assume when a bank's transfer notification names none. One per bank per direction; the foreign key is `RESTRICT` so it cannot vanish with the account it points at (§6.14). |

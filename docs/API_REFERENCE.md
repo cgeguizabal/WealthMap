@@ -27,6 +27,12 @@ from, are: account creation, card creation, job creation, additional income, deb
 (`paymentDueDay`, `monthlyDueDay`, job payment days) are integers 1–31 and clamp to short months —
 the "31st" resolves to the 30th in November and the 28th/29th in February.
 
+**Encryption is invisible here.** Names, emails, notes and card digits are encrypted in the
+database, but the API sends and receives plaintext — the conversion happens in the EF model. No
+request or response shape changes because of it, and no endpoint takes or returns a ciphertext.
+One consequence is worth knowing: results ordered by an encrypted column (accounts, credit cards,
+debts, product goals) are sorted after decryption rather than by the database.
+
 **Paging.** Paged endpoints take `?page=1&pageSize=20`. `pageSize` max is **100**. The envelope:
 
 ```json
@@ -88,13 +94,20 @@ is a string both ways (`"Account"` / `"External"`, case-insensitive on input).
 
 ```json
 { "email": "you@example.com", "password": "at-least-8-chars",
-  "fullName": "Your Name", "country": "US", "currency": "USD" }
+  "fullName": "Your Name", "country": "US", "currency": "USD",
+  "acceptedTerms": true, "policyVersion": "1.0" }
 ```
 
-**200** → `{ "userId", "email", "fullName", "token" }`
+**200** → `{ "userId", "email", "fullName", "currency", "token" }`
 
 `currency` becomes your reporting currency: the dashboard and monthly report aggregate in it, and
-holdings in other currencies are excluded from totals rather than converted.
+holdings in other currencies are excluded from totals rather than converted. It is returned in the
+auth response so the client can format money before the first dashboard load.
+
+`acceptedTerms` must be `true` — **400** with *"You must accept the Terms of Service and Privacy
+Policy."* otherwise. `policyVersion` is the version of the documents shown at signup (see
+`src/config/legal.js` on the client, and `docs/legal/`); it is stored with the acceptance timestamp
+so the record says which text was agreed to.
 
 ### `POST /api/v1/auth/login`
 
