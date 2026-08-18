@@ -6,8 +6,10 @@ import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
 import { useI18n } from '@/composables/useI18n'
+import { useDateTime } from '@/composables/useDateTime'
 
 const { t } = useI18n()
+const { formatDate, relativeDay } = useDateTime()
 
 const props = defineProps({
   card: { type: Object, required: true }
@@ -38,11 +40,17 @@ const variant = computed(() => {
           <BaseIcon name="card" :size="16" />
           <div>
             <h3 class="card__name">{{ card.cardName }}</h3>
-            <p class="card__bank">{{ card.bankName }}</p>
+            <p class="card__bank">
+              {{ card.bankName }}
+              <!-- Only when set: a placeholder would imply data that is simply absent. -->
+              <span v-if="card.lastFour" class="numeric card__last-four">••••{{ card.lastFour }}</span>
+            </p>
           </div>
         </div>
 
-        <span class="card__due">{{ t('cards.dueDayWithNumber', { day: card.paymentDueDay }) }}</span>
+        <span :class="['card__due', { 'card__due--soon': card.daysUntilDue <= 7 }]">
+          {{ relativeDay(card.daysUntilDue) }}
+        </span>
       </header>
 
       <div class="card__figures">
@@ -71,6 +79,40 @@ const variant = computed(() => {
           </span>
         </template>
       </BaseProgress>
+
+      <!-- The split, not just the total: owing 100 with 50 due on the 15th and 50
+           not billed for another month is a different obligation from owing 100
+           all at once. The dates are shown beside each figure because each is
+           only meaningful with its deadline. -->
+      <dl class="card__cycle">
+        <div class="card__cycle-item">
+          <dt>
+            {{ t('cards.dueThisStatement') }}
+            <span class="card__cycle-when">{{ formatDate(card.nextDueDate) }}</span>
+          </dt>
+          <dd :class="['numeric', { 'is-negative': card.statementBalance > 0 }]">
+            {{ format(card.statementBalance, { currency: card.currency }) }}
+          </dd>
+        </div>
+
+        <div class="card__cycle-item">
+          <dt>
+            {{ t('cards.nextStatement') }}
+            <span class="card__cycle-when">{{ t('composed.closesOn', { date: formatDate(card.nextCutoffDate) }) }}</span>
+          </dt>
+          <dd class="numeric">
+            {{ format(card.currentCycleCharges, { currency: card.currency }) }}
+          </dd>
+        </div>
+      </dl>
+
+      <!-- Only when a plan is running: otherwise the three figures would not add
+           up to the total and the reader would be left hunting for the gap. -->
+      <p v-if="card.futureInstallments > 0" class="card__future">
+        {{ t('composed.plusFutureInstallments', {
+          amount: format(card.futureInstallments, { currency: card.currency })
+        }) }}
+      </p>
     </RouterLink>
 
     <footer class="card__actions">

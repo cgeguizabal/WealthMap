@@ -25,6 +25,34 @@ builder.Services.AddHostedService<WealthMap.Api.BackgroundServices.SalaryPosting
 
 
 
+// In development the frontend reaches the API through Vite's proxy, which makes
+// the call same-origin — nothing here applies. A deployed frontend is a genuinely
+// different origin, so its exact URL has to be listed in Cors:AllowedOrigins.
+//
+// Origins are configuration rather than constants because they differ per
+// environment, and the list is deliberately explicit: AllowAnyOrigin would let
+// any site on the internet call the API with a token it had somehow obtained.
+const string CorsPolicy = "WealthMapFrontend";
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy =>
+    {
+        // AllowCredentials is required for the refresh cookie to travel at all on a
+        // cross-origin call. It is also why the origin list must stay explicit:
+        // browsers reject credentials combined with a wildcard origin outright, so
+        // there is no way to loosen this by accident without CORS breaking loudly.
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -46,6 +74,10 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+builder.Services.Configure<WealthMap.Api.Auth.CookieSettings>(
+    builder.Configuration.GetSection(WealthMap.Api.Auth.CookieSettings.SectionName));
+builder.Services.AddScoped<WealthMap.Api.Auth.RefreshTokenCookie>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -54,7 +86,11 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
+// Before authentication: a rejected pre-flight must come back as a CORS failure
+// the browser can explain, not as a 401 the frontend would misread as a bad token.
+app.UseCors(CorsPolicy);
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

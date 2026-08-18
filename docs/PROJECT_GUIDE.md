@@ -279,7 +279,7 @@ caller's perspective, other users' data does not merely refuse access — it doe
 | `ValidationException` | 400 | field-keyed error dictionary |
 | `DomainException` | 400 | the rule's message |
 | `NotFoundException` | 404 | resource + id |
-| anything else | 500 | generic message; details logged server-side |
+| anything else | 500 | generic message; details logged server-side |0.
 
 Handlers never touch `IActionResult`, and controllers contain no try/catch. The last case matters
 for security: an unexpected exception is logged in full but the client gets only "An unexpected
@@ -314,7 +314,8 @@ lowercase), PBKDF2 hash, name, country, currency. The profile currency is the re
 used by the dashboard and monthly report.
 
 ### 4.2 Accounts
-`GET|POST /api/v1/accounts`, `GET|PUT|DELETE /{id}`, `POST /{id}/block`, `POST /{id}/unblock`.
+`GET|POST /api/v1/accounts`, `GET|PUT|DELETE /{id}`, `POST /{id}/block`, `POST /{id}/unblock`,
+`PUT /{id}/tracking`.
 
 Checking or Savings. A savings account can be **blocked for saving**: deposits still work,
 withdrawals throw. It is a commitment device, not a security feature.
@@ -327,6 +328,26 @@ dropdown and total, while its movements — and the purchases, payments and jobs
 exactly as they were. `GET /{id}` and `GET /{id}/movements` still resolve afterwards so links from
 history keep working, but `ExistsForUserAsync` excludes archived rows, so nothing new can be pointed
 at one: creating a job or income against an archived account is a 404.
+
+**Tracking fields.** `LastFour` and `TrackingMode` identify the account in a bank's notification
+email. They are set through `PUT /{id}/tracking` rather than the ordinary `PUT`, because the two
+constrain each other and the order they are written in decides whether a valid pair is accepted.
+Both are inert today — see §6.14.
+
+**The debit card.** `PUT /{id}/debit-card` records whether a card reaches the account —
+`None`, `Physical` or `Digital` — and its own last four. That is a **different number** from
+`LastFour`, which is the account's: a notification about a card purchase quotes the card, one about a
+transfer quotes the account, and a single field for both would match the wrong message about half the
+time. The type governs the digits, so choosing `None` clears them rather than leaving an orphan
+number for a card that does not exist; a check constraint repeats that in the database. The digits
+stay optional for a card that does exist — a user may know they have one without having it to hand,
+and refusing the answer they can give in order to demand one they cannot is a bad trade.
+
+**The invariant: an instrument can never be in `EmailSync` without a `LastFour`.** Enforced on both
+transitions, not only when switching mode. `SetTrackingMode(EmailSync)` with no digits throws, and
+`SetLastFour(null)` on a synced account throws the same message, because clearing the digits would
+otherwise leave a row claiming to be automated that can never be identified — silently unreachable
+rather than loudly wrong. A check constraint repeats the rule in the database.
 
 ### 4.3 Movements & transactions
 `POST /{id}/deposit`, `POST /{id}/withdraw`, `POST /accounts/transfer`, `GET /{id}/movements`.
@@ -346,7 +367,8 @@ Request bodies carry no currency: the amount is denominated in the account's own
 mismatch is impossible by construction.
 
 ### 4.4 Credit cards
-`GET|POST /api/v1/credit-cards`, `GET|PUT|DELETE /{id}`, `PUT /{id}/limit`, `POST /{id}/payments`.
+`GET|POST /api/v1/credit-cards`, `GET|PUT|DELETE /{id}`, `PUT /{id}/limit`, `PUT /{id}/tracking`,
+`POST /{id}/payments`.
 
 `AvailableCredit = CreditLimit − UsedCredit`, computed. `Charge` refuses to exceed the limit;
 `RegisterPayment` refuses to exceed the balance owed; `UpdateCreditLimit` refuses to drop below
@@ -358,6 +380,54 @@ current debt. There is no public charge endpoint — purchases and installments 
 A card with an outstanding balance can still be archived, deliberately: archiving is not a way to
 settle debt, and the debt itself remains visible in the payment and purchase history. What changes is
 that the balance stops counting toward the dashboard credit totals.
+
+**Tracking fields** work exactly as on accounts (§4.2), same invariant, same shared rule — a bank
+identifies a card and an account the same way, so the two must fail with the same wording.
+`InstrumentTracking` holds the check once for both.
+
+**The statement split.** `UsedCredit` is one running total, which is not an actionable number: owing
+$100 where $50 closed on the last statement and $50 was spent yesterday means $50 is due on the 15th
+and the rest is not due for another month. `StatementCycle.Split` divides the balance three ways —
+`StatementBalance` (due on `NextDueDate`), `CurrentCycleCharges` (spent since the cutoff, billed
+next), and `FutureInstallments` — and the three sum back to `UsedCredit`.
+
+The card stores no statement history, so the division is reconstructed from the dates on the charges
+that produced the balance. **Payments are never read.** They are inferred: whatever is still owed
+*is* the unpaid part, and money pays the oldest debt first, so the current cycle is the smaller of
+"charged since the cutoff" and "still owed". Paying the statement off therefore leaves exactly the
+new spending behind, with no payment ledger consulted.
+
+That inference is also what makes an incomplete history safe. A balance the purchase records cannot
+explain — an opening balance, a charge predating the app — falls into the statement rather than the
+open cycle, which is the older and more urgent reading.
+
+Installments are held apart, as in §6.14's projection: a plan charges the card in full on day one but
+is repaid monthly, so its outstanding balance belongs to no single statement. Only the installment
+falling due on or before the payment date joins `StatementBalance`.
+
+`CardStatementLoader` computes this for every handler that returns a card. Seven of them do, and if
+each loaded its own history they would drift — one screen saying $50 is due and another $100 for the
+same card is worse than not showing the figure at all.
+
+**Paying the card advances the plans on it.** A plan's installment for the month is part of the
+card's statement, so `POST /{id}/payments` settles whatever installments that statement had already
+billed — oldest due date first across every plan on the card, whole installments only, and nothing
+beyond the statement however generous the payment. `InstallmentPurchase.SettleDueThrough` is the
+domain method; `PayCreditCardHandler` allocates.
+
+Without it the schedule drifted out of step with the balance it belongs to: paying a card reduced
+`UsedCredit` while the plan still reported every month outstanding, so "8 months left" quietly
+stopped being true and the user could pay the same installment twice.
+
+**No second `Payment` row is written** for a settled installment, and the card balance is not reduced
+again. `RegisterPayment` has already taken the full amount off `UsedCredit`; the installment being
+marked paid is the *consequence* of that payment, not another one. Writing a second ledger row would
+double every total that sums payments. The consequence worth knowing: an installment settled this way
+appears in the ledger as a **card** payment, not an installment payment — the ledger records money
+moving, and the money moved once.
+
+The reverse direction already worked: `POST /installment-purchases/{id}/pay` settles the next
+installment early, reducing both the plan and `UsedCredit` — a month less, deliberately chosen.
 
 ### 4.5 Jobs & salary
 `GET|POST /api/v1/jobs`, `GET|PUT|DELETE /{id}`, nested `POST|PUT|DELETE /{jobId}/deductions/{id}`,
@@ -421,7 +491,8 @@ No delete endpoint — purchases reference stores, and deleting one would orphan
 The DTO exposes `isMine` rather than the creator's id, so other users' ids never leak.
 
 ### 4.7 Purchases
-`GET|POST /api/v1/purchases`, `GET /{id}`. Filters: `?year=&month=&category=&page=&pageSize=`.
+`GET|POST /api/v1/purchases`, `GET|PUT|DELETE /{id}`.
+Filters: `?year=&month=&category=&page=&pageSize=`.
 
 The constructor enforces method-specific invariants: debit requires an account and forbids a card,
 credit the inverse, cash forbids both. Then:
@@ -441,6 +512,34 @@ are a shared catalogue behind their own repository and a `Purchase` holds only t
 handler resolves a whole page in one lookup, and create returns the name too — it already had the
 store in hand to prove it existed. `null` stays meaningful: cash purchases frequently name no store,
 and a store leaving the catalogue does not invalidate the purchases that referenced it.
+
+**Correcting a purchase.** `PUT` and `DELETE` both go through `PurchaseEffects`, which puts a
+purchase's money effects on and takes them off again. A purchase is not a row: depending on its
+method it withdrew from an account and wrote a movement, or charged a card, or did neither.
+
+- **`DELETE`** reverses exactly what it did — refunds the account or un-charges the card, removes the
+  movement, and drops the row.
+- **`PUT`** is a reversal followed by a fresh application. Adjusting by the difference would only
+  hold while the method and instrument stayed the same, and the correction people most need is the
+  one that breaks that: *"it went on the other card."* Undoing and redoing handles every case through
+  one path and reuses the code creation already trusts. Reversing happens **first**, so moving a
+  purchase within a nearly-full card still fits.
+
+**A real delete, not an archive** — unlike accounts and cards (§6.11). Nothing points at a purchase,
+and a mistyped one is not history worth keeping; it is noise in every total it touches. The accepted
+cost is that the movement it wrote is destroyed, so nothing records that the purchase ever existed.
+
+**What is not sacrificed is the coherence of what remains.** Every later movement on that account
+recorded a `BalanceAfter` that assumed this one happened. `AccountMovement.RebaseBalanceAfter` shifts
+them by the reversed amount — the single mutation on an otherwise immutable record, and it exists to
+keep that record honest rather than to edit it. Without it the running balance would visibly stop
+adding up while the account itself was correct.
+
+`CreditCard.ReverseCharge` is deliberately distinct from `RegisterPayment` even though both reduce
+the balance: a payment is money that left an account, this is the correction of a record, and routing
+one through the other would put a payment the user never made into the arithmetic deciding what is
+owed. It **refuses** when the balance has already been paid below the charge, rather than driving
+used credit negative and inventing credit that is not there.
 
 ### 4.8 Installment purchases (tasa 0)
 `GET|POST /api/v1/installment-purchases`, `GET /{id}`, `POST /{id}/pay`.
@@ -549,6 +648,33 @@ double-count it. Cash withdrawn is shown separately as "left your accounts".
 Internal transfers are not income — `TransferIn` is filtered out, so moving money to savings does
 not inflate earnings.
 
+**The PDF is bilingual.** `GET /reports/monthly/{month}/pdf?lang=es` renders the whole document in
+Spanish; anything else renders English.
+
+The report needed its own translations, because the app's live in the **client** — `i18n/en.js` and
+`i18n/es.js` are Vue modules, and this PDF is drawn on the server from data with no browser involved.
+`ReportText` therefore holds the ~45 strings the document prints. That is a second place translations
+live and the honest risk is drift, so it is bounded deliberately: only what this one document says,
+worded to match the Reports screen where the two overlap.
+
+**`lang` is a query parameter, not `Accept-Language`.** The language wanted is the one chosen *in the
+app*, which is not necessarily the browser's — someone reading WealthMap in Spanish on an
+English-configured machine should get a Spanish report. A JWT carries no locale, and storing a
+preference server-side would put the choice in two places.
+
+**It is passed per request, never held on the generator.** `IPdfReportGenerator` is registered as a
+**singleton**, so a language kept in a field would leak one user's locale into another's report the
+moment two downloads overlapped.
+
+The culture drives more than the wording: month names come out as "agosto 2026", and numbers format
+through it. Spanish is **`es-419`** (Latin American), which groups as `1,234.50` like English rather
+than the European `1.234,50` — the app targets El Salvador, which uses USD and US notation, and
+swapping separators with the language would make the figures look like a different currency.
+
+Values that arrive as data — movement types, goal statuses, categories, payment methods — go through
+`ReportText.Value`, which falls back to spacing out a PascalCase name. An enum member added to the
+domain before it is added here still reads as words rather than as code.
+
 ### 4.13 Payments ledger
 `GET /api/v1/payments` (paged, `?from=&to=&targetType=`), `GET /api/v1/credit-cards/{id}/payments`,
 `GET /api/v1/debts/{id}/payments`.
@@ -588,9 +714,9 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | Table | Purpose | Notable columns / constraints |
 |---|---|---|
 | `users` | identity + profile | `email` unique, `currency` = reporting currency |
-| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at` |
+| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` + `tracking_mode`, `debit_card_type` + `debit_card_last_four`; CHECKs `(tracking_mode = 1) OR (last_four IS NOT NULL)` and `(debit_card_type <> 1) OR (debit_card_last_four IS NULL)` |
 | `account_movements` | immutable audit trail | `type`, `amount`, `balance_after`, `related_entity_id`; indexes `(user_id, occurred_at)`, `(account_id, occurred_at)` |
-| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`; CHECK `used_credit <= credit_limit`, day ranges 1–31 |
+| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`char(4)`, nullable) + `tracking_mode`; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
 | `jobs` | one per user | `gross_monthly_salary`, `salary_posting_starts_on`; FK deposit account `RESTRICT` |
 | `salary_deposits` | one row per settled payday | `scheduled_date`, `amount`, `account_movement_id`; **unique `(job_id, scheduled_date)`** — the exactly-once guarantee |
 | `job_payment_days` | 1–3 per job | CHECK `day_of_month BETWEEN 1 AND 31` |
@@ -605,8 +731,10 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `product_goals` | product targets | nullable `deadline` |
 | `notifications` | persisted alerts | `type`, `severity`, `is_read`, `params` (`jsonb`); index `(user_id, is_read)` |
 | `payments` | every payment, any source | `target_type` + `target_id` (polymorphic, no FK), `source_type`, nullable `source_account_id` (FK `RESTRICT`); CHECK source and account agree; indexes `(user_id, occurred_at)`, `(target_type, target_id)` |
+| `refresh_tokens` | one row per issued refresh token | `token_hash` (SHA-256 hex, **unique**), `expires_at`, `revoked_at`, `replaced_by_token_hash`; FK `users` cascade |
+| `bank_defaults` | fallback account per bank, per direction | `bank_name`, `direction`, `default_account_id`; **unique `(user_id, bank_name, direction)`**; FK `users` cascade, FK `accounts` **`RESTRICT`** (§6.14) |
 
-Twelve migrations, `InitialCreate` through `AddPayments`.
+Eighteen migrations, `InitialCreate` through `AddAccountDebitCard`.
 
 `AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
 new table would have silently zeroed the report's historical figures — a regression introduced by an
@@ -760,6 +888,32 @@ Values go over the wire raw — invariant decimals, ISO dates — so the client 
 user's locale rather than inheriting the server's culture. Where the server makes a decision the
 wording depends on, it sends the decision: `savingsCover: "true"`, not the suggestion sentence.
 
+### 6.14 Planned: automatic transaction sync
+
+Banks announce transactions by email, and they identify the instrument by its last four digits —
+"tarjeta de crédito 7765", "XXXXXXXXXX6868". A future feature will read those messages and propose
+transactions instead of asking the user to type them. That feature is **deliberately not built**:
+there is no email reading, no parsing, no webhook, no ingestion, and no proposal queue anywhere in
+this codebase.
+
+What exists is the data it would need. `accounts.last_four` and `credit_cards.last_four` record the
+digits that would let a message be matched to a row. `tracking_mode` is the per-instrument opt-in, so
+automation would be something a user turns on for one card rather than something that happens to
+their whole account. `bank_defaults` answers the case that no amount of parsing can: some banks'
+transfer notifications never name the source account at all, so the user nominates a fallback per
+bank and per direction.
+
+The fields are captured now for one reason — they describe the real world, not the feature. Which
+card ends in 7765 is true today and would have to be asked for eventually; asking now costs a user
+one field per instrument, while asking later means interrupting them mid-import with a list of
+unmatched messages. The invariant that `EmailSync` requires a `LastFour` (§4.2) exists so that
+whenever the ingestion is written, it cannot encounter an instrument that opted in but cannot be
+identified.
+
+This is why `TrackingMode.EmailSync` is a value nobody can select. The API accepts it and the
+database stores it, but the UI renders it disabled behind a "Coming soon" badge, because an option
+that silently does nothing is worse than one that admits it is not ready yet.
+
 ---
 
 ## 7. Running, testing, migrating
@@ -852,3 +1006,7 @@ Stated plainly, because knowing the edges is part of knowing the system.
 | **Payday** | One date salary is due, after clamping. Two payment days landing on the same date in a short month are one payday. |
 | **Exactly-once** | Each payday paid once regardless of restarts, retries or concurrent instances. Guaranteed by a unique index, not by a check. |
 | **Alert params** | The names, amounts and dates an alert sentence was built from, stored beside it so it can be re-expressed in another language (§6.13). |
+| **Tracking mode** | Per-instrument opt-in for automatic transaction sync: `Manual` (the only working mode) or `EmailSync` (reserved, unselectable). Never `EmailSync` without a **last four** (§4.2, §6.14). |
+| **Last four** | The four digits a bank prints when it names an account or card in a notification email. Identifying data, stored as `char(4)`; nothing reads it yet (§6.14). |
+| **Debit card** | Whether a card reaches an account — `None`, `Physical` or `Digital` — and its own last four, which is a *different* number from the account's. No card means no digits, enforced by the entity and by a check constraint (§4.2). |
+| **Bank default** | The account to assume when a bank's transfer notification names none. One per bank per direction; the foreign key is `RESTRICT` so it cannot vanish with the account it points at (§6.14). |

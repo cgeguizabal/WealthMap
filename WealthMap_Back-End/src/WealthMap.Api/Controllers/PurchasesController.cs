@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using WealthMap.Api.Extensions;
 using WealthMap.Application.Common.Messaging;
 using WealthMap.Application.Features.Purchases.Commands.CreatePurchase;
+using WealthMap.Application.Features.Purchases.Commands.UpdatePurchase;
+using WealthMap.Application.Features.Purchases.Commands.DeletePurchase;
 using WealthMap.Application.Features.Purchases.Queries.GetPurchaseById;
 using WealthMap.Application.Features.Purchases.Queries.GetPurchases;
 
@@ -60,6 +62,44 @@ public class PurchasesController : ControllerBase
     {
         var result = await _sender.Send(new GetPurchaseByIdQuery(id, User.GetUserId()), ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Corrects a purchase. The money it moved is reversed and reapplied, so the
+    /// method and instrument can change too.
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] CreatePurchaseRequest request,
+        CancellationToken ct)
+    {
+        var command = new UpdatePurchaseCommand(
+            id,
+            User.GetUserId(),
+            request.ProductName,
+            request.Amount,
+            request.Currency,
+            request.OccurredAt,
+            request.StoreId,
+            request.Category,
+            request.PaymentMethod,
+            request.AccountId,
+            request.CreditCardId,
+            request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>
+    /// Removes a purchase recorded in error, restoring the account or card it
+    /// touched. A real delete — unlike accounts and cards, which archive.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _sender.Send(new DeletePurchaseCommand(id, User.GetUserId()), ct);
+        return NoContent();
     }
 }
 

@@ -95,6 +95,11 @@ const routes = [
     component: () => import('@/features/notifications/views/NotificationsView.vue')
   },
   {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/features/settings/views/SettingsView.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/features/shared/NotFoundView.vue'),

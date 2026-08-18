@@ -1,6 +1,7 @@
 using WealthMap.Application.Common.Exceptions;
 using WealthMap.Application.Common.Interfaces;
 using WealthMap.Application.Common.Messaging;
+using WealthMap.Application.Common.Services;
 using WealthMap.Application.Features.InstallmentPurchases.DTOs;
 using WealthMap.Domain.Entities;
 using WealthMap.Domain.ValueObjects;
@@ -14,13 +15,16 @@ public class CreateInstallmentPurchaseHandler
     private readonly ICreditCardRepository _cards;
     private readonly IStoreRepository _stores;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly InstallmentContextLoader _context;
 
     public CreateInstallmentPurchaseHandler(
         IInstallmentPurchaseRepository installments,
         ICreditCardRepository cards,
         IStoreRepository stores,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        InstallmentContextLoader context)
     {
+        _context = context;
         _installments = installments;
         _cards = cards;
         _stores = stores;
@@ -56,6 +60,6 @@ public class CreateInstallmentPurchaseHandler
             await _installments.AddAsync(purchase, ct);
         }, ct);
 
-        return InstallmentPurchaseDto.FromEntity(purchase);
+        return await _context.ToDtoAsync(purchase, request.UserId, ct);
     }
 }

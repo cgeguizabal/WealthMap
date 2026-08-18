@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useMoney } from '@/composables/useMoney'
 import BaseIcon from '@/components/base/BaseIcon.vue'
@@ -10,13 +11,16 @@ import { useServerText } from '@/composables/useServerText'
 const { t } = useI18n()
 const { label: serverLabel } = useServerText()
 
-defineProps({
+const props = defineProps({
   account: { type: Object, required: true }
 })
 
 defineEmits(['deposit', 'withdraw', 'edit', 'toggle-block', 'delete'])
 
 const { format } = useMoney()
+
+/** Compared against the response string, which is what the API sends back. */
+const hasDebitCard = computed(() => props.account.debitCardType && props.account.debitCardType !== 'None')
 </script>
 
 <template>
@@ -39,6 +43,28 @@ const { format } = useMoney()
       <p class="account__balance numeric">
         {{ format(account.balance, { currency: account.currency }) }}
       </p>
+
+      <!-- Its own labelled row rather than trailing the bank name: this is how the
+           user recognises the account on a statement, so it has to be findable at
+           a glance. Each half appears only when known — a placeholder would imply
+           data that is simply absent. -->
+      <dl v-if="account.lastFour || hasDebitCard" class="account__numbers">
+        <div v-if="account.lastFour">
+          <dt>{{ t('accounts.accountNumber') }}</dt>
+          <dd class="numeric">••••{{ account.lastFour }}</dd>
+        </div>
+
+        <div v-if="hasDebitCard">
+          <dt>
+            <BaseIcon :name="account.debitCardType === 'Digital' ? 'phone' : 'card'" :size="13" />
+            {{ serverLabel('debitCardType', account.debitCardType) }}
+          </dt>
+          <dd class="numeric">
+            <template v-if="account.debitCardLastFour">••••{{ account.debitCardLastFour }}</template>
+            <span v-else class="account__unknown">{{ t('accounts.numberUnknown') }}</span>
+          </dd>
+        </div>
+      </dl>
 
       <BaseBadge v-if="account.isBlockedForSaving" variant="warning" size="sm">
         {{ t('accounts.blocked') }}

@@ -134,7 +134,46 @@ public sealed class FinancialSnapshot
         }
     }
 
-    public Money SafeToSpend => MonthlyNetIncome - MonthlyObligations;
+    /// <summary>
+    /// Cash the user can actually reach. Accounts blocked for saving are excluded:
+    /// the domain refuses to withdraw from them, so counting that money as
+    /// spendable would be a promise the app itself would break.
+    /// </summary>
+    public Money SpendableCash =>
+        Sum(_accounts.Where(a => !a.IsBlockedForSaving).Select(a => a.Balance));
+
+    /// <summary>
+    /// Walks the calendar forward to the furthest upcoming due date, adding salary
+    /// as it lands and subtracting bills as they fall due.
+    /// </summary>
+    /// <remarks>
+    /// Computed once and reused: every figure below reads from it, and rebuilding
+    /// the timeline per property would repeat the same date arithmetic four times.
+    /// </remarks>
+    private LiquidityForecast? _forecast;
+
+    public LiquidityForecast Forecast => _forecast ??= LiquidityProjection.Forecast(
+        Today, SpendableCash, _job, _cards, _debts, _installments);
+
+    /// <summary>
+    /// What can be spent today without being short when a bill actually falls due.
+    /// </summary>
+    /// <remarks>
+    /// The lowest point of the projected balance, not a subtraction of today's
+    /// figures. Holding $500 against a $1,400 card bill is fine if two $500 paydays
+    /// land first, and is not fine if the bill is due tomorrow — same balance, same
+    /// bill, opposite answers. Only the dates separate them.
+    /// </remarks>
+    public Money SafeToSpend => Forecast.SafeToSpend;
+
+    /// <summary>The date the projection has to reach: the furthest bill it covers.</summary>
+    public DateOnly SafeToSpendHorizon => Forecast.Horizon;
+
+    /// <summary>Salary expected to land before the horizon.</summary>
+    public Money IncomingBeforeHorizon => Forecast.IncomingBeforeHorizon;
+
+    /// <summary>Everything falling due before the horizon.</summary>
+    public Money CommittedBeforeHorizon => Forecast.CommittedBeforeHorizon;
 
     public Money MonthSpending => Sum(_monthPurchases.Select(p => p.Amount));
 

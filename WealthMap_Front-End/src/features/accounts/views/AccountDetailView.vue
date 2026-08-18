@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { accountsApi } from '@/api/accounts.api'
 import { useAsync } from '@/composables/useAsync'
 import { usePagination } from '@/composables/usePagination'
@@ -109,7 +111,7 @@ onMounted(() => {
       </template>
     </BaseEmptyState>
 
-    <template v-else-if="account">
+    <motion.div v-else-if="account" v-bind="fadeUp()">
       <PageHeader :title="account.name" :subtitle="account.bankName">
         <template #actions>
           <BaseButton variant="secondary" @click="movementMode = 'deposit'; movementOpen = true">
@@ -185,7 +187,7 @@ onMounted(() => {
       />
 
       <AccountFormModal v-model="editOpen" :account="account" @saved="refresh" />
-    </template>
+    </motion.div>
   </div>
 </template>
 

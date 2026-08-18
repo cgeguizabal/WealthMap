@@ -76,6 +76,9 @@ is a string both ways (`"Account"` / `"External"`, case-insensitive on input).
 | Goal `status` (response) | `OnTrack` · `BehindSchedule` · `DeadlinePassed` · `Completed` |
 | Payment `targetType` | `CreditCard` · `Debt` · `Installment` |
 | Payment `sourceType` | `Account` · `External` |
+| `trackingMode` | `1` Manual · `2` EmailSync |
+| `debitCardType` | `1` None · `2` Physical · `3` Digital |
+| Bank default `direction` | `1` Inbound · `2` Outbound |
 
 ---
 
@@ -110,14 +113,21 @@ the message does not distinguish the two, so it cannot be used to discover which
 
 ```json
 { "name": "Checking", "bankName": "BBVA", "type": 1,
-  "openingBalance": 1000, "currency": "USD" }
+  "openingBalance": 1000, "currency": "USD",
+  "lastFour": "6868", "trackingMode": 1,
+  "debitCardType": 2, "debitCardLastFour": "4417" }
 ```
+
+All four identifying fields are optional. Omitted, they default to `null`, `1` (Manual), `1` (None)
+and `null`.
 
 ### `GET /api/v1/accounts` · `GET /api/v1/accounts/{id}`
 
 ```json
 { "id": "...", "name": "Checking", "bankName": "BBVA", "type": "Checking",
   "balance": 1000.00, "currency": "USD", "isBlockedForSaving": false,
+  "lastFour": "6868", "trackingMode": "Manual",
+  "debitCardType": "Physical", "debitCardLastFour": "4417",
   "notes": null, "createdAt": "2026-08-01T12:00:00Z" }
 ```
 
@@ -142,6 +152,42 @@ history keep working. Nothing new can be pointed at it: creating a job or income
 `depositAccountId` → **404**. Archiving an already-archived account → **400**.
 
 The archived balance is simply excluded from totals; archiving does not move or zero the money.
+
+### `PUT /api/v1/accounts/{id}/tracking`
+
+```json
+{ "trackingMode": 1, "lastFour": "6868" }
+```
+
+**200** → the full account DTO.
+
+Sets both fields together, because they constrain each other. `lastFour` must match `^\d{4}$` or be
+`null`/omitted; `trackingMode` must be `1` or `2`.
+
+**`trackingMode: 2` with no `lastFour` → 400**, keyed to the `lastFour` field: *"Last 4 digits are
+required to enable email sync."* The same message comes back for clearing `lastFour` on an
+instrument already in `EmailSync` — an instrument can never be synced without identifying digits
+(§4.2 of the project guide). A check constraint repeats the rule in the database.
+
+Nothing consumes these fields yet; see "Planned: automatic transaction sync" (§6.14 of the project
+guide).
+
+### `PUT /api/v1/accounts/{id}/debit-card`
+
+```json
+{ "debitCardType": 2, "debitCardLastFour": "4417" }
+```
+
+**200** → the full account DTO.
+
+The card's own last four, **not** the account's — `lastFour` is the account number. A notification
+about a card purchase quotes the card; one about a transfer quotes the account.
+
+The type governs the digits: sending `1` (None) **clears** `debitCardLastFour` whatever was passed,
+so a number cannot outlive the card it belonged to. The digits stay optional for a card that does
+exist — a user may know they have one without knowing its number.
+
+An undefined type or digits that are not exactly four → **400**.
 
 ### `POST /api/v1/accounts/{id}/block` · `POST /api/v1/accounts/{id}/unblock`
 
@@ -196,8 +242,12 @@ Paged, newest first. Each item:
 
 ```json
 { "cardName": "Gold", "bankName": "BBVA", "creditLimit": 5000, "currency": "USD",
-  "annualInterestRate": 45.9, "paymentDueDay": 15, "statementCutoffDay": 28 }
+  "annualInterestRate": 45.9, "paymentDueDay": 15, "statementCutoffDay": 28,
+  "lastFour": "7765", "trackingMode": 1 }
 ```
+
+`lastFour` and `trackingMode` are optional; omitted, they default to `null` and `1` (Manual). A card
+has no debit-card fields — those belong to an account.
 
 ### `GET /api/v1/credit-cards` · `GET /api/v1/credit-cards/{id}`
 
@@ -205,10 +255,45 @@ Paged, newest first. Each item:
 { "id": "...", "cardName": "Gold", "bankName": "BBVA", "creditLimit": 5000.00,
   "usedCredit": 1800.00, "availableCredit": 3200.00, "currency": "USD",
   "annualInterestRate": 45.900, "paymentDueDay": 15, "statementCutoffDay": 28,
+  "lastFour": "7765", "trackingMode": "Manual",
+  "nextCutoffDate": "2026-08-28", "nextDueDate": "2026-09-17",
+  "daysUntilCutoff": 14, "daysUntilDue": 34,
+  "lastCutoffDate": "2026-07-28",
+  "statementBalance": 50.00, "currentCycleCharges": 50.00, "futureInstallments": 0.00,
   "notes": null, "createdAt": "..." }
 ```
 
 `availableCredit` is computed, never stored.
+
+`nextDueDate` is when **today's balance** must be paid — the first due day *after* the next cutoff,
+not simply the next occurrence of `paymentDueDay`. It is the same date the dashboard's safe-to-spend
+projection reserves against.
+
+**`usedCredit` splits three ways**, and the parts sum back to it:
+
+| Field | Meaning | Deadline |
+|---|---|---|
+| `statementBalance` | closed on `lastCutoffDate` | due `nextDueDate` |
+| `currentCycleCharges` | spent since then | billed at `nextCutoffDate` |
+| `futureInstallments` | plan balance beyond this cycle | on no statement yet |
+
+Owing 100 with 50 due on the 15th and 50 not billed for another month is a different obligation from
+owing 100 at once, which is why the total alone is not enough.
+
+There is no statement history, so the split is reconstructed from charge dates. Payments are not
+read — what is still owed *is* the unpaid part, and payments settle the oldest debt first, so the
+open cycle is the smaller of "charged since the cutoff" and "still owed". A balance the purchase
+records cannot explain falls into `statementBalance`, the older and more urgent reading.
+
+These fields appear on **every** response carrying a card, reads and writes alike.
+
+### `PUT /api/v1/credit-cards/{id}/tracking`
+
+```json
+{ "trackingMode": 1, "lastFour": "7765" }
+```
+
+**200** → the full card DTO. Identical rules and errors to the account endpoint above.
 
 ### `PUT /api/v1/credit-cards/{id}`
 
@@ -245,12 +330,32 @@ purchase history, which archiving leaves intact.
 { "amount": 200, "sourceType": "External", "sourceAccountId": null, "notes": "paid in cash" }
 ```
 
-**200** → `{ "card": {...}, "accountMovement": {...} | null }`
+**200** → `{ "card": {...}, "accountMovement": {...} | null, "settledInstallments": [...] }`
+
+```json
+"settledInstallments": [
+  { "installmentPurchaseId": "...", "productName": "TV", "number": 2, "monthsCount": 12, "amount": 41.67 }
+]
+```
 
 `Account` withdraws from the named account and writes a `Payment` movement; `External` (cash or a
 third party paid) touches no account and returns `accountMovement: null`. **Both** write a row to
 the payments ledger. `sourceAccountId` is required for `Account` and must be absent for `External`.
 Paying more than is owed → **400**.
+
+**The payment advances any installment plans on the card.** A plan's installment for the month is
+part of the statement being paid, so it is marked paid — oldest due date first across every plan,
+whole installments only, and never beyond what the statement had already billed however large the
+payment. `settledInstallments` reports what moved, so a client can say so rather than leaving the
+user to notice a plan advanced on its own.
+
+Two things deliberately do *not* happen: no separate `Payment` row is written for a settled
+installment, and the card balance is not reduced twice. The money left the account once, and the
+installment being marked paid is the consequence of that payment rather than another one. So an
+installment settled this way appears in `GET /payments` as a **card** payment.
+
+Paying a plan early is still its own action — `POST /installment-purchases/{id}/pay` — which reduces
+both the plan and the card balance by one month.
 
 There is **no charge endpoint** — cards are charged by purchases and installment plans.
 
@@ -362,6 +467,45 @@ figure for the dashboard (weekly × 52/12, biweekly × 26/12, yearly ÷ 12).
 
 ---
 
+## Bank defaults
+
+Which account to assume when a bank's transfer notification names none. Stored now, consumed by
+nothing — see "Planned: automatic transaction sync" (§6.14 of the project guide).
+
+### `GET /api/v1/bank-defaults`
+
+```json
+[ { "id": "...", "bankName": "Banco Agricola", "direction": "Outbound",
+    "defaultAccountId": "...", "defaultAccountName": "Cuenta Principal",
+    "createdAt": "..." } ]
+```
+
+Ordered by bank, then direction. `defaultAccountName` is resolved server-side so a client does not
+have to fetch the account list purely to render a row.
+
+### `PUT /api/v1/bank-defaults`
+
+```json
+{ "bankName": "Banco Agricola", "direction": 2, "defaultAccountId": "..." }
+```
+
+**200** → the created or updated row.
+
+An **upsert on `(bankName, direction)`**, matched case-insensitively — the key is the pair, not an
+id, so saying the same thing twice leaves one row rather than failing on the unique index. `PUT`
+rather than `POST` because it is idempotent.
+
+**An archived account → 404.** A fallback pointing at an account that can no longer be transacted
+with could never be honoured, so it is refused at the point of nomination rather than discovered
+later. An account belonging to someone else is also 404, as everywhere.
+
+### `DELETE /api/v1/bank-defaults/{id}` → **204**
+
+A real delete, not an archive: a bank default holds no history and nothing references it, so there
+is nothing to preserve. Not yours → **404**.
+
+---
+
 ## Stores
 
 A **shared catalog** — the one non-user-scoped resource. Everyone reads every store; only the
@@ -421,9 +565,53 @@ purchase response carries it, including the one returned by `POST /purchases`.
 
 ### `GET /api/v1/purchases/{id}`
 
+### `PUT /api/v1/purchases/{id}`
+
+Same body as `POST`. **200** → the corrected `PurchaseDto`.
+
+Everything is editable, **including the payment method and the instrument** — "it went on the other
+card" is the correction people actually need. The server reverses what the purchase did and applies
+it afresh rather than adjusting by a difference, so a method change is handled by the same path as an
+amount change.
+
+Currency follows the instrument. Moving a purchase from a dollar card to a peso account re-denominates
+the amount; only cash carries an explicit `currency`.
+
+Same validation as creating one. **400** if the method and instrument disagree, the amount is not
+positive, or the date is in the future.
+
+### `DELETE /api/v1/purchases/{id}` → **204**
+
+A **real delete**, unlike accounts and cards, which archive. The money is put back: a debit purchase
+refunds the account and removes the movement it wrote, a credit purchase un-charges the card, a cash
+purchase moves nothing.
+
+Later movements on that account are **rebased**, so the running balance still adds up after the
+removal. What is lost is the record that this purchase ever existed — accepted deliberately, because
+a mistyped purchase is noise in every total rather than history worth keeping.
+
+**400 when the card has been paid below the charge**: *"Cannot reverse 55.00 USD on 'Visa': only
+20.00 USD is still owed."* Reversing would drive used credit negative, which the card cannot
+represent. Pay history has moved on; the purchase can no longer be un-charged.
+
 ---
 
 ## Installment purchases (tasa 0)
+
+Every plan response carries the card it was bought on and what it adds to that card's current
+statement:
+
+```json
+{ "creditCardId": "...", "creditCardName": "Mastercard Gold", "creditCardBankName": "Banco Cuscatlan",
+  "dueThisStatement": 100.00, "statementDueDate": "2026-09-05", … }
+```
+
+`dueThisStatement` is the plan's installments falling due on or before `statementDueDate`, which is
+the **card's** next payment date — so this figure and the card's own `statementBalance` are computed
+from the same rule and cannot disagree. It drops to `0.00` once the month's installment is paid.
+
+`creditCardName` is null only when the card no longer exists; archived cards are still named, since a
+plan outlives the archiving of the card it sits on and its debt is real either way.
 
 ### `POST /api/v1/installment-purchases` → **201**
 
@@ -734,11 +922,22 @@ Reading these correctly:
 - Accounts and cards created after the period ended are omitted — they did not exist during it.
 - Only holdings in your profile currency appear.
 
-### `GET /api/v1/reports/monthly/{yyyy-MM}/pdf`
+### `GET /api/v1/reports/monthly/{yyyy-MM}/pdf?lang=es`
 
 Same data rendered as a PDF: `Content-Type: application/pdf`, filename `wealthmap-2026-08.pdf`.
 In Postman use **Send and Download**. A month with no activity renders successfully with empty
 sections.
+
+**`lang`** renders the whole document in that language — `es` for Spanish, anything else (including
+omitting it) for English. Headings, table columns, footnotes, and data values such as movement types,
+goal statuses and spending categories are all translated.
+
+The culture also drives formatting: `?lang=es` prints "agosto 2026" rather than "August 2026".
+Numbers stay grouped as `1,234.50` in both, because the Spanish culture is **`es-419`** — Latin
+American, which uses US notation — and the app targets El Salvador.
+
+A query parameter rather than `Accept-Language`: the language wanted is the one selected **in the
+app**, which need not match the browser's.
 
 ---
 

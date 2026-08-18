@@ -27,4 +27,16 @@ public class AccountMovementRepository : Repository<AccountMovement>, IAccountMo
                  .OrderBy(m => m.OccurredAt)
                  .AsNoTracking()
                  .ToListAsync(ct);
+
+    public async Task<AccountMovement?> GetByRelatedEntityAsync(
+        Guid relatedEntityId, Guid userId, CancellationToken ct = default) =>
+        await Set.FirstOrDefaultAsync(
+            m => m.RelatedEntityId == relatedEntityId && m.UserId == userId, ct);
+
+    // Tracked, not AsNoTracking: these are loaded in order to be rebased and saved.
+    public async Task<IReadOnlyList<AccountMovement>> GetForAccountAfterAsync(
+        Guid accountId, Guid userId, DateTime after, CancellationToken ct = default) =>
+        await Set.Where(m => m.AccountId == accountId && m.UserId == userId && m.OccurredAt > after)
+                 .OrderBy(m => m.OccurredAt)
+                 .ToListAsync(ct);
 }

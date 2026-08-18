@@ -1,0 +1,67 @@
+.debit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.debit__types {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.debit__legend {
+  padding: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.debit__hint {
+  margin: 2px 0 var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+// Three across, wrapping to a column only when the modal is genuinely narrow.
+.debit__options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+}
+
+.debit__option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  text-align: center;
+
+  &:has(.debit__radio:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.debit__option--on {
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  font-weight: var(--fw-medium);
+}
+
+// The label carries the state; the control itself only needs to stay focusable.
+.debit__radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 520px) {
+  .debit__options { grid-template-columns: 1fr; }
+  .debit__option { justify-content: flex-start; }
+}

@@ -62,3 +62,15 @@
   .filters { grid-template-columns: 1fr; }
   .filters__actions { grid-column: span 1; }
 }
+
+// Kept on one line at every width: the table scrolls rather than wrapping the
+// buttons under the row they belong to.
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-1);
+  flex-wrap: nowrap;
+}
+
+.row-actions__delete:hover { color: var(--negative); }

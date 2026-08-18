@@ -1,5 +1,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { paymentsApi, PAYMENT_TARGET_OPTIONS } from '@/api/payments.api'
 import { usePagination } from '@/composables/usePagination'
 import { useServerText } from '@/composables/useServerText'
@@ -66,7 +68,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div>
+  <motion.div v-bind="fadeUp()">
     <PageHeader
       :title="t('payments.title')"
       :subtitle="t('payments.subtitle')"
@@ -104,7 +106,7 @@ onMounted(load)
         @update:page="pagination.goTo($event)"
       />
     </BaseCard>
-  </div>
+  </motion.div>
 </template>
 
 <style scoped lang="scss" src="@/assets/styles/features/payments/PaymentsView.scss"></style>

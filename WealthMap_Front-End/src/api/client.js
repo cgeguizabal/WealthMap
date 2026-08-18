@@ -1,39 +1,98 @@
 import axios from 'axios'
 import { serverError } from '@/composables/useServerText'
+import { accessToken, setAccessToken, clearSession } from './session'
 
 const client = axios.create({
   baseURL: '/api/v1',
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+
+  // Sends the refresh cookie. It is httpOnly, so this is the only way it travels
+  // — no code here can read it, which is the point.
+  withCredentials: true
 })
 
 // ── Request: attach the token ────────────────────────────
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('wm_token')
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (accessToken.value) {
+    config.headers.Authorization = `Bearer ${accessToken.value}`
   }
 
   return config
 })
 
-// ── Response: normalize errors, handle 401 ───────────────
+/**
+ * Endpoints that must never trigger a refresh. `/auth/refresh` answering 401 is
+ * the signal that the session is over; retrying it would recurse. Login and
+ * register answer 401 for bad credentials, which a refresh cannot fix.
+ */
+const NO_REFRESH = ['/auth/refresh', '/auth/login', '/auth/register', '/auth/logout']
+
+/**
+ * One refresh at a time. A dashboard load fires several requests at once, and if
+ * the access token expired they will all 401 together. Without this, each would
+ * start its own refresh: the first rotates the token, the rest present the one it
+ * just replaced, and the server reads that as a replay and ends every session.
+ * Sharing the promise means the others wait for the same answer.
+ */
+let refreshInFlight = null
+
+function refreshSession() {
+  refreshInFlight ??= client
+    .post('/auth/refresh')
+    .then((result) => {
+      setAccessToken(result.token)
+      return result
+    })
+    .finally(() => {
+      refreshInFlight = null
+    })
+
+  return refreshInFlight
+}
+
+function endSession() {
+  clearSession()
+
+  if (!window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login'
+  }
+}
+
+// ── Response: refresh once, then normalize errors ────────
 client.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
     const status = error.response?.status
-    const data = error.response?.data
+    const request = error.config
 
-    if (status === 401) {
-      localStorage.removeItem('wm_token')
-      localStorage.removeItem('wm_user')
+    const canRefresh =
+      status === 401 &&
+      request &&
+      // Retried at most once. A second 401 on the replay means the new token is
+      // not the problem, so refreshing again would only loop.
+      !request.hasRetried &&
+      !NO_REFRESH.some((path) => request.url?.startsWith(path))
 
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login'
+    if (canRefresh) {
+      request.hasRetried = true
+
+      try {
+        await refreshSession()
+
+        // Replayed through the instance, so the request interceptor attaches the
+        // new token and the response is unwrapped exactly as it would have been.
+        return await client(request)
+      } catch {
+        endSession()
+        return Promise.reject(normalizeError(401, error.response?.data))
       }
     }
 
-    return Promise.reject(normalizeError(status, data))
+    if (status === 401) {
+      endSession()
+    }
+
+    return Promise.reject(normalizeError(status, error.response?.data))
   }
 )
 

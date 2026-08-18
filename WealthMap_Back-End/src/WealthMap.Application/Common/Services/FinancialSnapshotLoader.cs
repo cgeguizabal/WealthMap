@@ -62,6 +62,7 @@ public class FinancialSnapshotLoader
         var incomes = await _incomes.GetAllForUserAsync(userId, ct: ct);
         var monthPurchases = await _purchases.GetForUserInMonthAsync(userId, today.Year, today.Month, ct);
 
+
         return new FinancialSnapshot(
             user.Currency,
             today,

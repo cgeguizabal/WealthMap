@@ -1,9 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -22,6 +25,7 @@ const { t } = useI18n()
 
 const route = useRoute()
 const { format } = useMoney()
+const { formatDate } = useDateTime()
 const dashboard = useDashboardStore()
 
 const planId = route.params.id
@@ -68,10 +72,10 @@ onMounted(loadPlan)
       </template>
     </BaseEmptyState>
 
-    <template v-else-if="plan">
+    <motion.div v-else-if="plan" v-bind="fadeUp()">
       <PageHeader
         :title="plan.productName"
-        :subtitle="t('installments.planSubtitle', { count: plan.monthsCount, date: plan.purchasedAt })"
+        :subtitle="t('installments.planSubtitle', { count: plan.monthsCount, date: formatDate(plan.purchasedAt) })"
       >
         <template #actions>
           <BaseButton variant="primary" :disabled="plan.isCompleted" @click="payOpen = true">
@@ -103,11 +107,45 @@ onMounted(loadPlan)
           </div>
         </div>
 
+        <!-- The card that was charged, and what this plan puts on its next
+             statement. A plan screen that cannot name its card leaves the user to
+             go and work out which balance this is part of. -->
+        <dl class="summary__card">
+          <div>
+            <dt>{{ t('installments.chargedTo') }}</dt>
+            <dd>
+              <RouterLink :to="`/credit-cards/${plan.creditCardId}`" class="summary__card-link">
+                {{ plan.creditCardName ?? t('installments.cardRemoved') }}
+                <BaseIcon v-if="plan.creditCardName" name="arrow-up-right" :size="13" />
+              </RouterLink>
+              <span v-if="plan.creditCardBankName" class="summary__card-bank">
+                {{ plan.creditCardBankName }}
+              </span>
+            </dd>
+          </div>
+
+          <div v-if="plan.statementDueDate">
+            <dt>{{ t('cards.addsToStatement') }}</dt>
+            <dd>
+              <span class="numeric">{{ format(plan.dueThisStatement, { currency: plan.currency }) }}</span>
+              <span class="summary__card-bank">
+                {{ t('composed.payBy', { date: formatDate(plan.statementDueDate) }) }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+
         <BaseProgress
           :value="paidAmount"
           :max="plan.totalPrice"
           :variant="plan.isCompleted ? 'positive' : 'accent'"
-          :label="plan.isCompleted ? t('installments.fullyPaid') : t('installments.monthsLeft', { remaining: plan.remainingMonths, total: plan.monthsCount, date: plan.endDate })"
+          :label="plan.isCompleted
+            ? t('installments.fullyPaid')
+            : t('installments.paymentsLeft', {
+                remaining: plan.remainingMonths,
+                total: plan.monthsCount,
+                date: formatDate(plan.endDate)
+              })"
         />
       </div>
 
@@ -125,7 +163,7 @@ onMounted(loadPlan)
               <span class="schedule__amount numeric">
                 {{ format(item.amount, { currency: item.currency }) }}
               </span>
-              <span class="schedule__due">{{ t('composed.dueOn', { date: item.dueDate }) }}</span>
+              <span class="schedule__due">{{ t('composed.dueOn', { date: formatDate(item.dueDate) }) }}</span>
             </div>
 
             <BaseBadge v-if="item.isPaid" variant="positive" size="sm">{{ t('common.paid') }}</BaseBadge>
@@ -136,7 +174,7 @@ onMounted(loadPlan)
       </BaseCard>
 
       <PayInstallmentModal v-model="payOpen" :plan="plan" @saved="refresh" />
-    </template>
+    </motion.div>
   </div>
 </template>
 

@@ -42,8 +42,8 @@ deliberately, both to exercise Vue properly and to hit a specific visual languag
 | Animation | motion-v, imported per component |
 | Offline | vite-plugin-pwa |
 
-**18** base components, **13** composables, **5** stores, **15** API modules, **19** routes,
-**79** component stylesheets, **685** translation keys per language.
+**18** base components, **13** composables, **5** stores, **18** API modules, **20** routes,
+**82** component stylesheets, **789** translation keys per language.
 
 ---
 
@@ -936,6 +936,32 @@ running balance is a recorded fact from the API, never recomputed in the browser
 Utilisation bars (amber at 50%, red at 80%). Limit updates have their own endpoint and their own
 modal. Payments use the shared `PaymentSourcePicker`; "Pay" is disabled at zero balance.
 
+Tiles show the billing cycle as **dates**, not day numbers, and split what is owed rather than
+showing one total. "Owed $100" is not actionable; "$50 due Aug 15, $50 not billed until Sep" is.
+The tile carries `statementBalance` and `currentCycleCharges` with their deadlines beside them, plus
+a line for `futureInstallments` when a plan is running — shown only then, because otherwise the
+figures would not visibly add up to the total and the reader would hunt for the gap. The detail view
+shows all three as a grid under the progress bar.
+
+Every figure is computed server-side (`StatementCycle.Split`) and arrives on the DTO. The client
+does no arithmetic on money here — same rule as `balanceAfter` in §8.3.
+
+The payment modal names the statement balance beside the total owed, and its success toast reports
+any installments the payment settled. Both exist for the same reason: the balance changing is
+visible and the schedule moving is not, so a user who is not told would go and pay the same
+installment a second time.
+
+**Three tabs:** charges, installments, payments. The charges tab lists a plan on the day it was
+created, at its full price — which is what put the debt on the card. The installments tab answers the
+different question of what those plans cost *this month*: each product, its progress, what is left,
+and what it adds to the statement about to be billed, with the total in the footer. A plan showing
+`0.00` there has already had its installment paid; it stays visible and muted rather than
+disappearing, so the column keeps lining up.
+
+The due date comes from the server's `nextDueDate` — the first due day *after* the next cutoff — so
+the card screen and the dashboard's safe-to-spend figure cannot disagree about the same money.
+Tracking fields on this form are covered in §8.14.
+
 ### 8.5 Payments — `/payments`
 User-wide ledger across cards, debts and installments, with date and target-type filters. Source is
 labelled "Cash / third party" rather than the raw `External`.
@@ -946,7 +972,30 @@ switch, matching the API's constructor invariant. Cash is the only method that a
 Stores are a shared catalogue: `isMine` controls whether an edit button renders, and a broken
 `logoUrl` falls back to a monogram. The store picker creates inline and selects what it created.
 
+**Every row can be corrected or removed.** The same modal serves both — passing a `purchase` prop
+puts it in edit mode, and it translates `paymentMethod` back from the response name to the integer a
+request needs, keyed off the same map the labels use so the two cannot drift.
+
+Deleting moves money back, so the confirmation **says which way and how much** rather than asking a
+generic "are you sure", and it runs through the double confirmation used everywhere destructive. The
+second dialog is explicit that the purchase and its movement are gone for good.
+
+The catch block shows the server's own message rather than a generic failure. Reversing a charge on a
+card that has since been paid down is refused, and that message explains why — replacing it would
+leave the user with no idea what to do next.
+
 ### 8.7 Installments — `/installments`, `/installments/:id`
+
+The detail screen names the **card that was charged**, linked, along with what the plan adds to that
+card's next statement and when it is due. A plan is meaningless without its card — the card decides
+when the installments fall due — and a screen that cannot say which balance this is part of leaves
+the user to go and find out.
+
+Progress is labelled **payments left**, not months left, and the plan shows the date of its *last
+payment* rather than an implied duration. The two are the same number until someone pays ahead:
+settling two installments in one month leaves 10 payments outstanding, but they are still
+installments 3–12, so the final one falls on its original date. Calling the count "months" invited
+the reading "10 months from now", which stops being true the moment a plan is prepaid.
 `previewSchedule()` reproduces the backend's split so the real instalment amounts are shown before
 submitting, including the last-payment remainder. Warns when the total exceeds available credit,
 because a tasa 0 plan charges the card in full on day one. Paying takes no amount — the endpoint pays
@@ -993,6 +1042,60 @@ The purchase form captures date *and* time. It used to take a date alone, which 
 every purchase read `00:00` and the hour column dead weight. The `datetime-local` value is local
 wall-clock with no zone, so it is converted explicitly — `toISOString()` on it would shift what the
 user typed by their offset.
+
+### 8.14 Instrument tracking fields
+
+Both the account and card forms carry two extra fields, rendered by one shared
+`features/shared/components/TrackingFields.vue`:
+
+- **Last 4 digits** — optional, `maxlength=4`, non-digits stripped as you type, mirroring the
+  server's `^\d{4}$`.
+- **Tracking mode** — a radio pair. **Manual** is the default and the only selectable option;
+  **Automatic** is rendered **disabled** behind a "Coming soon" `BaseBadge`.
+
+The automatic value round-trips and persists correctly — it simply cannot be chosen, because the
+ingestion that would honour it is not built (see "Planned: automatic transaction sync", §6.14 of the
+project guide). An option that silently does nothing would be worse than one that says it is not
+ready.
+
+One component rather than the same markup in two forms: the pair is governed by a single rule (sync
+requires digits), and two copies would drift the moment that rule or the disabled state changes.
+
+**Editing sends the tracking pair only when it changed.** It has its own endpoint, separate from the
+ordinary update, so an unchanged pair would otherwise be a second request that writes nothing.
+
+The account form additionally asks whether a **debit card** reaches the account — None, Physical or
+Digital — and, once one exists, that card's own last four. Choosing None clears the digits on screen
+as well as on the server, so the user never sees a number that is about to be dropped. The digits are
+optional for a card that does exist: someone may know they have one without having it to hand.
+
+The account labels its `lastFour` **"Account number"** rather than "Last 4". On a card the same field
+means the card's digits, and calling both by the same name would make two different numbers look
+interchangeable — `TrackingFields` takes a `lastFourLabel` for exactly this.
+
+On the account card the numbers get their **own labelled row** under the balance, not a muted suffix
+after the bank name: this is how a user recognises the account on a statement, so it has to be
+findable at a glance. Each half appears only when known, and a card whose number was never supplied
+says so rather than vanishing — the card is still a fact. Card tiles keep the compact `••••7765`
+beside the bank name, since a card has only one number.
+
+`BaseInput` gained a `maxlength` prop for this. The component's root is the wrapping `div`, so a
+bare `maxlength` attribute would have fallen through onto the div and done nothing.
+
+### 8.15 Settings — `/settings`
+
+Bank defaults: which account to assume when a bank's transfer notification names none. A table, an
+upsert form (bank name, direction, account), and delete behind the double confirmation used
+everywhere destructive.
+
+The form always sends the same request whether creating or editing, because the endpoint upserts on
+`(bankName, direction)` — there is no id to send and no separate create path.
+
+The account dropdown lists only non-archived accounts, matching the server, which 404s an archived
+one: a fallback that could never be honoured is refused at the point of nomination.
+
+Its empty state is **informational, not an error**. Having no defaults is the normal starting
+position and nothing is broken without them, so the copy says so rather than prompting for a fix.
 
 ---
 
@@ -1080,6 +1183,27 @@ text ([why](PROJECT_GUIDE.md#613-alerts-store-the-parts-not-the-sentence)). The 
 from the translation for the alert's `type`, with money
 and dates formatted in the viewer's locale. No params, or a type this build does not know, falls back
 to the server's text.
+
+### 9.5 The one thing translated on the server
+
+The **monthly report PDF** is the exception to everything above. It is drawn server-side by QuestPDF
+from data, with no browser in the loop, so none of the client's machinery can reach it — the strings
+in `i18n/es.js` are Vue modules.
+
+It therefore carries its own vocabulary in `ReportText`, and the client's only job is to **say which
+language it wants**:
+
+```js
+const blob = await reportsApi.monthlyPdf(month.value, locale.value)
+```
+
+That argument becomes `?lang=es`. Sending the app's `locale` rather than relying on `Accept-Language`
+is the point: a user reading WealthMap in Spanish on an English-configured machine should get a
+Spanish report, and the browser header would say otherwise.
+
+This is the one place a translation exists in two repositories, which is a real cost. It is bounded
+to the ~45 strings that document prints, and where a phrase already appears on the Reports screen the
+two are worded the same — so a reader comparing them sees the same words.
 
 ---
 

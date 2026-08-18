@@ -56,11 +56,15 @@ onUnmounted(() => {
  * state by construction, and cannot be forgotten when a new store is added.
  * The 401 interceptor in api/client.js exits the same way.
  */
-function logout() {
+async function logout() {
   menuOpen.value = false
   notifications.reset()
   dashboard.reset()
-  auth.logout()
+
+  // Awaited: navigating cancels requests still in flight, and this one revokes
+  // the refresh token. Skipping it would leave a working two-week credential
+  // alive for a user who just asked to be signed out.
+  await auth.logout()
 
   window.location.assign('/login')
 }

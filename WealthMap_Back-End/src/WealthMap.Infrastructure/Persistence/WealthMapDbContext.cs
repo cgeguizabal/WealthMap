@@ -23,6 +23,8 @@ public class WealthMapDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<SalaryDeposit> SalaryDeposits => Set<SalaryDeposit>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<BankDefault> BankDefaults => Set<BankDefault>();
 
     public WealthMapDbContext(DbContextOptions<WealthMapDbContext> options)
         : base(options)

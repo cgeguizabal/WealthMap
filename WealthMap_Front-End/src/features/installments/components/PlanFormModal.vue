@@ -94,7 +94,7 @@ async function onSubmit() {
   const plan = await submit()
   if (!plan) return
 
-  toast.success(`${plan.productName} split into ${plan.monthsCount} payments.`)
+  toast.success(t('installments.splitToast', { name: plan.productName, count: plan.monthsCount }))
   emit('saved', plan)
   open.value = false
 }

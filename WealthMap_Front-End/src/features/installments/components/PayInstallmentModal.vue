@@ -65,8 +65,8 @@ async function onSubmit() {
 
   toast.success(
     result.purchase.isCompleted
-      ? `${result.purchase.productName} is fully paid.`
-      : `Installment paid — ${result.purchase.remainingMonths} left.`
+      ? t('installments.fullyPaidToast', { name: result.purchase.productName })
+      : t('installments.paidToast', { remaining: result.purchase.remainingMonths })
   )
   emit('saved', result)
   open.value = false

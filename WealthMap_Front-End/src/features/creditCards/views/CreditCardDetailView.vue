@@ -1,11 +1,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { motion } from 'motion-v'
+import { fadeUp } from '@/composables/useMotionSafe'
 import { creditCardsApi } from '@/api/creditCards.api'
 import { purchasesApi } from '@/api/purchases.api'
 import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
+import { useDateTime } from '@/composables/useDateTime'
 import { useDashboardStore } from '@/stores/dashboard.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
@@ -31,6 +34,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { format, formatPercent } = useMoney()
+const { formatDate, relativeDay } = useDateTime()
 const dashboard = useDashboardStore()
 
 const cardId = route.params.id
@@ -62,7 +66,8 @@ const charges = computed(() => {
   const fromPurchases = (purchasePage.value?.items ?? [])
     .map((purchase) => ({
       id: purchase.id,
-      kind: 'Purchase',
+      isPlan: false,
+      kind: t('purchases.kindPurchase'),
       meta: purchase.category,
       name: purchase.productName,
       amount: purchase.amount,
@@ -74,8 +79,9 @@ const charges = computed(() => {
     .filter((plan) => plan.creditCardId === cardId)
     .map((plan) => ({
       id: plan.id,
-      kind: 'Installment plan',
-      meta: `${plan.monthsCount} months · ${plan.remainingMonths} left`,
+      isPlan: true,
+      kind: t('installments.planKind'),
+      meta: t('composed.planMeta', { total: plan.monthsCount, remaining: plan.remainingMonths }),
       name: plan.productName,
       // The full price hits the card on day one, which is what created the debt.
       amount: plan.totalPrice,
@@ -87,8 +93,29 @@ const charges = computed(() => {
     .sort((a, b) => new Date(b.occurredAt) - new Date(a.occurredAt))
 })
 
+/** Every plan bought on this card, newest first. Completed ones stay: the card
+ *  paid for them, and hiding them would make the history look shorter than it was. */
+const cardPlans = computed(() =>
+  (plans.value ?? [])
+    .filter((plan) => plan.creditCardId === cardId)
+    .sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt))
+)
+
+/** What the plans together add to the statement the card is about to bill. */
+const plansDueThisStatement = computed(() =>
+  cardPlans.value.reduce((sum, plan) => sum + (plan.dueThisStatement ?? 0), 0)
+)
+
+const PLAN_COLUMNS = computed(() => [
+  { key: 'productName', label: t('purchases.item') },
+  { key: 'progress', label: t('installments.progress'), width: '150px' },
+  { key: 'remainingBalance', label: t('installments.remaining'), align: 'right', width: '130px' },
+  { key: 'dueThisStatement', label: t('cards.addsToStatement'), align: 'right', width: '150px' }
+])
+
 const tabs = computed(() => [
   { value: 'charges', label: t('cards.charges'), count: charges.value.length },
+  { value: 'plans', label: t('cards.installments'), count: cardPlans.value.length },
   { value: 'payments', label: t('cards.payments'), count: payments.value?.length ?? 0 }
 ])
 
@@ -103,9 +130,15 @@ const variant = computed(() => {
   return 'accent'
 })
 
-/** Purchases have no detail screen, so only plans are navigable. */
+/**
+ * Purchases have no detail screen, so only plans are navigable.
+ *
+ * Keyed off a flag set when the row is built, not off the label. The label is
+ * translated, so comparing against the English text would silently stop matching
+ * the moment the language changed.
+ */
 function isPlan(row) {
-  return row.kind === 'Installment plan'
+  return row.isPlan === true
 }
 
 function openCharge(row) {
@@ -148,7 +181,7 @@ onMounted(() => {
       </template>
     </BaseEmptyState>
 
-    <template v-else-if="card">
+    <motion.div v-else-if="card" v-bind="fadeUp()">
       <PageHeader :title="card.cardName" :subtitle="card.bankName">
         <template #actions>
           <BaseButton variant="primary" :disabled="card.usedCredit <= 0" @click="payOpen = true">
@@ -172,6 +205,9 @@ onMounted(() => {
             </p>
           </div>
 
+          <!-- Owed in full, then broken down below: the total answers "how deep am
+               I in?", the split answers "what do I have to pay, and when?" — and
+               only the second one is actionable. -->
           <div class="summary__figure">
             <span class="summary__label">{{ t('cards.owed') }}</span>
             <p class="summary__value numeric">{{ format(card.usedCredit, { currency: card.currency }) }}</p>
@@ -190,9 +226,50 @@ onMounted(() => {
           :label="t('cards.limitInUse', { percent: utilisation.toFixed(0) })"
         />
 
+        <!-- The three parts of what is owed, each with the date that makes it
+             actionable. They sum to `usedCredit` above, so the reader can check. -->
+        <dl class="summary__split">
+          <div class="summary__split-item summary__split-item--due">
+            <dt>
+              {{ t('cards.dueThisStatement') }}
+              <span class="summary__split-note">
+                {{ t('composed.closedOn', { date: formatDate(card.lastCutoffDate) }) }} ·
+                {{ t('composed.payBy', { date: formatDate(card.nextDueDate) }) }}
+              </span>
+            </dt>
+            <dd class="numeric">{{ format(card.statementBalance, { currency: card.currency }) }}</dd>
+          </div>
+
+          <div class="summary__split-item">
+            <dt>
+              {{ t('cards.nextStatement') }}
+              <span class="summary__split-note">
+                {{ t('composed.closesOn', { date: formatDate(card.nextCutoffDate) }) }}
+              </span>
+            </dt>
+            <dd class="numeric">{{ format(card.currentCycleCharges, { currency: card.currency }) }}</dd>
+          </div>
+
+          <div v-if="card.futureInstallments > 0" class="summary__split-item">
+            <dt>
+              {{ t('cards.futureInstallments') }}
+              <span class="summary__split-note">{{ t('composed.notYetBilled') }}</span>
+            </dt>
+            <dd class="numeric">{{ format(card.futureInstallments, { currency: card.currency }) }}</dd>
+          </div>
+        </dl>
+
+        <!-- Dates rather than day numbers: "the 17th" leaves the reader to work
+             out which 17th, and after the cutoff has passed it is not the next one. -->
         <dl class="summary__meta">
-          <div><dt>{{ t('cards.dueDay') }}</dt><dd class="numeric">{{ card.paymentDueDay }}</dd></div>
-          <div><dt>{{ t('cards.statementCutoff') }}</dt><dd class="numeric">{{ card.statementCutoffDay }}</dd></div>
+          <div>
+            <dt>{{ t('cards.statementCloses') }}</dt>
+            <dd>{{ formatDate(card.nextCutoffDate) }} · {{ relativeDay(card.daysUntilCutoff) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('cards.paymentDue') }}</dt>
+            <dd>{{ formatDate(card.nextDueDate) }} · {{ relativeDay(card.daysUntilDue) }}</dd>
+          </div>
           <div><dt>{{ t('cards.interest') }}</dt><dd class="numeric">{{ formatPercent(card.annualInterestRate, 2) }}</dd></div>
         </dl>
 
@@ -240,8 +317,10 @@ onMounted(() => {
             </div>
           </template>
 
-          <template #cell-kind="{ value }">
-            <BaseBadge :variant="value === 'Purchase' ? 'neutral' : 'accent'" size="sm">
+          <!-- Keyed off the row's flag, not its label: the label is translated, so
+               comparing it against English would pick the wrong colour in Spanish. -->
+          <template #cell-kind="{ row, value }">
+            <BaseBadge :variant="row.isPlan ? 'accent' : 'neutral'" size="sm">
               {{ value }}
             </BaseBadge>
           </template>
@@ -261,6 +340,67 @@ onMounted(() => {
         </template>
       </BaseCard>
 
+      <!-- What was bought on instalments, and what each one is about to bill.
+           The charges tab shows the day a plan was created and its full price;
+           this answers the different question of what it costs this month. -->
+      <BaseCard v-else-if="tab === 'plans'" :padded="false">
+        <BaseTable
+          :columns="PLAN_COLUMNS"
+          :rows="cardPlans"
+          :clickable="() => true"
+          :empty-title="t('cards.noPlansTitle')"
+          :empty-message="t('cards.noPlansMessage')"
+          @row-click="(row) => $router.push(`/installments/${row.id}`)"
+        >
+          <template #cell-productName="{ row }">
+            <div class="cell-stack">
+              <RouterLink :to="`/installments/${row.id}`" class="cell-stack__link" @click.stop>
+                {{ row.productName }}
+                <BaseIcon name="arrow-up-right" :size="13" />
+              </RouterLink>
+              <span class="cell-stack__sub">
+                {{ t('composed.planMeta', { total: row.monthsCount, remaining: row.remainingMonths }) }}
+                · {{ format(row.monthlyPayment, { currency: row.currency }) }}
+              </span>
+            </div>
+          </template>
+
+          <template #cell-progress="{ row }">
+            <BaseBadge v-if="row.isCompleted" variant="positive" size="sm">
+              {{ t('common.completed') }}
+            </BaseBadge>
+            <BaseProgress
+              v-else
+              :value="row.monthsCount - row.remainingMonths"
+              :max="row.monthsCount"
+              variant="accent"
+              size="sm"
+            />
+          </template>
+
+          <template #cell-remainingBalance="{ row }">
+            <span class="numeric">{{ format(row.remainingBalance, { currency: row.currency }) }}</span>
+          </template>
+
+          <!-- Zero once this month's instalment is paid, which is the point: the
+               column answers "what is still coming", not "what does it cost". -->
+          <template #cell-dueThisStatement="{ row }">
+            <span :class="['numeric', { 'is-muted': row.dueThisStatement === 0 }]">
+              {{ format(row.dueThisStatement, { currency: row.currency }) }}
+            </span>
+          </template>
+        </BaseTable>
+
+        <template v-if="cardPlans.length" #footer>
+          <div class="plans-total">
+            <span>{{ t('cards.plansAddToStatement', { date: formatDate(card.nextDueDate) }) }}</span>
+            <strong class="numeric">
+              {{ format(plansDueThisStatement, { currency: card.currency }) }}
+            </strong>
+          </div>
+        </template>
+      </BaseCard>
+
       <BaseCard v-else :padded="false">
         <PaymentsTable
           :payments="payments ?? []"
@@ -273,7 +413,7 @@ onMounted(() => {
       <CardPaymentModal v-model="payOpen" :card="card" @saved="refresh" />
       <CardFormModal v-model="editOpen" :card="card" @saved="refresh" />
       <LimitModal v-model="limitOpen" :card="card" @saved="refresh" />
-    </template>
+    </motion.div>
   </div>
 </template>
 

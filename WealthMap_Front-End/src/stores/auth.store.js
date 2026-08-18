@@ -1,11 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth.api'
+import { accessToken, currentUser, setSession, setUser, clearSession } from '@/api/session'
 
 export const useAuthStore = defineStore('auth', () => {
   // ── State ────────────────────────────────────
-  const token = ref(localStorage.getItem('wm_token'))
-  const user = ref(JSON.parse(localStorage.getItem('wm_user') ?? 'null'))
+  // Token and user live in api/session so the axios interceptor can rotate the
+  // token without importing this store — see the note there.
+  const token = accessToken
+  const user = currentUser
   const loading = ref(false)
   const error = ref(null)
 
@@ -25,16 +28,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ── Actions ──────────────────────────────────
   function persist(response) {
-    token.value = response.token
-    user.value = {
+    setSession(response.token, {
       id: response.userId,
       email: response.email,
       fullName: response.fullName,
       currency: response.currency ?? 'USD'
-    }
-
-    localStorage.setItem('wm_token', token.value)
-    localStorage.setItem('wm_user', JSON.stringify(user.value))
+    })
   }
 
   async function login(credentials) {
@@ -75,15 +74,23 @@ export const useAuthStore = defineStore('auth', () => {
   function setCurrency(code) {
     if (!code || !user.value || user.value.currency === code) return
 
-    user.value = { ...user.value, currency: code }
-    localStorage.setItem('wm_user', JSON.stringify(user.value))
+    setUser({ ...user.value, currency: code })
   }
 
-  function logout() {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('wm_token')
-    localStorage.removeItem('wm_user')
+  /**
+   * Revokes the refresh token server-side before dropping local state. The call
+   * is allowed to fail — the session must end locally either way, and the token
+   * expires on its own — but skipping it would leave a working refresh token
+   * alive for two weeks after the user asked to be signed out.
+   */
+  async function logout({ allSessions = false } = {}) {
+    try {
+      await authApi.logout(allSessions)
+    } catch {
+      // Offline, or the token was already gone. Local sign-out still stands.
+    } finally {
+      clearSession()
+    }
   }
 
   return {

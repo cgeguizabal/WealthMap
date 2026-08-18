@@ -48,7 +48,9 @@ const METHOD_NOTE_KEY = {
 }
 
 const props = defineProps({
-  modelValue: { type: Boolean, default: false }
+  modelValue: { type: Boolean, default: false },
+  /** Present → correcting an existing purchase; absent → recording a new one. */
+  purchase: { type: Object, default: null }
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
@@ -117,8 +119,38 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
   if (payload.paymentMethod === PAYMENT_METHOD.CREDIT) body.creditCardId = payload.creditCardId
   if (payload.paymentMethod === PAYMENT_METHOD.CASH) body.currency = payload.currency
 
-  return purchasesApi.create(body)
+  return props.purchase
+    ? purchasesApi.update(props.purchase.id, body)
+    : purchasesApi.create(body)
 })
+
+const isEdit = computed(() => props.purchase !== null)
+
+/**
+ * The API returns `paymentMethod` as a name and takes it as an integer, so an
+ * edit has to translate back. Keyed off the same map the labels use, rather than
+ * a second copy that could drift from it.
+ */
+const METHOD_VALUE = Object.fromEntries(
+  Object.entries(METHOD_ENUM_NAME).map(([value, name]) => [name, Number(value)])
+)
+
+function fromPurchase(purchase) {
+  return {
+    productName: purchase.productName,
+    amount: purchase.amount,
+    category: purchase.category,
+    paymentMethod: METHOD_VALUE[purchase.paymentMethod] ?? PAYMENT_METHOD.DEBIT,
+    accountId: purchase.accountId ?? null,
+    creditCardId: purchase.creditCardId ?? null,
+    currency: purchase.currency,
+    // Stored as a UTC instant, shown as local wall-clock — the same conversion
+    // the input needs when recording a new one.
+    occurredAt: toLocalInputValue(new Date(purchase.occurredAt)),
+    storeId: purchase.storeId ?? null,
+    notes: purchase.notes ?? ''
+  }
+}
 
 const isDebit = computed(() => values.paymentMethod === PAYMENT_METHOD.DEBIT)
 const isCredit = computed(() => values.paymentMethod === PAYMENT_METHOD.CREDIT)
@@ -158,7 +190,7 @@ watch(() => props.modelValue, async (value) => {
   open.value = value
 
   if (value) {
-    reset(blank())
+    reset(props.purchase ? fromPurchase(props.purchase) : blank())
 
     const [accountList, cardList] = await Promise.allSettled([
       accountsApi.list(),
@@ -175,14 +207,18 @@ async function onSubmit() {
   const purchase = await submit()
   if (!purchase) return
 
-  toast.success(`${purchase.productName} recorded.`)
+  toast.success(
+    isEdit.value
+      ? t('purchases.updatedToast', { name: purchase.productName })
+      : t('purchases.recordedToast', { name: purchase.productName })
+  )
   emit('saved', purchase)
   open.value = false
 }
 </script>
 
 <template>
-  <BaseModal v-model="open" :title="t('purchases.recordTitle')">
+  <BaseModal v-model="open" :title="isEdit ? t('purchases.editTitle') : t('purchases.recordTitle')">
     <form id="purchase-form" class="form" novalidate @submit.prevent="onSubmit">
       <p v-if="formError" class="form__error" role="alert">{{ formError }}</p>
 
@@ -290,7 +326,7 @@ async function onSubmit() {
     <template #footer>
       <BaseButton variant="secondary" @click="open = false">{{ t('common.cancel') }}</BaseButton>
       <BaseButton type="submit" form="purchase-form" variant="primary" :loading="submitting">
-        {{ t('purchases.newPurchase') }}
+        {{ isEdit ? t('common.saveChanges') : t('purchases.newPurchase') }}
       </BaseButton>
     </template>
   </BaseModal>

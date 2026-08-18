@@ -1,0 +1,14 @@
+.settings__row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-1);
+}
+
+.settings__delete:hover { color: var(--negative); }
+
+@media (max-width: 767px) {
+  // The actions stay on one line at every width; the table scrolls instead of
+  // wrapping buttons under the row they belong to.
+  .settings__row-actions { justify-content: flex-start; }
+}

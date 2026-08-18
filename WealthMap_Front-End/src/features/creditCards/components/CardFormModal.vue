@@ -8,6 +8,8 @@ import BaseModal from '@/components/base/BaseModal.vue'
 import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
+import TrackingFields from '@/features/shared/components/TrackingFields.vue'
+import { TRACKING_MODE, trackingModeValue } from '@/api/tracking'
 import { useI18n } from '@/composables/useI18n'
 
 const { t } = useI18n()
@@ -38,14 +40,21 @@ function blank() {
     annualInterestRate: null,
     paymentDueDay: 15,
     statementCutoffDay: 28,
+    lastFour: '',
+    trackingMode: TRACKING_MODE.MANUAL,
     notes: ''
   }
 }
 
-const { values, submitting, formError, submit, reset, fieldError } = useForm(blank(), (payload) => {
+const { values, submitting, formError, submit, reset, fieldError } = useForm(blank(), async (payload) => {
+  const tracking = {
+    trackingMode: payload.trackingMode,
+    lastFour: payload.lastFour || null
+  }
+
   if (isEdit.value) {
     // The limit has its own endpoint; used credit only moves through charges and payments.
-    return creditCardsApi.update(props.card.id, {
+    const updated = await creditCardsApi.update(props.card.id, {
       cardName: payload.cardName,
       bankName: payload.bankName,
       annualInterestRate: payload.annualInterestRate ?? 0,
@@ -53,6 +62,15 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
       statementCutoffDay: payload.statementCutoffDay,
       notes: payload.notes || null
     })
+
+    // A second call only when something actually changed. Tracking has its own
+    // endpoint because the two fields constrain each other, and sending an
+    // unchanged pair on every save would be a write for nothing.
+    const changed =
+      tracking.lastFour !== (props.card.lastFour ?? null) ||
+      tracking.trackingMode !== trackingModeValue(props.card.trackingMode)
+
+    return changed ? creditCardsApi.updateTracking(props.card.id, tracking) : updated
   }
 
   return creditCardsApi.create({
@@ -62,7 +80,8 @@ const { values, submitting, formError, submit, reset, fieldError } = useForm(bla
     currency: payload.currency,
     annualInterestRate: payload.annualInterestRate ?? 0,
     paymentDueDay: payload.paymentDueDay,
-    statementCutoffDay: payload.statementCutoffDay
+    statementCutoffDay: payload.statementCutoffDay,
+    ...tracking
   })
 })
 
@@ -79,6 +98,8 @@ watch(() => props.modelValue, (value) => {
           annualInterestRate: props.card.annualInterestRate,
           paymentDueDay: props.card.paymentDueDay,
           statementCutoffDay: props.card.statementCutoffDay,
+          lastFour: props.card.lastFour ?? '',
+          trackingMode: trackingModeValue(props.card.trackingMode),
           notes: props.card.notes ?? ''
         }
       : blank())
@@ -169,6 +190,12 @@ async function onSubmit() {
           :error="fieldError('statementCutoffDay')"
         />
       </div>
+
+      <TrackingFields
+        v-model:last-four="values.lastFour"
+        v-model:tracking-mode="values.trackingMode"
+        :error="fieldError('lastFour')"
+      />
 
       <BaseInput
         v-if="isEdit"

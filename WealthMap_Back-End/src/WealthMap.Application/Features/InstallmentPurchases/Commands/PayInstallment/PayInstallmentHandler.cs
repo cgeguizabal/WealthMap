@@ -1,6 +1,7 @@
 using WealthMap.Application.Common.Exceptions;
 using WealthMap.Application.Common.Interfaces;
 using WealthMap.Application.Common.Messaging;
+using WealthMap.Application.Common.Services;
 using WealthMap.Application.Features.Accounts.DTOs;
 using WealthMap.Application.Features.InstallmentPurchases.DTOs;
 using WealthMap.Domain.Entities;
@@ -16,6 +17,7 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
     private readonly IAccountMovementRepository _movements;
     private readonly IPaymentRepository _payments;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly InstallmentContextLoader _context;
 
     public PayInstallmentHandler(
         IInstallmentPurchaseRepository installments,
@@ -23,8 +25,10 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
         IAccountRepository accounts,
         IAccountMovementRepository movements,
         IPaymentRepository payments,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        InstallmentContextLoader context)
     {
+        _context = context;
         _installments = installments;
         _cards = cards;
         _accounts = accounts;
@@ -62,7 +66,7 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
             }, ct);
 
             return new InstallmentPaymentResultDto(
-                InstallmentPurchaseDto.FromEntity(purchase), null);
+                await _context.ToDtoAsync(purchase, request.UserId, ct), null);
         }
 
         var account = await _accounts.GetByIdForUserAsync(request.SourceAccountId!.Value, request.UserId, ct)
@@ -101,7 +105,7 @@ public class PayInstallmentHandler : ICommandHandler<PayInstallmentCommand, Inst
         }, ct);
 
         return new InstallmentPaymentResultDto(
-            InstallmentPurchaseDto.FromEntity(purchase),
+            await _context.ToDtoAsync(purchase, request.UserId, ct),
             AccountMovementDto.FromEntity(movement));
     }
 }

@@ -1,6 +1,7 @@
 using WealthMap.Domain.Common;
 using WealthMap.Domain.Enums;
 using WealthMap.Domain.Exceptions;
+using WealthMap.Domain.Services;
 using WealthMap.Domain.ValueObjects;
 
 namespace WealthMap.Domain.Entities;
@@ -24,6 +25,29 @@ public class Account : BaseEntity
     public bool IsArchived { get; private set; }
     public DateTime? ArchivedAt { get; private set; }
 
+    /// <summary>
+    /// The last four digits of the account number — what a bank prints when it
+    /// names this account. Identifying data only; nothing reads it yet.
+    /// </summary>
+    public string? LastFour { get; private set; }
+
+    /// <summary>Manual until a future ingestion feature can honour anything else.</summary>
+    public TrackingMode TrackingMode { get; private set; }
+
+    /// <summary>Whether a debit card reaches this account, and of what kind.</summary>
+    public DebitCardType DebitCardType { get; private set; }
+
+    /// <summary>
+    /// The last four digits of the debit card, which is a different number from
+    /// the account's own.
+    /// </summary>
+    /// <remarks>
+    /// Kept apart from <see cref="LastFour"/> deliberately. A notification about a
+    /// card purchase quotes the card; one about a transfer quotes the account. One
+    /// field for both would match the wrong message about half the time.
+    /// </remarks>
+    public string? DebitCardLastFour { get; private set; }
+
     private Account()
 {
     Name = null!;
@@ -44,6 +68,60 @@ public class Account : BaseEntity
         Type = type;
         Balance = openingBalance;
         IsBlockedForSaving = false;
+        TrackingMode = TrackingMode.Manual;
+        DebitCardType = DebitCardType.None;
+    }
+
+    /// <summary>
+    /// Records whether a debit card reaches this account, and its digits.
+    /// </summary>
+    /// <remarks>
+    /// Set together because one governs the other: digits without a card describe
+    /// nothing, so choosing <see cref="DebitCardType.None"/> clears them rather
+    /// than leaving an orphan number behind for a card that does not exist.
+    ///
+    /// The digits stay optional for a card that does exist. A user may know they
+    /// have one without having it to hand, and refusing the answer they can give
+    /// in order to demand one they cannot is a bad trade.
+    /// </remarks>
+    public void SetDebitCard(DebitCardType type, string? lastFour)
+    {
+        DebitCardType = type;
+
+        DebitCardLastFour = type == DebitCardType.None
+            ? null
+            : InstrumentTracking.NormalizeLastFour(lastFour);
+
+        Touch();
+    }
+
+    /// <summary>
+    /// Sets or clears the identifying digits.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="UpdateDetails"/> rather than folded into it: this
+    /// is the only mutation that can fail because of the *other* field's value, and
+    /// every existing caller of UpdateDetails would otherwise have to start passing
+    /// two arguments it does not care about.
+    /// </remarks>
+    public void SetLastFour(string? lastFour)
+    {
+        var normalized = InstrumentTracking.NormalizeLastFour(lastFour);
+
+        // Checked against the mode already in force, so clearing the digits on a
+        // synced account is refused rather than quietly breaking the invariant.
+        InstrumentTracking.EnsureIdentifiable(TrackingMode, normalized);
+
+        LastFour = normalized;
+        Touch();
+    }
+
+    public void SetTrackingMode(TrackingMode mode)
+    {
+        InstrumentTracking.EnsureIdentifiable(mode, LastFour);
+
+        TrackingMode = mode;
+        Touch();
     }
 
     public void Deposit(Money amount)

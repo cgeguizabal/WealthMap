@@ -21,5 +21,12 @@ export const creditCardsApi = {
   /** `sourceType` is a string both ways: 'Account' | 'External'. */
   pay: (id, payload) => client.post(`/credit-cards/${id}/payments`, payload),
 
-  payments: (id) => client.get(`/credit-cards/${id}/payments`)
+  payments: (id) => client.get(`/credit-cards/${id}/payments`),
+
+  /**
+   * Identifying digits and tracking mode. Separate from `update` because the two
+   * constrain each other and the server writes them in the order that keeps the
+   * invariant satisfied.
+   */
+  updateTracking: (id, payload) => client.put(`/credit-cards/${id}/tracking`, payload)
 }

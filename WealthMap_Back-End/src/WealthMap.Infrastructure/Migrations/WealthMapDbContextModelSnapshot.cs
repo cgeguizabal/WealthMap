@@ -43,6 +43,18 @@ namespace WealthMap.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("DebitCardLastFour")
+                        .HasMaxLength(4)
+                        .HasColumnType("character(4)")
+                        .HasColumnName("debit_card_last_four")
+                        .IsFixedLength();
+
+                    b.Property<int>("DebitCardType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("debit_card_type");
+
                     b.Property<bool>("IsArchived")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -52,6 +64,12 @@ namespace WealthMap.Infrastructure.Migrations
                     b.Property<bool>("IsBlockedForSaving")
                         .HasColumnType("boolean")
                         .HasColumnName("is_blocked_for_saving");
+
+                    b.Property<string>("LastFour")
+                        .HasMaxLength(4)
+                        .HasColumnType("character(4)")
+                        .HasColumnName("last_four")
+                        .IsFixedLength();
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -63,6 +81,12 @@ namespace WealthMap.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("notes");
+
+                    b.Property<int>("TrackingMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("tracking_mode");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer")
@@ -98,7 +122,12 @@ namespace WealthMap.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_accounts_user_id");
 
-                    b.ToTable("accounts", (string)null);
+                    b.ToTable("accounts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_accounts_no_card_no_digits", "(debit_card_type <> 1) OR (debit_card_last_four IS NULL)");
+
+                            t.HasCheckConstraint("ck_accounts_sync_requires_last_four", "(tracking_mode = 1) OR (last_four IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("WealthMap.Domain.Entities.AccountMovement", b =>
@@ -250,6 +279,51 @@ namespace WealthMap.Infrastructure.Migrations
                     b.ToTable("additional_incomes", (string)null);
                 });
 
+            modelBuilder.Entity("WealthMap.Domain.Entities.BankDefault", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BankName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("bank_name");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DefaultAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_account_id");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer")
+                        .HasColumnName("direction");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bank_defaults");
+
+                    b.HasIndex("DefaultAccountId")
+                        .HasDatabaseName("ix_bank_defaults_default_account_id");
+
+                    b.HasIndex("UserId", "BankName", "Direction")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bank_defaults_user_id_bank_name_direction");
+
+                    b.ToTable("bank_defaults", (string)null);
+                });
+
             modelBuilder.Entity("WealthMap.Domain.Entities.CreditCard", b =>
                 {
                     b.Property<Guid>("Id")
@@ -286,6 +360,12 @@ namespace WealthMap.Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_archived");
 
+                    b.Property<string>("LastFour")
+                        .HasMaxLength(4)
+                        .HasColumnType("character(4)")
+                        .HasColumnName("last_four")
+                        .IsFixedLength();
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
@@ -298,6 +378,12 @@ namespace WealthMap.Infrastructure.Migrations
                     b.Property<int>("StatementCutoffDay")
                         .HasColumnType("integer")
                         .HasColumnName("statement_cutoff_day");
+
+                    b.Property<int>("TrackingMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("tracking_mode");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -350,6 +436,8 @@ namespace WealthMap.Infrastructure.Migrations
                             t.HasCheckConstraint("ck_credit_cards_cutoff_day", "statement_cutoff_day BETWEEN 1 AND 31");
 
                             t.HasCheckConstraint("ck_credit_cards_due_day", "payment_due_day BETWEEN 1 AND 31");
+
+                            t.HasCheckConstraint("ck_credit_cards_sync_requires_last_four", "(tracking_mode = 1) OR (last_four IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_credit_cards_used_within_limit", "used_credit <= credit_limit");
                         });
@@ -1032,6 +1120,58 @@ namespace WealthMap.Infrastructure.Migrations
                     b.ToTable("purchases", (string)null);
                 });
 
+            modelBuilder.Entity("WealthMap.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .HasColumnName("replaced_by_token_hash")
+                        .IsFixedLength();
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .HasColumnName("token_hash")
+                        .IsFixedLength();
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refresh_tokens");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refresh_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_refresh_tokens_user_id");
+
+                    b.ToTable("refresh_tokens", (string)null);
+                });
+
             modelBuilder.Entity("WealthMap.Domain.Entities.SalaryDeposit", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1330,6 +1470,23 @@ namespace WealthMap.Infrastructure.Migrations
                         .HasConstraintName("fk_additional_incomes_users_user_id");
                 });
 
+            modelBuilder.Entity("WealthMap.Domain.Entities.BankDefault", b =>
+                {
+                    b.HasOne("WealthMap.Domain.Entities.Account", null)
+                        .WithMany()
+                        .HasForeignKey("DefaultAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_defaults_accounts_default_account_id");
+
+                    b.HasOne("WealthMap.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bank_defaults_users_user_id");
+                });
+
             modelBuilder.Entity("WealthMap.Domain.Entities.CreditCard", b =>
                 {
                     b.HasOne("WealthMap.Domain.Entities.User", null)
@@ -1482,6 +1639,16 @@ namespace WealthMap.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_purchases_users_user_id");
+                });
+
+            modelBuilder.Entity("WealthMap.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("WealthMap.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("WealthMap.Domain.Entities.SalaryDeposit", b =>

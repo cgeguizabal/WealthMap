@@ -42,6 +42,8 @@ public static class DependencyInjection
            services.AddScoped<IPaymentRepository, PaymentRepository>();
            services.AddScoped<ISalaryDepositRepository, SalaryDepositRepository>();
            services.AddScoped<IUserRepository, UserRepository>();
+           services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+           services.AddScoped<IBankDefaultRepository, BankDefaultRepository>();
 
            // QuestPDF's Community licence covers this project; it must be set before any render.
            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
@@ -50,6 +52,7 @@ public static class DependencyInjection
            
            services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
            services.AddSingleton<IJwtService, JwtService>();
+           services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
         return services;
     }
 }

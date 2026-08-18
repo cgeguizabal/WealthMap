@@ -32,6 +32,15 @@ public class ExceptionHandlingMiddleware
                 errors = ex.Errors
             });
         }
+        catch (UnauthorizedException ex)
+        {
+            await WriteResponse(context, StatusCodes.Status401Unauthorized, new
+            {
+                title = "Unauthorized",
+                status = 401,
+                detail = ex.Message
+            });
+        }
         catch (DomainException ex)
         {
             await WriteResponse(context, StatusCodes.Status400BadRequest, new

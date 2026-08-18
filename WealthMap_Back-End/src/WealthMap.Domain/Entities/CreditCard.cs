@@ -1,5 +1,7 @@
 using WealthMap.Domain.Common;
+using WealthMap.Domain.Enums;
 using WealthMap.Domain.Exceptions;
+using WealthMap.Domain.Services;
 using WealthMap.Domain.ValueObjects;
 
 namespace WealthMap.Domain.Entities;
@@ -23,6 +25,15 @@ public class CreditCard : BaseEntity
     /// </summary>
     public bool IsArchived { get; private set; }
     public DateTime? ArchivedAt { get; private set; }
+
+    /// <summary>
+    /// The last four digits a bank prints when naming this card. Identifying data
+    /// only — nothing reads it yet.
+    /// </summary>
+    public string? LastFour { get; private set; }
+
+    /// <summary>Manual until a future ingestion feature can honour anything else.</summary>
+    public TrackingMode TrackingMode { get; private set; }
 
     public Money AvailableCredit => CreditLimit - UsedCredit;
 
@@ -55,6 +66,36 @@ public class CreditCard : BaseEntity
         AnnualInterestRate = ValidateRate(annualInterestRate);
         PaymentDueDay = ValidateDayOfMonth(paymentDueDay, nameof(PaymentDueDay));
         StatementCutoffDay = ValidateDayOfMonth(statementCutoffDay, nameof(StatementCutoffDay));
+        TrackingMode = TrackingMode.Manual;
+    }
+
+    /// <summary>
+    /// Sets or clears the identifying digits.
+    /// </summary>
+    /// <remarks>
+    /// Separate from <see cref="UpdateDetails"/> rather than folded into it: this
+    /// is the only mutation that can fail because of the *other* field's value, and
+    /// every existing caller of UpdateDetails would otherwise have to start passing
+    /// two arguments it does not care about.
+    /// </remarks>
+    public void SetLastFour(string? lastFour)
+    {
+        var normalized = InstrumentTracking.NormalizeLastFour(lastFour);
+
+        // Checked against the mode already in force, so clearing the digits on a
+        // synced card is refused rather than quietly breaking the invariant.
+        InstrumentTracking.EnsureIdentifiable(TrackingMode, normalized);
+
+        LastFour = normalized;
+        Touch();
+    }
+
+    public void SetTrackingMode(TrackingMode mode)
+    {
+        InstrumentTracking.EnsureIdentifiable(mode, LastFour);
+
+        TrackingMode = mode;
+        Touch();
     }
 
     public void Charge(Money amount)
@@ -68,6 +109,33 @@ public class CreditCard : BaseEntity
                 $"Charge declined on '{CardName}'. Available credit: {AvailableCredit}, requested: {amount}.");
 
         UsedCredit = newUsed;
+        Touch();
+    }
+
+    /// <summary>
+    /// Undoes a charge that should never have been made.
+    /// </summary>
+    /// <remarks>
+    /// Distinct from <see cref="RegisterPayment"/> even though both reduce the
+    /// balance, because they mean opposite things: a payment is money that left an
+    /// account, while this is the correction of a record. Routing a correction
+    /// through RegisterPayment would put a payment the user never made into the
+    /// arithmetic that decides what is still owed.
+    ///
+    /// Refused when the balance has already fallen below the charge — paid down
+    /// since, most likely. Allowing it would drive UsedCredit negative, which the
+    /// card cannot represent, and would quietly invent credit that is not there.
+    /// </remarks>
+    public void ReverseCharge(Money amount)
+    {
+        EnsureValidAmount(amount);
+
+        if (amount > UsedCredit)
+            throw new DomainException(
+                $"Cannot reverse {amount} on '{CardName}': only {UsedCredit} is still owed. " +
+                "The balance has been paid down since this charge was made.");
+
+        UsedCredit = UsedCredit - amount;
         Touch();
     }
 
