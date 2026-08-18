@@ -3,6 +3,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { NAV_GROUPS } from './navigation.js'
 import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
+import WealthMapIcon from '@/components/brand/WealthMapIcon.vue'
 import { LEGAL_ROUTES } from '@/config/legal'
 import { VERSION_LABEL } from '@/config/app'
 
@@ -35,7 +36,9 @@ function isActive(item) {
     :inert="hidden || undefined"
   >
     <div class="sidebar__brand">
-      <span class="sidebar__mark">WM</span>
+      <!-- Small enough for the collapsed rail, where it is the only thing
+           left standing for the app. -->
+      <WealthMapIcon :size="28" />
       <span class="sidebar__wordmark">WealthMap</span>
 
       <button

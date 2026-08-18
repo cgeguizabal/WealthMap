@@ -18,7 +18,11 @@
   --text-subtle:   #C0BFB7;
 
   /* ── Brand ────────────────────────────────── */
-  --accent:        #212F46;
+  /* The navy itself, which does not change between themes — it is the brand,
+     not a role. Everything navy derives from it so the value exists once. */
+  --brand-navy:    #212F46;
+
+  --accent:        var(--brand-navy);
   --accent-hover:  #2C3D5A;
   --accent-soft:   #E6E9EF;
   --on-accent:     #FFFFFF;
@@ -52,10 +56,12 @@
      its own tokens: a white card, a metallic ring just inside the gold border,
      and a soft shadow. Soft rather than the flat offset used everywhere else —
      this is an application tile, not a panel, and the hard stamp reads as UI. */
-  --tile-surface:      #FFFFFF;
-  --tile-ring:         rgb(203 182 151 / 22%);
-  --tile-shadow-near:  rgb(32 31 29 / 6%);
-  --tile-shadow-far:   rgb(32 31 29 / 8%);
+  --tile-surface:      var(--surface);
+  /* The gold itself at low alpha, mixed rather than restated, so changing
+     --gold changes the ring with it. */
+  --tile-ring:         color-mix(in srgb, var(--gold) 22%, transparent);
+  --tile-shadow-near:  color-mix(in srgb, var(--ink) 6%, transparent);
+  --tile-shadow-far:   color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
 /* ── Dark palette ─────────────────────────────
@@ -80,6 +86,10 @@
   --text-subtle:   #6E6A63;
 
   /* ── Brand ────────────────────────────────── */
+  /* Unchanged: the brand navy is the brand navy in both themes. What changes is
+     where it is used — as a surface here rather than as a colour to read. */
+  --brand-navy:    #212F46;
+
   --accent:        #93AACF;
   --accent-hover:  #A9BCDB;
   --accent-soft:   #28323F;
@@ -111,14 +121,16 @@
   --scrim: rgba(0, 0, 0, 0.65);
 
   /* ── App icon tile ────────────────────────────
-     The brand navy, which is --accent's light-mode value. It does not follow
-     --accent here: that token flips to a pale blue in dark mode because it is
-     read as text, and a pale blue tile would be a lamp rather than a card. The
-     navy sits clearly above the warm near-black canvas without glowing. */
-  --tile-surface:      #212F46;
-  --tile-ring:         rgb(255 255 255 / 7%);
-  --tile-shadow-near:  rgb(0 0 0 / 45%);
-  --tile-shadow-far:   rgb(0 0 0 / 35%);
+     --brand-navy rather than --accent. That token flips to a pale blue here
+     because it is read as text, and a pale blue tile would be a lamp rather
+     than a card. The navy sits clearly above the warm near-black canvas
+     without glowing. The ring is --ink at low alpha, which is the near-white
+     of this palette — a faint highlight instead of the gold one light uses,
+     since gold on navy at 22% would disappear. */
+  --tile-surface:      var(--brand-navy);
+  --tile-ring:         color-mix(in srgb, var(--ink) 7%, transparent);
+  --tile-shadow-near:  color-mix(in srgb, var(--shadow-color-modal) 45%, transparent);
+  --tile-shadow-far:   color-mix(in srgb, var(--shadow-color-modal) 35%, transparent);
 }
 
 :root {

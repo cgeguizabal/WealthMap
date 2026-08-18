@@ -25,6 +25,10 @@
   display: inline-grid;
   place-items: center;
 
+  // Never squashed by a flex row — the sidebar brand and the auth header are
+  // both flex, and a compressed icon reads as a rendering fault.
+  flex: none;
+
   inline-size: var(--tile-size);
   aspect-ratio: 1 / 1;
   padding: var(--tile-padding);

@@ -18,19 +18,7 @@
   flex: none;
 }
 
-.sidebar__mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  flex: none;
 
-  background: var(--ink);
-  color: var(--canvas);
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-bold);
-}
 
 .sidebar__wordmark {
   font-size: var(--fs-md);
