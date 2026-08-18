@@ -648,6 +648,33 @@ double-count it. Cash withdrawn is shown separately as "left your accounts".
 Internal transfers are not income — `TransferIn` is filtered out, so moving money to savings does
 not inflate earnings.
 
+**The PDF is bilingual.** `GET /reports/monthly/{month}/pdf?lang=es` renders the whole document in
+Spanish; anything else renders English.
+
+The report needed its own translations, because the app's live in the **client** — `i18n/en.js` and
+`i18n/es.js` are Vue modules, and this PDF is drawn on the server from data with no browser involved.
+`ReportText` therefore holds the ~45 strings the document prints. That is a second place translations
+live and the honest risk is drift, so it is bounded deliberately: only what this one document says,
+worded to match the Reports screen where the two overlap.
+
+**`lang` is a query parameter, not `Accept-Language`.** The language wanted is the one chosen *in the
+app*, which is not necessarily the browser's — someone reading WealthMap in Spanish on an
+English-configured machine should get a Spanish report. A JWT carries no locale, and storing a
+preference server-side would put the choice in two places.
+
+**It is passed per request, never held on the generator.** `IPdfReportGenerator` is registered as a
+**singleton**, so a language kept in a field would leak one user's locale into another's report the
+moment two downloads overlapped.
+
+The culture drives more than the wording: month names come out as "agosto 2026", and numbers format
+through it. Spanish is **`es-419`** (Latin American), which groups as `1,234.50` like English rather
+than the European `1.234,50` — the app targets El Salvador, which uses USD and US notation, and
+swapping separators with the language would make the figures look like a different currency.
+
+Values that arrive as data — movement types, goal statuses, categories, payment methods — go through
+`ReportText.Value`, which falls back to spacing out a PascalCase name. An enum member added to the
+domain before it is added here still reads as words rather than as code.
+
 ### 4.13 Payments ledger
 `GET /api/v1/payments` (paged, `?from=&to=&targetType=`), `GET /api/v1/credit-cards/{id}/payments`,
 `GET /api/v1/debts/{id}/payments`.

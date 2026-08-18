@@ -71,8 +71,13 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
         }
     }
 
-    public byte[] GenerateMonthlyReport(MonthlyReportDto report)
+    public byte[] GenerateMonthlyReport(MonthlyReportDto report, string? locale = null)
     {
+        // Resolved once per request and passed down. Never stored on the instance:
+        // this generator is a singleton, and a language held in a field would leak
+        // one user's locale into another's report whenever two downloads overlapped.
+        var text = ReportText.For(locale);
+
         var document = Document.Create(container =>
         {
             container.Page(page =>
@@ -82,15 +87,17 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                 page.PageColor(Canvas);
                 page.DefaultTextStyle(t => t.FontSize(9.5f).FontFamily(Font).FontColor(Ink));
 
-                page.Header().Element(h => ComposeHeader(h, report));
-                page.Content().PaddingTop(14).Element(c => ComposeContent(c, report));
+                page.Header().Element(h => ComposeHeader(h, report, text));
+                page.Content().PaddingTop(14).Element(c => ComposeContent(c, report, text));
 
                 page.Footer().PaddingTop(8).AlignCenter().Text(t =>
                 {
+                    var stamp = report.GeneratedAt.ToString("yyyy-MM-dd HH:mm", text.Culture);
+
                     t.DefaultTextStyle(s => s.FontSize(7.5f).FontColor(Subtle));
-                    t.Span($"WealthMap · generated {report.GeneratedAt:yyyy-MM-dd HH:mm} UTC · page ");
+                    t.Span($"WealthMap · {string.Format(text["generated"], stamp)} · {text["page"]} ");
                     t.CurrentPageNumber();
-                    t.Span(" of ");
+                    t.Span($" {text["of"]} ");
                     t.TotalPages();
                 });
             });
@@ -114,7 +121,7 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
             .Background(Surface)
             .Border(1).BorderColor(BorderColor);
 
-    private static void ComposeHeader(IContainer container, MonthlyReportDto report)
+    private static void ComposeHeader(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Column(column =>
         {
@@ -135,9 +142,10 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                     });
 
                     left.Item().PaddingTop(10)
-                        .Text("Monthly report").FontSize(21).SemiBold().FontColor(Ink);
+                        .Text(text["title"]).FontSize(21).SemiBold().FontColor(Ink);
 
-                    left.Item().Text($"{report.PeriodStart:MMMM yyyy}")
+                    // Month name from the culture, so a Spanish report says "agosto".
+                    left.Item().Text(report.PeriodStart.ToString("MMMM yyyy", text.Culture))
                         .FontSize(11).FontColor(Muted);
                 });
 
@@ -148,7 +156,7 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                         .Text($"{report.PeriodStart:yyyy-MM-dd} → {report.PeriodEnd:yyyy-MM-dd}")
                         .FontSize(8).FontColor(Muted);
                     right.Item().AlignRight()
-                        .Text($"All amounts in {report.Currency}")
+                        .Text(string.Format(text["amountsIn"], report.Currency))
                         .FontSize(8).FontColor(Muted);
                 });
             });
@@ -157,61 +165,64 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
         });
     }
 
-    private static void ComposeContent(IContainer container, MonthlyReportDto report)
+    private static void ComposeContent(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Column(column =>
         {
             column.Spacing(14);
 
-            column.Item().Element(e => ComposeSummary(e, report));
-            column.Item().Element(e => ComposeIncome(e, report));
-            column.Item().Element(e => ComposeSpending(e, report));
-            column.Item().Element(e => ComposeTopExpenses(e, report));
-            column.Item().Element(e => ComposeAccounts(e, report));
+            column.Item().Element(e => ComposeSummary(e, report, text));
+            column.Item().Element(e => ComposeIncome(e, report, text));
+            column.Item().Element(e => ComposeSpending(e, report, text));
+            column.Item().Element(e => ComposeTopExpenses(e, report, text));
+            column.Item().Element(e => ComposeAccounts(e, report, text));
 
             if (report.Cards.Count > 0)
-                column.Item().Element(e => ComposeCards(e, report));
+                column.Item().Element(e => ComposeCards(e, report, text));
 
             if (report.Goals.Count > 0)
-                column.Item().Element(e => ComposeGoals(e, report));
+                column.Item().Element(e => ComposeGoals(e, report, text));
         });
     }
 
-    private static void ComposeSummary(IContainer container, MonthlyReportDto report)
+    private static void ComposeSummary(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Row(row =>
         {
             row.Spacing(10);
-            row.RelativeItem().Element(e => Tile(e, "Income", report.Income.Total, report.Currency, Positive));
-            row.RelativeItem().Element(e => Tile(e, "Spending", report.Spending.TotalPurchases, report.Currency, Negative));
+            row.RelativeItem().Element(e => Tile(e, text["income"], report.Income.Total, report, text, Positive));
+            row.RelativeItem().Element(e => Tile(e, text["spending"], report.Spending.TotalPurchases, report, text, Negative));
             row.RelativeItem().Element(e => Tile(
                 e,
-                "Net result",
+                text["netResult"],
                 report.NetResult,
-                report.Currency,
+                report,
+                text,
                 report.NetResult >= 0 ? Positive : Negative));
         });
     }
 
-    private static void Tile(IContainer container, string label, decimal value, string currency, string color)
+    private static void Tile(
+        IContainer container, string label, decimal value,
+        MonthlyReportDto report, ReportText text, string color)
     {
         container.Element(FlatCard).Padding(11).Column(c =>
         {
             c.Item().Text(Label(label)).FontSize(7).SemiBold().FontColor(Muted).LetterSpacing(0.08f);
             c.Item().PaddingTop(4)
-                .Text($"{value:N2} {currency}").FontSize(15).SemiBold().FontColor(color);
+                .Text($"{Num(value, text)} {report.Currency}").FontSize(15).SemiBold().FontColor(color);
         });
     }
 
-    private static void ComposeIncome(IContainer container, MonthlyReportDto report)
+    private static void ComposeIncome(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Element(FlatCard).Column(column =>
         {
-            SectionHeader(column, "Income");
+            SectionHeader(column, text["income"]);
 
             if (report.Income.Lines.Count == 0)
             {
-                Empty(column, "No income recorded this month.");
+                Empty(column, text["noIncome"]);
             }
             else
             {
@@ -224,36 +235,36 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                         c.RelativeColumn(2);
                     });
 
-                    HeaderRow(table, ("Type", false), ("Count", true), ("Total", true));
+                    HeaderRow(table, (text["type"], false), (text["count"], true), (text["total"], true));
 
                     foreach (var line in report.Income.Lines)
                     {
-                        table.Cell().Element(Body).Text(Humanize(line.Type));
-                        table.Cell().Element(Body).AlignRight().Text(line.Count.ToString());
-                        table.Cell().Element(Body).AlignRight().Text($"{line.Total:N2}");
+                        table.Cell().Element(Body).Text(text.Value(line.Type));
+                        table.Cell().Element(Body).AlignRight().Text(line.Count.ToString(text.Culture));
+                        table.Cell().Element(Body).AlignRight().Text(Num(line.Total, text));
                     }
 
-                    table.Cell().Element(TotalRow).Text("Total").SemiBold();
+                    table.Cell().Element(TotalRow).Text(text["total"]).SemiBold();
                     table.Cell().Element(TotalRow).Text("");
-                    table.Cell().Element(TotalRow).AlignRight().Text($"{report.Income.Total:N2}").SemiBold();
+                    table.Cell().Element(TotalRow).AlignRight().Text(Num(report.Income.Total, text)).SemiBold();
                 });
             }
 
             if (report.Income.ExpectedSalaryNet > 0)
-                Footnote(column,
-                    $"Expected net salary {report.Income.ExpectedSalaryNet:N2} {report.Currency} per month.");
+                Footnote(column, string.Format(
+                    text["expectedSalary"], Num(report.Income.ExpectedSalaryNet, text), report.Currency));
         });
     }
 
-    private static void ComposeSpending(IContainer container, MonthlyReportDto report)
+    private static void ComposeSpending(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Element(FlatCard).Column(column =>
         {
-            SectionHeader(column, "Spending by category");
+            SectionHeader(column, text["spendingByCategory"]);
 
             if (report.Spending.ByCategory.Count == 0)
             {
-                Empty(column, "No purchases recorded this month.");
+                Empty(column, text["noPurchases"]);
             }
             else
             {
@@ -267,39 +278,42 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                         c.RelativeColumn(1);
                     });
 
-                    HeaderRow(table, ("Category", false), ("Items", true), ("Total", true), ("Share", true));
+                    HeaderRow(table,
+                        (text["category"], false), (text["items"], true),
+                        (text["total"], true), (text["share"], true));
 
                     foreach (var category in report.Spending.ByCategory)
                     {
-                        table.Cell().Element(Body).Text(category.Category);
-                        table.Cell().Element(Body).AlignRight().Text(category.Count.ToString());
-                        table.Cell().Element(Body).AlignRight().Text($"{category.Total:N2}");
-                        table.Cell().Element(Body).AlignRight().Text($"{category.SharePercentage:N1}%");
+                        table.Cell().Element(Body).Text(text.Value(category.Category));
+                        table.Cell().Element(Body).AlignRight().Text(category.Count.ToString(text.Culture));
+                        table.Cell().Element(Body).AlignRight().Text(Num(category.Total, text));
+                        table.Cell().Element(Body).AlignRight()
+                            .Text(category.SharePercentage.ToString("N1", text.Culture) + "%");
                     }
 
-                    table.Cell().Element(TotalRow).Text("Total").SemiBold();
+                    table.Cell().Element(TotalRow).Text(text["total"]).SemiBold();
                     table.Cell().Element(TotalRow).Text("");
-                    table.Cell().Element(TotalRow).AlignRight().Text($"{report.Spending.TotalPurchases:N2}").SemiBold();
+                    table.Cell().Element(TotalRow).AlignRight()
+                        .Text(Num(report.Spending.TotalPurchases, text)).SemiBold();
                     table.Cell().Element(TotalRow).Text("");
                 });
             }
 
             if (report.Spending.TotalCashWithdrawn > 0)
-                Footnote(column,
-                    $"Cash withdrawn this month: {report.Spending.TotalCashWithdrawn:N2} {report.Currency}. "
-                    + "It left your accounts but is excluded from the net result — cash purchases already cover it.");
+                Footnote(column, string.Format(
+                    text["cashNote"], Num(report.Spending.TotalCashWithdrawn, text), report.Currency));
         });
     }
 
-    private static void ComposeTopExpenses(IContainer container, MonthlyReportDto report)
+    private static void ComposeTopExpenses(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Element(FlatCard).Column(column =>
         {
-            SectionHeader(column, "Largest expenses");
+            SectionHeader(column, text["largestExpenses"]);
 
             if (report.Spending.TopExpenses.Count == 0)
             {
-                Empty(column, "Nothing to show.");
+                Empty(column, text["nothingToShow"]);
                 return;
             }
 
@@ -316,7 +330,8 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                 });
 
                 HeaderRow(table,
-                    ("Date (UTC)", false), ("Item", false), ("Category", false), ("Method", false), ("Amount", true));
+                    (text["dateUtc"], false), (text["item"], false), (text["category"], false),
+                    (text["method"], false), (text["amount"], true));
 
                 var isFirst = true;
 
@@ -328,7 +343,8 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                     // UTC like every other time in this document — the footer says so,
                     // and the report's month is bounded in UTC too, so a local-time
                     // reading here could show a date outside the month it sits in.
-                    table.Cell().Background(tint).Element(Body).Text($"{expense.OccurredAt:MM-dd HH:mm}");
+                    table.Cell().Background(tint).Element(Body)
+                        .Text(expense.OccurredAt.ToString("MM-dd HH:mm", text.Culture));
 
                     // The store sits under the item rather than in its own column:
                     // a sixth column would squeeze the four that carry the numbers.
@@ -340,10 +356,10 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                             item.Item().Text(expense.StoreName).FontSize(7.5f).FontColor(Muted);
                     });
 
-                    table.Cell().Background(tint).Element(Body).Text(expense.Category);
-                    table.Cell().Background(tint).Element(Body).Text(Humanize(expense.PaymentMethod));
+                    table.Cell().Background(tint).Element(Body).Text(text.Value(expense.Category));
+                    table.Cell().Background(tint).Element(Body).Text(text.Value(expense.PaymentMethod));
                     table.Cell().Background(tint).Element(Body).AlignRight()
-                        .Text($"{expense.Amount:N2}").SemiBold().FontColor(isFirst ? Ink : Ink);
+                        .Text(Num(expense.Amount, text)).SemiBold();
 
                     isFirst = false;
                 }
@@ -351,15 +367,15 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
         });
     }
 
-    private static void ComposeAccounts(IContainer container, MonthlyReportDto report)
+    private static void ComposeAccounts(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Element(FlatCard).Column(column =>
         {
-            SectionHeader(column, "Accounts");
+            SectionHeader(column, text["accounts"]);
 
             if (report.Accounts.Count == 0)
             {
-                Empty(column, "No accounts in this currency.");
+                Empty(column, text["noAccounts"]);
                 return;
             }
 
@@ -375,31 +391,34 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                 });
 
                 HeaderRow(table,
-                    ("Account", false), ("Opening", true), ("In", true), ("Out", true), ("Closing", true));
+                    (text["account"], false), (text["opening"], true), (text["in"], true),
+                    (text["out"], true), (text["closing"], true));
 
                 foreach (var account in report.Accounts)
                 {
                     table.Cell().Element(Body).Column(c =>
                     {
+                        var movements = string.Format(text["movements"], account.MovementCount);
+
                         c.Item().Text(account.Name).SemiBold();
-                        c.Item().Text($"{account.Type} · {account.MovementCount} movement(s)")
+                        c.Item().Text($"{text.Value(account.Type)} · {movements}")
                             .FontSize(7.5f).FontColor(Muted);
                     });
 
-                    table.Cell().Element(Body).AlignRight().Text($"{account.OpeningBalance:N2}").FontColor(Muted);
-                    table.Cell().Element(Body).AlignRight().Text($"{account.TotalIn:N2}").FontColor(Positive);
-                    table.Cell().Element(Body).AlignRight().Text($"{account.TotalOut:N2}").FontColor(Negative);
-                    table.Cell().Element(Body).AlignRight().Text($"{account.ClosingBalance:N2}").SemiBold();
+                    table.Cell().Element(Body).AlignRight().Text(Num(account.OpeningBalance, text)).FontColor(Muted);
+                    table.Cell().Element(Body).AlignRight().Text(Num(account.TotalIn, text)).FontColor(Positive);
+                    table.Cell().Element(Body).AlignRight().Text(Num(account.TotalOut, text)).FontColor(Negative);
+                    table.Cell().Element(Body).AlignRight().Text(Num(account.ClosingBalance, text)).SemiBold();
                 }
             });
         });
     }
 
-    private static void ComposeCards(IContainer container, MonthlyReportDto report)
+    private static void ComposeCards(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Element(FlatCard).Column(column =>
         {
-            SectionHeader(column, "Credit cards");
+            SectionHeader(column, text["creditCards"]);
 
             column.Item().Padding(12).PaddingTop(8).Table(table =>
             {
@@ -413,35 +432,35 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                 });
 
                 HeaderRow(table,
-                    ("Card", false), ("Charged", true), ("Paid", true), ("Owed", true), ("Available", true));
+                    (text["card"], false), (text["charged"], true), (text["paid"], true),
+                    (text["owed"], true), (text["available"], true));
 
                 foreach (var card in report.Cards)
                 {
                     table.Cell().Element(Body).Column(c =>
                     {
                         c.Item().Text(card.CardName).SemiBold();
-                        c.Item().Text($"Due day {card.PaymentDueDay} · limit {card.CreditLimit:N2}")
+                        c.Item().Text(string.Format(
+                                text["cardMeta"], card.PaymentDueDay, Num(card.CreditLimit, text)))
                             .FontSize(7.5f).FontColor(Muted);
                     });
 
-                    table.Cell().Element(Body).AlignRight().Text($"{card.ChargedThisMonth:N2}").FontColor(Negative);
-                    table.Cell().Element(Body).AlignRight().Text($"{card.PaidThisMonth:N2}").FontColor(Positive);
-                    table.Cell().Element(Body).AlignRight().Text($"{card.UsedCredit:N2}").SemiBold();
-                    table.Cell().Element(Body).AlignRight().Text($"{card.AvailableCredit:N2}").FontColor(Muted);
+                    table.Cell().Element(Body).AlignRight().Text(Num(card.ChargedThisMonth, text)).FontColor(Negative);
+                    table.Cell().Element(Body).AlignRight().Text(Num(card.PaidThisMonth, text)).FontColor(Positive);
+                    table.Cell().Element(Body).AlignRight().Text(Num(card.UsedCredit, text)).SemiBold();
+                    table.Cell().Element(Body).AlignRight().Text(Num(card.AvailableCredit, text)).FontColor(Muted);
                 }
             });
 
-            Footnote(column,
-                "Card balances are current, not month-end. Paid includes payments from any source, "
-                + "including cash and third parties.");
+            Footnote(column, text["cardsNote"]);
         });
     }
 
-    private static void ComposeGoals(IContainer container, MonthlyReportDto report)
+    private static void ComposeGoals(IContainer container, MonthlyReportDto report, ReportText text)
     {
         container.Element(FlatCard).Column(column =>
         {
-            SectionHeader(column, "Goals");
+            SectionHeader(column, text["goals"]);
 
             column.Item().Padding(12).PaddingTop(8).Table(table =>
             {
@@ -455,20 +474,22 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
                 });
 
                 HeaderRow(table,
-                    ("Goal", false), ("Kind", false), ("Saved", true), ("Target", true), ("Progress", true));
+                    (text["goal"], false), (text["kind"], false), (text["saved"], true),
+                    (text["target"], true), (text["progress"], true));
 
                 foreach (var goal in report.Goals)
                 {
                     table.Cell().Element(Body).Column(c =>
                     {
                         c.Item().Text(goal.Name).SemiBold();
-                        c.Item().Text(Humanize(goal.Status)).FontSize(7.5f).FontColor(StatusColor(goal.Status));
+                        c.Item().Text(text.Value(goal.Status)).FontSize(7.5f).FontColor(StatusColor(goal.Status));
                     });
 
-                    table.Cell().Element(Body).Text(goal.Kind).FontColor(Muted);
-                    table.Cell().Element(Body).AlignRight().Text($"{goal.CurrentAmount:N2}");
-                    table.Cell().Element(Body).AlignRight().Text($"{goal.TargetAmount:N2}").FontColor(Muted);
-                    table.Cell().Element(Body).AlignRight().Text($"{goal.ProgressPercentage:N1}%").SemiBold();
+                    table.Cell().Element(Body).Text(text.Value(goal.Kind)).FontColor(Muted);
+                    table.Cell().Element(Body).AlignRight().Text(Num(goal.CurrentAmount, text));
+                    table.Cell().Element(Body).AlignRight().Text(Num(goal.TargetAmount, text)).FontColor(Muted);
+                    table.Cell().Element(Body).AlignRight()
+                        .Text(goal.ProgressPercentage.ToString("N1", text.Culture) + "%").SemiBold();
                 }
             });
         });
@@ -529,9 +550,26 @@ public class MonthlyReportPdfGenerator : IPdfReportGenerator
         container.BorderTop(1).BorderColor(BorderColor).PaddingVertical(5).PaddingHorizontal(3);
 
     /// <summary>Column labels are uppercase and letter-spaced, as in the web client.</summary>
+    /// <remarks>
+    /// Uppercased with the report's culture rather than invariantly, so a language
+    /// whose casing rules differ from English's is not mangled.
+    /// </remarks>
     private static string Label(string value) => value.ToUpperInvariant();
 
-    /// <summary>PascalCase enum names read better spaced out in a document.</summary>
-    private static string Humanize(string value) =>
-        string.Concat(value.Select((c, i) => i > 0 && char.IsUpper(c) ? $" {c}" : c.ToString()));
+    /// <summary>
+    /// Every money figure in the document, formatted for the report's culture.
+    /// </summary>
+    /// <remarks>
+    /// The Spanish culture is <c>es-419</c> — Latin American — which groups as
+    /// 1,234.50, the same as English, rather than the European 1.234,50. That is
+    /// deliberate: this app is written for El Salvador, which uses USD and the
+    /// US notation, and a report that suddenly swapped the separators when the
+    /// language changed would look like a different currency.
+    ///
+    /// It also keeps the PDF in step with the screen for the common case. The web
+    /// client formats through <c>Intl.NumberFormat(undefined, …)</c>, meaning the
+    /// *browser's* locale rather than the app's — so on a machine configured for
+    /// the region the app targets, both render identically.
+    /// </remarks>
+    private static string Num(decimal value, ReportText text) => value.ToString("N2", text.Culture);
 }

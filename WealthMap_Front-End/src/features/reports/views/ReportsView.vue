@@ -21,7 +21,7 @@ import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
 import { useDateTime } from '@/composables/useDateTime'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { label: serverLabel } = useServerText()
 const { formatDateTime } = useDateTime()
 
@@ -76,7 +76,9 @@ async function downloadPdf() {
   downloading.value = true
 
   try {
-    const blob = await reportsApi.monthlyPdf(month.value)
+    // The document is rendered server-side, so the language has to travel with
+    // the request -- nothing else tells the API which one is on screen.
+    const blob = await reportsApi.monthlyPdf(month.value, locale.value)
     downloadBlob(blob, `wealthmap-${month.value}.pdf`)
     toast.success(t('reports.downloaded'))
   } catch {

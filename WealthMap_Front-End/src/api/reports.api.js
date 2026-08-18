@@ -4,9 +4,15 @@ export const reportsApi = {
   /** `month` is an ISO year-month, e.g. "2026-08". */
   monthly: (month) => client.get(`/reports/monthly/${month}`),
 
-  /** Returns a Blob — the response interceptor hands back `response.data` either way. */
-  monthlyPdf: (month) =>
-    client.get(`/reports/monthly/${month}/pdf`, { responseType: 'blob' })
+  /**
+   * Returns a Blob — the response interceptor hands back `response.data` either way.
+   *
+   * `lang` is the language chosen in the app, not the browser's. The PDF is
+   * rendered server-side from its own copy of the vocabulary, so it has to be
+   * told; without it the document comes back in English however the app reads.
+   */
+  monthlyPdf: (month, lang) =>
+    client.get(`/reports/monthly/${month}/pdf`, { responseType: 'blob', params: { lang } })
 }
 
 /** Current year-month in the format the API expects. */

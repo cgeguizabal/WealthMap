@@ -922,11 +922,22 @@ Reading these correctly:
 - Accounts and cards created after the period ended are omitted — they did not exist during it.
 - Only holdings in your profile currency appear.
 
-### `GET /api/v1/reports/monthly/{yyyy-MM}/pdf`
+### `GET /api/v1/reports/monthly/{yyyy-MM}/pdf?lang=es`
 
 Same data rendered as a PDF: `Content-Type: application/pdf`, filename `wealthmap-2026-08.pdf`.
 In Postman use **Send and Download**. A month with no activity renders successfully with empty
 sections.
+
+**`lang`** renders the whole document in that language — `es` for Spanish, anything else (including
+omitting it) for English. Headings, table columns, footnotes, and data values such as movement types,
+goal statuses and spending categories are all translated.
+
+The culture also drives formatting: `?lang=es` prints "agosto 2026" rather than "August 2026".
+Numbers stay grouped as `1,234.50` in both, because the Spanish culture is **`es-419`** — Latin
+American, which uses US notation — and the app targets El Salvador.
+
+A query parameter rather than `Accept-Language`: the language wanted is the one selected **in the
+app**, which need not match the browser's.
 
 ---
 

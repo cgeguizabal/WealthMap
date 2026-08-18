@@ -1184,6 +1184,27 @@ from the translation for the alert's `type`, with money
 and dates formatted in the viewer's locale. No params, or a type this build does not know, falls back
 to the server's text.
 
+### 9.5 The one thing translated on the server
+
+The **monthly report PDF** is the exception to everything above. It is drawn server-side by QuestPDF
+from data, with no browser in the loop, so none of the client's machinery can reach it — the strings
+in `i18n/es.js` are Vue modules.
+
+It therefore carries its own vocabulary in `ReportText`, and the client's only job is to **say which
+language it wants**:
+
+```js
+const blob = await reportsApi.monthlyPdf(month.value, locale.value)
+```
+
+That argument becomes `?lang=es`. Sending the app's `locale` rather than relying on `Accept-Language`
+is the point: a user reading WealthMap in Spanish on an English-configured machine should get a
+Spanish report, and the browser header would say otherwise.
+
+This is the one place a translation exists in two repositories, which is a real cost. It is bounded
+to the ~45 strings that document prints, and where a phrase already appears on the Reports screen the
+two are worded the same — so a reader comparing them sees the same words.
+
 ---
 
 ## 10. Known limitations
