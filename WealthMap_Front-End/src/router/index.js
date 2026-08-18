@@ -103,6 +103,9 @@ const routes = [
   // they agreed to should not have to sign out to do it. The guard below sends
   // authenticated visitors away from other public routes, so these are named
   // explicitly as the exception.
+  //
+  // These two paths are duplicated in PUBLIC_PATHS in api/client.js, which
+  // cannot import this file without a cycle. Change one, change the other.
   {
     path: '/privacy',
     name: 'privacy',

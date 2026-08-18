@@ -50,12 +50,28 @@ function refreshSession() {
   return refreshInFlight
 }
 
+/**
+ * Pages that must survive an expired session.
+ *
+ * Kept as paths rather than route names because this module cannot import the
+ * router — the router imports the auth store, which imports the api modules,
+ * which import this file. Duplicating four strings is the cheaper half of that
+ * trade, and they are checked against the router's routes by a comment there.
+ */
+const PUBLIC_PATHS = ['/login', '/register', '/privacy', '/terms']
+
 function endSession() {
   clearSession()
 
-  if (!window.location.pathname.startsWith('/login')) {
-    window.location.href = '/login'
+  // Bouncing to login from a public page is wrong twice over: the legal
+  // documents are meant to be readable by someone with no account at all, and
+  // a stale token in localStorage would otherwise make them unreachable in a
+  // fresh tab. Signing out is still correct — the redirect is not.
+  if (PUBLIC_PATHS.some((path) => window.location.pathname.startsWith(path))) {
+    return
   }
+
+  window.location.href = '/login'
 }
 
 // ── Response: refresh once, then normalize errors ────────
