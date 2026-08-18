@@ -11,8 +11,9 @@ purchases and goals, and it works out what you can safely spend.
 
 - Everything you enter is entered by you. WealthMap does not connect to your
   bank, read your email, or import transactions from anywhere.
-- Names, email addresses and card digits are encrypted before they are written
-  to the database.
+- **Your name, email and the details that identify your accounts and cards are
+  encrypted** before they are stored, so a stolen copy of the database does not
+  show whose money it is describing.
 - **The operator of WealthMap holds the encryption keys and can therefore read
   your data.** This is described honestly in section 5, because a policy that
   implied otherwise would be false.
@@ -36,7 +37,7 @@ Everything in this list is typed in by you. There is no other source.
 | Category | Examples | Why |
 |---|---|---|
 | Account identity | Full name, email address, country, display currency | To create your account, sign you in, and format money and dates |
-| Credentials | Password | Stored only as a salted hash — see 5.3 |
+| Credentials | Password | Stored only as a salted hash — see 5.4 |
 | Bank accounts | Account name, bank, type, balance, last four digits, linked debit card, notes | The balances the app reasons about |
 | Credit cards | Card name, bank, limit, balance owed, interest rate, cutoff and due days, last four digits, notes | To project what is owed and when |
 | Spending | Purchases, amounts, dates, categories, stores, installment plans, notes | To track spending and installment commitments |
@@ -105,13 +106,40 @@ who tells you a design like this one prevents that is describing a different
 system. If you would not be comfortable with one person being able to read what
 you enter, do not enter it.
 
-### 5.3 Passwords
+### 5.3 What a stolen copy of the database would show
+
+This is the scenario the encryption is actually for, so it is worth being exact
+about.
+
+**Amounts, dates and categories are not encrypted.** They cannot be — every
+balance, projection and report is arithmetic over those values, and the database
+has to be able to sort and filter them. What *is* encrypted is everything that
+says who they belong to: your name, your email, your country, the names and
+digits of your accounts and cards, your notes.
+
+So someone who obtained a copy of the database **without** the keys would see
+figures and dates attached to an anonymous identifier, and no readable name or
+email address to attach them to. That is a real and deliberate limit on the
+damage, and it is the main thing encryption at rest buys you.
+
+**It is not anonymity, and it would be wrong to describe it that way.** Two
+things qualify it:
+
+- Not every field is encrypted. Bank names, spending categories and store names
+  are stored as-is, because the app matches and groups by them. A determined
+  analyst can sometimes work out who a person is from a pattern of ordinary
+  details, and nothing here prevents that.
+- Anyone holding the keys — the operator, or an attacker who took the
+  application's configuration as well as its database — can link every row back
+  to you immediately. The separation only holds while the keys are separate.
+
+### 5.4 Passwords
 
 Your password is stored only as a salted hash. It is not encrypted, because
 encryption implies it could be reversed. The operator cannot read your password
 and cannot tell you what it is — a forgotten password can only be replaced.
 
-### 5.4 In transit
+### 5.5 In transit
 
 Traffic is served over HTTPS. Session cookies are marked HttpOnly and Secure,
 so browser JavaScript cannot read them.

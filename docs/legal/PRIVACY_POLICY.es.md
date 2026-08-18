@@ -11,8 +11,9 @@ tarjetas, compras y metas, y la aplicación calcula cuánto puedes gastar sin qu
 
 - Todo lo que hay dentro lo escribiste tú. WealthMap no se conecta a tu banco, no lee tu correo
   y no importa transacciones de ningún lado.
-- Los nombres, correos electrónicos y dígitos de tarjeta se cifran antes de guardarse en la base
-  de datos.
+- **Tu nombre, tu correo y los datos que identifican tus cuentas y tarjetas se cifran** antes de
+  guardarse, de modo que una copia robada de la base de datos no revela de quién es el dinero que
+  describe.
 - **El operador de WealthMap tiene las llaves de cifrado y, por lo tanto, puede leer tus datos.**
   Esto se explica con franqueza en la sección 5, porque afirmar lo contrario sería falso.
 - No se vende nada y no se comparte nada con fines publicitarios.
@@ -34,7 +35,7 @@ Todo lo de esta lista lo escribes tú. No hay ninguna otra fuente.
 | Categoría | Ejemplos | Para qué |
 |---|---|---|
 | Identidad de la cuenta | Nombre completo, correo electrónico, país, moneda de referencia | Crear tu cuenta, iniciar sesión y dar formato a montos y fechas |
-| Credenciales | Contraseña | Se guarda únicamente como hash con sal — ver 5.3 |
+| Credenciales | Contraseña | Se guarda únicamente como hash con sal — ver 5.4 |
 | Cuentas bancarias | Nombre de la cuenta, banco, tipo, saldo, últimos cuatro dígitos, tarjeta de débito vinculada, notas | Los saldos con los que razona la aplicación |
 | Tarjetas de crédito | Nombre de la tarjeta, banco, límite, saldo adeudado, tasa de interés, fechas de corte y pago, últimos cuatro dígitos, notas | Proyectar cuánto debes y cuándo |
 | Gastos | Compras, montos, fechas, categorías, comercios, planes de cuotas, notas | Dar seguimiento al gasto y a los compromisos a plazos |
@@ -101,13 +102,37 @@ Dicho sin rodeos: **el operador tiene la capacidad técnica de leer tus datos.**
 un diseño como este lo impide está describiendo otro sistema. Si no te sentirías cómodo con que
 una persona pueda leer lo que escribes, no lo escribas.
 
-### 5.3 Contraseñas
+### 5.3 Qué mostraría una copia robada de la base de datos
+
+Este es el escenario para el que sirve el cifrado, así que conviene ser exactos.
+
+**Los montos, las fechas y las categorías no están cifrados.** No pueden estarlo: cada saldo,
+proyección y reporte es aritmética sobre esos valores, y la base de datos necesita poder
+ordenarlos y filtrarlos. Lo que sí está cifrado es todo lo que dice a quién pertenecen: tu nombre,
+tu correo, tu país, los nombres y dígitos de tus cuentas y tarjetas, y tus notas.
+
+Así que alguien que obtuviera una copia de la base de datos **sin** las llaves vería cifras y
+fechas asociadas a un identificador anónimo, sin ningún nombre ni correo legible al cual
+atribuirlas. Ese es un límite real y deliberado al daño, y es lo principal que aporta el cifrado en
+reposo.
+
+**No es anonimato, y describirlo así sería incorrecto.** Dos cosas lo matizan:
+
+- No todos los campos están cifrados. Los nombres de bancos, las categorías de gasto y los nombres
+  de comercios se guardan tal cual, porque la aplicación agrupa y busca por ellos. Un analista
+  decidido a veces puede deducir quién es una persona a partir de un patrón de datos corrientes, y
+  nada de esto lo impide.
+- Cualquiera que tenga las llaves —el operador, o un atacante que se lleve también la configuración
+  de la aplicación— puede volver a vincular cada registro contigo de inmediato. La separación solo
+  se sostiene mientras las llaves estén separadas.
+
+### 5.4 Contraseñas
 
 Tu contraseña se guarda únicamente como un hash con sal. No se cifra, porque cifrar implicaría que
 se puede revertir. El operador no puede leer tu contraseña ni decirte cuál es: una contraseña
 olvidada solo puede reemplazarse.
 
-### 5.4 En tránsito
+### 5.5 En tránsito
 
 El tráfico viaja por HTTPS. Las cookies de sesión son HttpOnly y Secure, de modo que el JavaScript
 del navegador no puede leerlas.

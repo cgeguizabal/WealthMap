@@ -50,6 +50,14 @@ Privacidad.
 Eres responsable de mantener tus propios registros. WealthMap no es un respaldo de tu vida
 financiera.
 
+**Cómo se protegen.** Tu nombre, tu correo electrónico y los nombres, notas y dígitos de tarjeta
+que identifican tus cuentas se cifran antes de guardarse, de modo que una copia robada de la base
+de datos no revela de quién son las cifras que contiene. Ese cifrado tiene dos límites, y la
+[Política de Privacidad](./PRIVACY_POLICY.es.md) los expone en la sección 5: los montos, las fechas
+y las categorías no están cifrados, porque la aplicación tiene que calcular con ellos; y el
+operador tiene las llaves, así que el operador puede leer tus datos. Nada de lo aquí escrito debe
+entenderse como una promesa de que nadie puede hacerlo.
+
 ## 6. Uso aceptable
 
 No debes:

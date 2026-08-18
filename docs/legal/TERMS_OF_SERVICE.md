@@ -53,6 +53,14 @@ in the Privacy Policy.
 You are responsible for having your own records. WealthMap is not a backup of
 your financial life.
 
+**How it is protected.** Your name, email address, and the names, notes and card
+digits that identify your accounts are encrypted before they are stored, so a
+stolen copy of the database does not show whose figures it holds. Two limits
+come with that, and the [Privacy Policy](./PRIVACY_POLICY.md) sets both out in
+section 5: amounts, dates and categories are not encrypted, because the app has
+to calculate with them; and the operator holds the keys, so the operator can
+read your data. Nothing here should be read as a promise that no one can.
+
 ## 6. Acceptable use
 
 Do not:
