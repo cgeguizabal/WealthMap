@@ -182,24 +182,32 @@ SELECT has_schema_privilege('wealthmap_app', 'public', 'USAGE')  AS can_use_sche
 
 -- 3d. Expect ZERO rows: no table may be missing any of the four privileges.
 --     This is the quick version of "check every table by eye".
+--
+--     Reads pg_catalog rather than information_schema, and checks privileges by
+--     OID rather than by name. information_schema failed on Neon's SQL editor
+--     with "relation schemata does not exist", and passing the OID also removes
+--     any dependence on search_path or on quoting the identifier correctly.
 
-SELECT table_name
-FROM   information_schema.tables
-WHERE  table_schema = 'public'
-  AND  table_type = 'BASE TABLE'
-  AND  NOT (has_table_privilege('wealthmap_app', quote_ident(table_name), 'SELECT')
-        AND has_table_privilege('wealthmap_app', quote_ident(table_name), 'INSERT')
-        AND has_table_privilege('wealthmap_app', quote_ident(table_name), 'UPDATE')
-        AND has_table_privilege('wealthmap_app', quote_ident(table_name), 'DELETE'));
+SELECT c.relname AS table_missing_a_privilege
+FROM   pg_class c
+JOIN   pg_namespace n ON n.oid = c.relnamespace
+WHERE  n.nspname = 'public'
+  AND  c.relkind = 'r'
+  AND  NOT (has_table_privilege('wealthmap_app', c.oid, 'SELECT')
+        AND has_table_privilege('wealthmap_app', c.oid, 'INSERT')
+        AND has_table_privilege('wealthmap_app', c.oid, 'UPDATE')
+        AND has_table_privilege('wealthmap_app', c.oid, 'DELETE'))
+ORDER  BY c.relname;
 
 -- 3e. Sanity check on the count — expect every table the app uses, including
 --     freelance_jobs, plus __EFMigrationsHistory.
 
 SELECT count(*) AS tables_granted
-FROM   information_schema.tables
-WHERE  table_schema = 'public'
-  AND  table_type = 'BASE TABLE'
-  AND  has_table_privilege('wealthmap_app', quote_ident(table_name), 'SELECT');
+FROM   pg_class c
+JOIN   pg_namespace n ON n.oid = c.relnamespace
+WHERE  n.nspname = 'public'
+  AND  c.relkind = 'r'
+  AND  has_table_privilege('wealthmap_app', c.oid, 'SELECT');
 
 
 -- =============================================================================
