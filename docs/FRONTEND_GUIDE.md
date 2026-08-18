@@ -1169,11 +1169,25 @@ Everything lives in `_tokens.scss` as two mixins:
 The `:not([data-theme='light'])` is what lets an explicit light choice win on a machine set to dark.
 Without it, choosing light would do nothing there.
 
-**The dark palette is written, not inverted.** The light theme is warm paper with hard offset
-shadows, and flipping lightness mechanically produces cold grey and loses the character entirely.
-Colours the light theme uses at full strength are lightened rather than reused: `--accent` at
-`#212F46` is nearly black and would vanish against a dark canvas. The shadow colour goes *darker*
-than the canvas, because a hard offset only reads as a shadow if it is the darker thing.
+**The dark palette is the brand at low light.** Every surface in it is a percentage of
+`--brand-navy` mixed toward black, so the theme cannot drift out of tune with the brand, and changing
+the navy moves the whole thing with it:
+
+```scss
+--canvas:  color-mix(in srgb, var(--brand-navy) 42%, #000);  // #0E141D
+--surface: color-mix(in srgb, var(--brand-navy) 56%, #000);  // #121A27
+--line:    color-mix(in srgb, var(--brand-navy) 90%, #000);  // #1E2A3F
+```
+
+It began as warm near-blacks — a reasonable dark theme, but one with no relationship to the brand:
+the navy appeared under the app icon and nowhere else, so the tile was the only navy thing on a
+neutral page. The percentages were chosen to land on the lightness that palette already had, within
+0.2 of a point on every surface, so the change moved the hue and left the contrast alone.
+
+**It is still not an inversion.** Colours the light theme uses at full strength are lightened rather
+than reused: `--accent` *is* the navy in light mode and would vanish against these surfaces, so it
+flips to a pale blue. The shadow colour goes *darker* than the canvas, because a hard offset only
+reads as a shadow if it is the darker thing.
 
 **Four tokens exist only because of dark mode.** `--ink` was used as both a text colour and a
 background, so `background: var(--ink); color: #fff` would have become light-on-white the moment the
