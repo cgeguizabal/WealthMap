@@ -59,6 +59,11 @@ public sealed class UserEraser : IUserEraser
         await _db.Notifications.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
         await _db.RefreshTokens.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
 
+        //    Card reports name a card in a plain Guid rather than a foreign key, so
+        //    the database would not stop the card going first. Deleted here anyway,
+        //    with the rest of what only the user owns.
+        await _db.CardIncidents.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
+
         // 5. The instruments themselves.
         await _db.Accounts.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);
         await _db.CreditCards.Where(x => x.UserId == userId).ExecuteDeleteAsync(ct);

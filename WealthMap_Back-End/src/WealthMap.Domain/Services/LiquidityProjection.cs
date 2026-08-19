@@ -179,9 +179,17 @@ public static class LiquidityProjection
             headroom, horizon, lowestOn, incoming, -committed, events);
     }
 
+    /// <remarks>
+    /// A card reported lost or stolen contributes nothing. Its credit still exists
+    /// on paper, and the balance owed on it is still projected as an outflow, but
+    /// the user has no way to spend it until the replacement arrives — counting it
+    /// would put money into safe-to-spend that cannot be reached.
+    /// </remarks>
     private static Money AvailableCredit(Money zero, IEnumerable<CreditCard> cards) =>
         cards.Aggregate(zero, (sum, c) =>
-            c.CreditLimit.Amount > c.UsedCredit.Amount ? sum + (c.CreditLimit - c.UsedCredit) : sum);
+            !c.IsBlocked && c.CreditLimit.Amount > c.UsedCredit.Amount
+                ? sum + (c.CreditLimit - c.UsedCredit)
+                : sum);
 
     private static DateOnly Max(DateOnly a, DateOnly b) => a > b ? a : b;
 

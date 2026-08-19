@@ -61,6 +61,7 @@ public static class DependencyInjection
            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
            services.AddScoped<IBankDefaultRepository, BankDefaultRepository>();
            services.AddScoped<IFreelanceJobRepository, FreelanceJobRepository>();
+           services.AddScoped<ICardIncidentRepository, CardIncidentRepository>();
            services.AddScoped<IUserEraser, UserEraser>();
 
            // Resolved only by the --encrypt-pii command line flag, never by a

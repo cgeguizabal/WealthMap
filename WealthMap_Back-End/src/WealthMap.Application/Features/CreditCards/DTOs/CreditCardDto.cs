@@ -19,6 +19,12 @@ namespace WealthMap.Application.Features.CreditCards.DTOs;
 /// <param name="FutureInstallments">
 /// Plan balance beyond this cycle's installment. Owed, but not on any statement yet.
 /// </param>
+/// <param name="BlockedOn">
+/// When the card was reported lost, stolen, damaged or compromised. Null while it is
+/// in service. A blocked card still owes what it owes and still falls due on its
+/// usual day; what stops is its credit counting toward safe-to-spend.
+/// </param>
+/// <param name="BlockReason">"Lost", "Stolen", "Damaged" or "Compromised".</param>
 public record CreditCardDto(
     Guid Id,
     string CardName,
@@ -32,6 +38,8 @@ public record CreditCardDto(
     int StatementCutoffDay,
     string? LastFour,
     string TrackingMode,
+    DateOnly? BlockedOn,
+    string? BlockReason,
     DateOnly NextCutoffDate,
     DateOnly NextDueDate,
     int DaysUntilCutoff,
@@ -72,6 +80,8 @@ public record CreditCardDto(
             card.StatementCutoffDay,
             card.LastFour,
             card.TrackingMode.ToString(),
+            card.BlockedOn,
+            card.BlockReason?.ToString(),
             cutoff,
             due,
             cutoff.DayNumber - today.DayNumber,

@@ -32,6 +32,28 @@ public class CreditCard : BaseEntity
     /// </summary>
     public string? LastFour { get; private set; }
 
+    /// <summary>
+    /// The day this card was reported lost, stolen, damaged or compromised — and so
+    /// the day it stopped being spendable. Null while the card is in service.
+    /// </summary>
+    /// <remarks>
+    /// A date rather than a flag, because the date is the fact and "is this card
+    /// blocked" is a reading of it. It duplicates the open CardIncident's own
+    /// ReportedOn deliberately: LiquidityProjection decides safe-to-spend from the
+    /// cards alone, and would otherwise have to load every card's report history to
+    /// learn which cards it may still count.
+    ///
+    /// Blocking stops the card offering headroom. It deliberately does not stop
+    /// <see cref="Charge"/>: the charges that most need recording on a stolen card
+    /// are the ones the thief made, and a card that refused them would be unusable
+    /// exactly when the statement had to be reconciled.
+    /// </remarks>
+    public DateOnly? BlockedOn { get; private set; }
+
+    public CardLossReason? BlockReason { get; private set; }
+
+    public bool IsBlocked => BlockedOn is not null;
+
     /// <summary>Manual until a future ingestion feature can honour anything else.</summary>
     public TrackingMode TrackingMode { get; private set; }
 
@@ -96,6 +118,75 @@ public class CreditCard : BaseEntity
 
         TrackingMode = mode;
         Touch();
+    }
+
+    /// <summary>
+    /// Takes the card out of service after it was lost, stolen, damaged or exposed.
+    /// </summary>
+    /// <remarks>
+    /// The balance stays exactly where it was. Losing the plastic does not forgive
+    /// what was spent on it, and the statement still falls due on its usual day —
+    /// only the card's remaining credit stops counting as money the user can reach.
+    /// </remarks>
+    public void ReportLost(CardLossReason reason, DateOnly reportedOn)
+    {
+        if (!Enum.IsDefined(reason))
+            throw new DomainException("A card report must say what happened to the card.");
+
+        if (IsArchived)
+            throw new DomainException(
+                $"Card '{CardName}' is archived. Restore it before reporting it lost.");
+
+        if (IsBlocked)
+            throw new DomainException(
+                $"Card '{CardName}' was already reported on {BlockedOn:yyyy-MM-dd}. " +
+                "Record its replacement or mark it found first.");
+
+        BlockedOn = reportedOn;
+        BlockReason = reason;
+        Touch();
+    }
+
+    /// <summary>
+    /// Puts the card back in service under the number the replacement arrived with.
+    /// </summary>
+    /// <param name="newLastFour">
+    /// The new digits, or null when the bank reissued the same number. Null means
+    /// "unchanged" rather than "cleared" — a replacement is never the moment to
+    /// forget which card this is.
+    /// </param>
+    public void CompleteReplacement(string? newLastFour)
+    {
+        EnsureBlocked("replace");
+
+        var normalized = InstrumentTracking.NormalizeLastFour(newLastFour);
+
+        if (normalized is not null)
+        {
+            InstrumentTracking.EnsureIdentifiable(TrackingMode, normalized);
+            LastFour = normalized;
+        }
+
+        BlockedOn = null;
+        BlockReason = null;
+        Touch();
+    }
+
+    /// <summary>Puts the card back in service unchanged, because it turned up.</summary>
+    public void MarkRecovered()
+    {
+        EnsureBlocked("mark as found");
+
+        BlockedOn = null;
+        BlockReason = null;
+        Touch();
+    }
+
+    private void EnsureBlocked(string action)
+    {
+        if (!IsBlocked)
+            throw new DomainException(
+                $"Cannot {action} card '{CardName}': it was never reported lost or stolen.");
     }
 
     public void Charge(Money amount)

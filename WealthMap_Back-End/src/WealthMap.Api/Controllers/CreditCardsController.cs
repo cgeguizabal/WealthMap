@@ -12,6 +12,10 @@ using WealthMap.Application.Features.CreditCards.Commands.ArchiveCreditCard;
 using WealthMap.Application.Features.CreditCards.Queries.GetCreditCardById;
 using WealthMap.Application.Features.CreditCards.Queries.GetCreditCards;
 using WealthMap.Application.Features.Payments.Queries.GetPaymentsForTarget;
+using WealthMap.Application.Features.CardIncidents.Commands.MarkCardRecovered;
+using WealthMap.Application.Features.CardIncidents.Commands.ReplaceCard;
+using WealthMap.Application.Features.CardIncidents.Commands.ReportCardLost;
+using WealthMap.Application.Features.CardIncidents.Queries.GetCardIncidents;
 using WealthMap.Domain.Enums;
 
 namespace WealthMap.Api.Controllers;
@@ -157,6 +161,74 @@ public class CreditCardsController : ControllerBase
         var result = await _sender.Send(query, ct);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Records that the card was lost, stolen, damaged or compromised.
+    /// </summary>
+    /// <remarks>
+    /// The card stays exactly as it is apart from going out of service: the balance
+    /// is still owed, the statement still falls due, and every purchase on it keeps
+    /// its history. What changes is that its remaining credit stops counting toward
+    /// safe-to-spend, because the user has no way to reach it.
+    /// </remarks>
+    [HttpPost("{id:guid}/loss-report")]
+    public async Task<IActionResult> ReportLost(
+        Guid id,
+        [FromBody] ReportCardLostRequest request,
+        CancellationToken ct)
+    {
+        var command = new ReportCardLostCommand(
+            User.GetUserId(),
+            CardKind.CreditCard,
+            id,
+            (CardLossReason)request.Reason,
+            request.ReportedOn,
+            request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>
+    /// Records the replacement card the bank sent, and the number it carries.
+    /// </summary>
+    [HttpPost("{id:guid}/replacement")]
+    public async Task<IActionResult> Replace(
+        Guid id,
+        [FromBody] ReplaceCardRequest request,
+        CancellationToken ct)
+    {
+        var command = new ReplaceCardCommand(
+            User.GetUserId(),
+            CardKind.CreditCard,
+            id,
+            request.NewLastFour,
+            request.ReplacedOn,
+            request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>Closes the report because the card turned up.</summary>
+    [HttpPost("{id:guid}/recovery")]
+    public async Task<IActionResult> MarkRecovered(
+        Guid id,
+        [FromBody] MarkCardRecoveredRequest request,
+        CancellationToken ct)
+    {
+        var command = new MarkCardRecoveredCommand(
+            User.GetUserId(), CardKind.CreditCard, id, request.RecoveredOn, request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>Every time this card was reported, and how each report ended.</summary>
+    [HttpGet("{id:guid}/incidents")]
+    public async Task<IActionResult> GetIncidents(Guid id, CancellationToken ct)
+    {
+        var query = new GetCardIncidentsQuery(User.GetUserId(), CardKind.CreditCard, id);
+
+        return Ok(await _sender.Send(query, ct));
+    }
 }
 
 public record CreateCreditCardRequest(
@@ -185,3 +257,15 @@ public record PayCreditCardRequest(
     string SourceType,
     Guid? SourceAccountId,
     string? Notes);
+
+/// <param name="Reason">1 Lost, 2 Stolen, 3 Damaged, 4 Compromised.</param>
+/// <param name="ReportedOn">The user's own date. Omitted means today.</param>
+public record ReportCardLostRequest(int Reason, DateOnly? ReportedOn, string? Notes);
+
+/// <param name="NewLastFour">
+/// The replacement's digits. Omitted or null means the bank reissued the same
+/// number, and the recorded one is left alone.
+/// </param>
+public record ReplaceCardRequest(string? NewLastFour, DateOnly? ReplacedOn, string? Notes);
+
+public record MarkCardRecoveredRequest(DateOnly? RecoveredOn, string? Notes);

@@ -9,6 +9,12 @@ namespace WealthMap.Application.Features.Accounts.DTOs;
 /// Last four of the debit card — a different number from the account's own, and
 /// always null when there is no card.
 /// </param>
+/// <param name="DebitCardBlockedOn">
+/// When the debit card was reported lost, stolen, damaged or compromised. Null while
+/// it is in service. The account's balance is unaffected either way — only the card
+/// is out of action.
+/// </param>
+/// <param name="DebitCardBlockReason">"Lost", "Stolen", "Damaged" or "Compromised".</param>
 public record AccountDto(
     Guid Id,
     string Name,
@@ -21,6 +27,8 @@ public record AccountDto(
     string TrackingMode,
     string DebitCardType,
     string? DebitCardLastFour,
+    DateOnly? DebitCardBlockedOn,
+    string? DebitCardBlockReason,
     string? Notes,
     DateTime CreatedAt)
 {
@@ -36,6 +44,8 @@ public record AccountDto(
         account.TrackingMode.ToString(),
         account.DebitCardType.ToString(),
         account.DebitCardLastFour,
+        account.DebitCardBlockedOn,
+        account.DebitCardBlockReason?.ToString(),
         account.Notes,
         account.CreatedAt);
 }

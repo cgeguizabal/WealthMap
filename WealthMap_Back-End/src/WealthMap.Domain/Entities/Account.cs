@@ -48,6 +48,23 @@ public class Account : BaseEntity
     /// </remarks>
     public string? DebitCardLastFour { get; private set; }
 
+    /// <summary>
+    /// The day the debit card was reported lost, stolen, damaged or compromised.
+    /// Null while it is in service.
+    /// </summary>
+    /// <remarks>
+    /// Only the card is out of action, never the account. The balance is still
+    /// there and still reachable by transfer, in branch, or by the replacement when
+    /// it arrives — so nothing here touches what the account is worth. It exists so
+    /// the app can say "this card is not usable" rather than showing a number that
+    /// no longer opens anything.
+    /// </remarks>
+    public DateOnly? DebitCardBlockedOn { get; private set; }
+
+    public CardLossReason? DebitCardBlockReason { get; private set; }
+
+    public bool IsDebitCardBlocked => DebitCardBlockedOn is not null;
+
     private Account()
 {
     Name = null!;
@@ -122,6 +139,63 @@ public class Account : BaseEntity
 
         TrackingMode = mode;
         Touch();
+    }
+
+    /// <summary>Takes the debit card out of service. The account itself is untouched.</summary>
+    public void ReportDebitCardLost(CardLossReason reason, DateOnly reportedOn)
+    {
+        if (!Enum.IsDefined(reason))
+            throw new DomainException("A card report must say what happened to the card.");
+
+        if (DebitCardType == DebitCardType.None)
+            throw new DomainException(
+                $"Account '{Name}' has no debit card to report.");
+
+        if (IsDebitCardBlocked)
+            throw new DomainException(
+                $"The debit card on '{Name}' was already reported on " +
+                $"{DebitCardBlockedOn:yyyy-MM-dd}. Record its replacement or mark it found first.");
+
+        DebitCardBlockedOn = reportedOn;
+        DebitCardBlockReason = reason;
+        Touch();
+    }
+
+    /// <summary>
+    /// Puts the debit card back in service under the number the replacement carries.
+    /// </summary>
+    /// <param name="newLastFour">
+    /// The new digits, or null when the bank reissued the same number. Null leaves
+    /// the recorded number alone rather than clearing it.
+    /// </param>
+    public void CompleteDebitCardReplacement(string? newLastFour)
+    {
+        EnsureDebitCardBlocked("replace");
+
+        var normalized = InstrumentTracking.NormalizeLastFour(newLastFour);
+
+        if (normalized is not null) DebitCardLastFour = normalized;
+
+        DebitCardBlockedOn = null;
+        DebitCardBlockReason = null;
+        Touch();
+    }
+
+    /// <summary>Puts the debit card back in service unchanged, because it turned up.</summary>
+    public void MarkDebitCardRecovered()
+    {
+        EnsureDebitCardBlocked("mark as found");
+
+        DebitCardBlockedOn = null;
+        DebitCardBlockReason = null;
+        Touch();
+    }
+
+    private void EnsureDebitCardBlocked(string action)
+    {
+        if (!IsDebitCardBlocked)
+            throw new DomainException(
+                $"Cannot {action} the debit card on '{Name}': it was never reported lost or stolen.");
     }
 
     public void Deposit(Money amount)

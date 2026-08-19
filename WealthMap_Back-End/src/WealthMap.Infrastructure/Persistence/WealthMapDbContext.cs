@@ -28,6 +28,7 @@ public class WealthMapDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<BankDefault> BankDefaults => Set<BankDefault>();
     public DbSet<FreelanceJob> FreelanceJobs => Set<FreelanceJob>();
+    public DbSet<CardIncident> CardIncidents => Set<CardIncident>();
 
     /// <summary>
     /// The encryption service reaches the entity configurations through here.
@@ -73,6 +74,7 @@ public class WealthMapDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProductGoalConfiguration(_encryption));
         modelBuilder.ApplyConfiguration(new NotificationConfiguration(_encryption));
         modelBuilder.ApplyConfiguration(new FreelanceJobConfiguration(_encryption));
+        modelBuilder.ApplyConfiguration(new CardIncidentConfiguration(_encryption));
 
         GuardEveryEncryptedConfigurationIsApplied();
 
@@ -91,7 +93,7 @@ public class WealthMapDbContext : DbContext
     /// <summary>
     /// How many configurations are applied by hand just above.
     /// </summary>
-    private const int EncryptedConfigurationCount = 9;
+    private const int EncryptedConfigurationCount = 10;
 
     /// <summary>
     /// Turns a silently skipped configuration into a startup failure.

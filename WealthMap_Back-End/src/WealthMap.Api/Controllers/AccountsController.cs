@@ -16,6 +16,11 @@ using WealthMap.Application.Features.Accounts.Commands.DepositToAccount;
 using WealthMap.Application.Features.Accounts.Commands.WithdrawFromAccount;
 using WealthMap.Application.Features.Accounts.Commands.TransferBetweenAccounts;
 using WealthMap.Application.Features.Accounts.Queries.GetAccountMovements;
+using WealthMap.Application.Features.CardIncidents.Commands.MarkCardRecovered;
+using WealthMap.Application.Features.CardIncidents.Commands.ReplaceCard;
+using WealthMap.Application.Features.CardIncidents.Commands.ReportCardLost;
+using WealthMap.Application.Features.CardIncidents.Queries.GetCardIncidents;
+using WealthMap.Domain.Enums;
 
 
 
@@ -213,6 +218,71 @@ return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);        
         var query = new GetAccountMovementsQuery(id, User.GetUserId(), page, pageSize);
         var result = await _sender.Send(query, ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Records that the debit card on this account was lost, stolen, damaged or
+    /// compromised.
+    /// </summary>
+    /// <remarks>
+    /// Only the card goes out of service. The balance is untouched and still
+    /// reachable by transfer or in branch — a lost card is not lost money.
+    /// </remarks>
+    [HttpPost("{id:guid}/debit-card/loss-report")]
+    public async Task<IActionResult> ReportDebitCardLost(
+        Guid id,
+        [FromBody] ReportCardLostRequest request,
+        CancellationToken ct)
+    {
+        var command = new ReportCardLostCommand(
+            User.GetUserId(),
+            CardKind.DebitCard,
+            id,
+            (CardLossReason)request.Reason,
+            request.ReportedOn,
+            request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>Records the replacement debit card, and the number it carries.</summary>
+    [HttpPost("{id:guid}/debit-card/replacement")]
+    public async Task<IActionResult> ReplaceDebitCard(
+        Guid id,
+        [FromBody] ReplaceCardRequest request,
+        CancellationToken ct)
+    {
+        var command = new ReplaceCardCommand(
+            User.GetUserId(),
+            CardKind.DebitCard,
+            id,
+            request.NewLastFour,
+            request.ReplacedOn,
+            request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>Closes the report because the debit card turned up.</summary>
+    [HttpPost("{id:guid}/debit-card/recovery")]
+    public async Task<IActionResult> MarkDebitCardRecovered(
+        Guid id,
+        [FromBody] MarkCardRecoveredRequest request,
+        CancellationToken ct)
+    {
+        var command = new MarkCardRecoveredCommand(
+            User.GetUserId(), CardKind.DebitCard, id, request.RecoveredOn, request.Notes);
+
+        return Ok(await _sender.Send(command, ct));
+    }
+
+    /// <summary>Every time this account's debit card was reported.</summary>
+    [HttpGet("{id:guid}/debit-card/incidents")]
+    public async Task<IActionResult> GetDebitCardIncidents(Guid id, CancellationToken ct)
+    {
+        var query = new GetCardIncidentsQuery(User.GetUserId(), CardKind.DebitCard, id);
+
+        return Ok(await _sender.Send(query, ct));
     }
 }
 
