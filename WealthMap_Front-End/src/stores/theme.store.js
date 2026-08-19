@@ -4,9 +4,10 @@ import {
   THEMES,
   THEME_STORAGE_KEY,
   applyTheme,
+  isDarkTheme,
   isSupportedTheme,
   readStoredTheme,
-  resolvedTheme
+  themeColour
 } from '@/config/theme'
 
 /**
@@ -29,7 +30,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   const isDark = computed(() => {
     systemChanges.value
-    return resolvedTheme(theme.value) === 'dark'
+    return isDarkTheme(theme.value)
   })
 
   function setTheme(next) {
@@ -46,7 +47,7 @@ export const useThemeStore = defineStore('theme', () => {
       // window chrome of an installed PWA.
       document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', resolvedTheme(value) === 'dark' ? '#171614' : '#F3F2EE')
+        ?.setAttribute('content', themeColour(value))
 
       try {
         localStorage.setItem(THEME_STORAGE_KEY, value)
@@ -68,7 +69,7 @@ export const useThemeStore = defineStore('theme', () => {
     if (theme.value === 'system') {
       document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', resolvedTheme('system') === 'dark' ? '#171614' : '#F3F2EE')
+        ?.setAttribute('content', themeColour('system'))
     }
   }
 

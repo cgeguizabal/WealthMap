@@ -4,10 +4,10 @@ import { useI18n } from '@/composables/useI18n'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 
 /**
- * Three options as a segmented control, matching LanguageSelector.
+ * The theme choices as a segmented control, matching LanguageSelector.
  *
- * Icons rather than words: "Light / Dark / System" in two languages would be the
- * widest thing in the header, and a sun, a moon and a screen are understood
+ * Icons rather than words: four labels in two languages would be the widest
+ * thing in the header, and a sun, a moon, a boat and a screen are understood
  * without reading. The label stays available as the accessible name and the
  * tooltip, so nothing is lost to someone who does not recognise them.
  */

@@ -118,6 +118,13 @@ const ICONS = {
     'M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z',
     'M12 17v4',
     'M8 21h8'
+  ],
+  // Navy. A sailboat: mast, mainsail, hull. Drawn on the same 24px grid as the
+  // rest, so it sits at the same weight as the sun and the moon beside it.
+  boat: [
+    'M12 3v13',
+    'm12 6 6.5 10H12',
+    'M3.5 16h17l-2.4 4.5H5.9z'
   ]
 }
 

@@ -65,23 +65,89 @@
 }
 
 /* ── Dark palette ─────────────────────────────
-   Not an inversion, and no longer a separate colour story either.
+   Warm near-blacks. Not an inversion: the light theme is warm paper with hard
+   offset shadows, and flipping lightness mechanically produces cold grey and
+   loses that entirely. Colours the light theme uses at full strength are
+   lightened rather than reused — --accent is the navy there, which is nearly
+   black and would vanish against this canvas.
 
-   This used to be warm near-blacks — a reasonable dark theme, but one with no
-   relationship to the brand: the navy appeared only under the app icon and
-   nowhere else. The surfaces are now the brand navy taken down toward black, so
-   the theme is the brand at low light rather than a neutral that happens to sit
-   beside it.
+   This is the neutral dark theme. Navy, below, is the brand one. They are
+   separate because they are different answers to the same question: this one
+   gets out of the way, that one is the brand at low light, and which you want
+   depends on the room you are in rather than on which is better. */
+@mixin dark-palette {
+  /* ── Surfaces ─────────────────────────────── */
+  --canvas:        #171614;
+  --canvas-alt:    #201E1B;
+  /* Lighter than the canvas: cards lift by being paler, as they do in light. */
+  --surface:       #1E1C1A;
+  --line:          #322F2B;
+
+  /* ── Ink & text ───────────────────────────── */
+  --ink:           #F0EEE9;
+  --on-ink:        #171614;
+  --text:          #EDEBE6;
+  --text-muted:    #A6A29A;
+  --text-subtle:   #6E6A63;
+
+  /* ── Brand ────────────────────────────────── */
+  --brand-navy:    #212F46;
+
+  --accent:        #93AACF;
+  --accent-hover:  #A9BCDB;
+  --accent-soft:   #28323F;
+  /* The accent is now the light colour, so what sits on it must be dark. */
+  --on-accent:     #171614;
+  --gold:          #D6C3A6;
+
+  /* ── Semantics (money) ────────────────────── */
+  --positive:      #86B394;
+  --positive-soft: #22301F;
+  --negative:      #E09287;
+  --negative-soft: #3A2723;
+  --negative-hover: #C97C71;
+  --on-negative:   #171614;
+  --warning:       #DCB878;
+  --warning-soft:  #362D1C;
+
+  /* ── Shape ────────────────────────────────── */
+  --border-color:  #55504A;
+
+  /* ── Flat shadows ─────────────────────────── */
+  --shadow-color:  #0C0B0A;
+  --shadow-color-modal: #000000;
+
+  --scrim: rgba(0, 0, 0, 0.65);
+
+  /* ── App icon tile ────────────────────────────
+     The brand navy, which is the one place it appears in this theme — the tile
+     is meant to look like the application's icon rather than like the page. */
+  --tile-surface:      var(--brand-navy);
+  --tile-ring:         color-mix(in srgb, var(--ink) 7%, transparent);
+  --tile-shadow-near:  color-mix(in srgb, var(--shadow-color-modal) 45%, transparent);
+  --tile-shadow-far:   color-mix(in srgb, var(--shadow-color-modal) 35%, transparent);
+}
+
+/* ── Navy palette ─────────────────────────────
+   The brand at low light, and a third theme rather than a replacement for the
+   second — see the note above dark-palette for why both exist.
 
    Mixed rather than hand-picked. Every surface below is a percentage of
    --brand-navy, which means the ramp cannot drift out of tune with the brand,
-   and changing the navy moves the whole theme with it.
+   and changing the navy moves the whole theme with it. Under the neutral dark
+   theme the brand navy shows up beneath the app icon and nowhere else; here it
+   is the room the app sits in.
 
-   What did not change is the colour you read. --accent still inverts to a pale
-   blue, because the navy at full strength is nearly black and would vanish
-   against these surfaces; the golds and the money colours keep the values that
-   were already carrying. */
-@mixin dark-palette {
+   The percentages were chosen to sit at roughly the lightness dark-palette
+   already had: no surface is more than about 2.5 L* points off its neutral
+   counterpart, so switching between the two reads as a change of hue rather
+   than of contrast.
+
+   What it shares with the neutral theme is the colour you read against those
+   surfaces. --accent still inverts to a pale blue, because the navy at full
+   strength is nearly black and would vanish here; the golds and the money
+   colours keep the values that were already carrying. */
+@mixin navy-palette {
   /* ── Surfaces ─────────────────────────────── */
   /* The ramp, darkest first. The percentages track the lightness the warm
      palette had, so nothing shifts in contrast — only in hue. */
@@ -197,28 +263,25 @@
 }
 
 /* Following the system is the default, and the only state with no attribute on
-   the root element. `:not([data-theme='light'])` is what lets an explicit light
-   choice win on a machine set to dark — without it, choosing light would do
-   nothing there. */
+   the root element at all. So the media query matches on the absence of the
+   attribute rather than on "not light" — with three explicit themes to choose
+   from, any of them must beat what the machine prefers. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
+  :root:not([data-theme]) {
     @include dark-palette;
   }
 }
 
-/* An explicit choice, set by the theme store. Last so it beats the media query
+/* An explicit choice, set by the theme store. After the media query so it wins
    in both directions. */
-:root[data-theme='dark'] {
-  @include dark-palette;
-}
-
-:root[data-theme='light'] {
-  @include light-palette;
-}
+:root[data-theme='light'] { @include light-palette; }
+:root[data-theme='dark']  { @include dark-palette; }
+:root[data-theme='navy']  { @include navy-palette; }
 
 /* The browser's own surfaces — form controls, scrollbars, the space past the
    end of a scroll. Without this they stay light and the page looks bolted onto
-   the wrong chrome. */
-:root[data-theme='dark'] { color-scheme: dark; }
+   the wrong chrome. Navy is a dark scheme as far as the browser is concerned. */
 :root[data-theme='light'] { color-scheme: light; }
-:root:not([data-theme]) { color-scheme: light dark; }
+:root[data-theme='dark'],
+:root[data-theme='navy']  { color-scheme: dark; }
+:root:not([data-theme])   { color-scheme: light dark; }

@@ -1,5 +1,5 @@
 /**
- * Three states, not two.
+ * Four states, not two.
  *
  * "System" is a real choice and the default one: someone whose laptop switches
  * to dark at sunset expects the app to follow. A two-state toggle cannot express
@@ -9,6 +9,10 @@
 export const THEMES = [
   { value: 'light', labelKey: 'theme.light', icon: 'sun' },
   { value: 'dark', labelKey: 'theme.dark', icon: 'moon' },
+  /* Two dark themes, deliberately. Dark is the neutral one and navy is the
+     brand at low light; neither is the better answer, they suit different
+     rooms. */
+  { value: 'navy', labelKey: 'theme.navy', icon: 'boat' },
   { value: 'system', labelKey: 'theme.system', icon: 'monitor' }
 ]
 
@@ -54,4 +58,22 @@ export function resolvedTheme(theme) {
   if (theme !== 'system') return theme
 
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+/**
+ * Whether the resolved theme is a dark one.
+ *
+ * Asked as "not light" rather than "is dark", because there are two dark themes
+ * and a third would break any list of them. This decides which artwork the icon
+ * and wordmark show, so getting it wrong puts navy lettering on a navy page.
+ */
+export const isDarkTheme = (theme) => resolvedTheme(theme) !== 'light'
+
+/** The page colour a theme paints, for the browser's own chrome. */
+export const themeColour = (theme) => {
+  switch (resolvedTheme(theme)) {
+    case 'navy': return '#0E141D'
+    case 'dark': return '#171614'
+    default: return '#F3F2EE'
+  }
 }

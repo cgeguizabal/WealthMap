@@ -205,7 +205,7 @@ export default {
     settings: {
       appearance: {
         title: 'Appearance and language',
-        body: 'Both live in the menu behind your initials, top right. Appearance offers light, dark, or following your system. Language switches the whole app, including the monthly report PDF.'
+        body: 'Both live in the menu behind your initials, top right. Appearance offers light, dark, navy, or following your system. Language switches the whole app, including the monthly report PDF.'
       },
       replay: {
         title: 'Replaying these tours',
@@ -294,6 +294,7 @@ export default {
     label: 'Appearance',
     light: 'Light',
     dark: 'Dark',
+    navy: 'Navy',
     system: 'Match system'
   },
 

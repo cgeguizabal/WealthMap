@@ -204,7 +204,7 @@ export default {
     settings: {
       appearance: {
         title: 'Apariencia e idioma',
-        body: 'Ambos están en el menú detrás de tus iniciales, arriba a la derecha. Apariencia ofrece claro, oscuro o seguir a tu sistema. El idioma cambia toda la aplicación, incluido el PDF del reporte mensual.'
+        body: 'Ambos están en el menú detrás de tus iniciales, arriba a la derecha. Apariencia ofrece claro, oscuro, marino o seguir a tu sistema. El idioma cambia toda la aplicación, incluido el PDF del reporte mensual.'
       },
       replay: {
         title: 'Repetir estos recorridos',
@@ -293,6 +293,7 @@ export default {
     label: 'Apariencia',
     light: 'Claro',
     dark: 'Oscuro',
+    navy: 'Marino',
     system: 'Según el sistema'
   },
 
