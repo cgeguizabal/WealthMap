@@ -1,0 +1,45 @@
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+// A rule between entries rather than around each: the reports are one sequence,
+// and boxing them would suggest each is a separate thing to act on.
+.history__item + .history__item {
+  padding-top: var(--sp-4);
+  border-top: var(--border-subtle);
+}
+
+.history__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-1);
+}
+
+.history__reason {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.history__line {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.history__note {
+  color: var(--text-subtle);
+}
+
+.history__notes {
+  margin: var(--sp-2) 0 0;
+  padding-left: var(--sp-3);
+  border-left: var(--border-subtle);
+  font-size: var(--fs-xs);
+  color: var(--text-subtle);
+}

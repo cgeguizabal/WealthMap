@@ -135,3 +135,9 @@
 // Zero is not missing data, it is "already paid" — muted rather than hidden so
 // the column still lines up down the table.
 .is-muted { color: var(--text-subtle); }
+
+// Set apart from the tables above it: the history is about the card itself, not
+// about the money that moved through it.
+.history-card {
+  margin-top: var(--sp-5);
+}

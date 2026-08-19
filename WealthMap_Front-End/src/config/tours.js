@@ -34,7 +34,8 @@ export const TOURS = {
     { key: 'add', target: '[data-tour="cards-add"]' },
     { key: 'cutoff', target: '[data-tour="cards-list"]' },
     { key: 'pay', target: '[data-tour="cards-pay"]' },
-    { key: 'detail', target: '[data-tour="cards-list"]' }
+    { key: 'detail', target: '[data-tour="cards-list"]' },
+    { key: 'lost' }
   ],
 
   purchases: [

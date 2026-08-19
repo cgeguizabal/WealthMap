@@ -1,14 +1,16 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { motion } from 'motion-v'
 import { fadeUp } from '@/composables/useMotionSafe'
 import { accountsApi } from '@/api/accounts.api'
+import { cardIncidentsApi, CARD_KIND } from '@/api/cardIncidents.api'
 import { useAsync } from '@/composables/useAsync'
 import { usePagination } from '@/composables/usePagination'
 import { useMoney } from '@/composables/useMoney'
 import { useToast } from '@/composables/useToast'
 import { useDashboardStore } from '@/stores/dashboard.store'
+import { useUiStore } from '@/stores/ui.store'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -21,6 +23,10 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import MovementsTable from '../components/MovementsTable.vue'
 import MovementFormModal from '../components/MovementFormModal.vue'
 import AccountFormModal from '../components/AccountFormModal.vue'
+import CardBlockedBanner from '@/features/shared/components/CardBlockedBanner.vue'
+import CardIncidentHistory from '@/features/shared/components/CardIncidentHistory.vue'
+import ReportCardLostModal from '@/features/shared/components/ReportCardLostModal.vue'
+import ReplaceCardModal from '@/features/shared/components/ReplaceCardModal.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useServerText } from '@/composables/useServerText'
 
@@ -31,6 +37,7 @@ const route = useRoute()
 const toast = useToast()
 const { format } = useMoney()
 const dashboard = useDashboardStore()
+const ui = useUiStore()
 const pagination = usePagination({ pageSize: 20 })
 
 const accountId = route.params.id
@@ -44,6 +51,22 @@ const loadingMovements = ref(false)
 const movementOpen = ref(false)
 const movementMode = ref('deposit')
 const editOpen = ref(false)
+const reportOpen = ref(false)
+const replaceOpen = ref(false)
+
+/** Every time this account's debit card was reported lost. */
+const { data: incidents, run: loadIncidents } =
+  useAsync(() => cardIncidentsApi.list(CARD_KIND.DEBIT, accountId), { initialData: [] })
+
+/** Only an account that has a debit card can lose one. */
+const hasDebitCard = computed(() => account.value?.debitCardType && account.value.debitCardType !== 'None')
+
+/** The report modals speak about a card, so the account is described as one. */
+const reportTarget = computed(() => ({
+  id: accountId,
+  name: account.value?.name ?? '',
+  lastFour: account.value?.debitCardLastFour ?? null
+}))
 
 async function loadMovements() {
   loadingMovements.value = true
@@ -67,7 +90,26 @@ function refresh() {
   loadAccount()
   pagination.reset()
   loadMovements()
+  loadIncidents()
   dashboard.invalidate()
+}
+
+/** Confirmed, because closing a report cannot be undone — only filed again. */
+async function markRecovered() {
+  const confirmed = await ui.confirm({
+    title: t('cardLoss.foundTitle', { card: account.value.name }),
+    message: t('cardLoss.foundMessage'),
+    confirmLabel: t('cardLoss.foundIt')
+  })
+
+  if (!confirmed) return
+
+  await cardIncidentsApi.recover(CARD_KIND.DEBIT, accountId, {
+    recoveredOn: new Date().toISOString().slice(0, 10)
+  })
+
+  toast.success(t('cardLoss.recoveredToast', { card: account.value.name }))
+  refresh()
 }
 
 async function toggleBlock() {
@@ -88,6 +130,7 @@ async function toggleBlock() {
 onMounted(() => {
   loadAccount()
   loadMovements()
+  loadIncidents()
 })
 </script>
 
@@ -132,8 +175,26 @@ onMounted(() => {
             <template #icon><BaseIcon name="pencil" :size="15" /></template>
             {{ t('common.edit') }}
           </BaseButton>
+
+          <BaseButton
+            v-if="hasDebitCard && !account.debitCardBlockedOn"
+            variant="ghost"
+            @click="reportOpen = true"
+          >
+            <template #icon><BaseIcon name="alert" :size="15" /></template>
+            {{ t('cardLoss.reportDebitAction') }}
+          </BaseButton>
         </template>
       </PageHeader>
+
+      <CardBlockedBanner
+        v-if="account.debitCardBlockedOn"
+        :kind="CARD_KIND.DEBIT"
+        :reason="account.debitCardBlockReason"
+        :blocked-on="account.debitCardBlockedOn"
+        @replace="replaceOpen = true"
+        @recover="markRecovered"
+      />
 
       <div class="summary">
         <div class="summary__balance">
@@ -186,7 +247,22 @@ onMounted(() => {
         @saved="refresh"
       />
 
+      <CardIncidentHistory :incidents="incidents ?? []" class="history-card" />
+
       <AccountFormModal v-model="editOpen" :account="account" @saved="refresh" />
+
+      <ReportCardLostModal
+        v-model="reportOpen"
+        :kind="CARD_KIND.DEBIT"
+        :card="reportTarget"
+        @saved="refresh"
+      />
+      <ReplaceCardModal
+        v-model="replaceOpen"
+        :kind="CARD_KIND.DEBIT"
+        :card="reportTarget"
+        @saved="refresh"
+      />
     </motion.div>
   </div>
 </template>

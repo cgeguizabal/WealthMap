@@ -77,6 +77,10 @@ export default {
       cutoff: {
         title: 'This statement vs next',
         body: 'Each card shows what falls in the closing statement separately from what rolls into the next one. Owing 100 does not mean paying 100 this month.'
+      },
+      lost: {
+        title: 'If a card is lost or stolen',
+        body: 'Open the card and choose Report lost. It goes out of service, so its credit stops counting toward what is safe to spend — what it owes is unchanged. When the bank sends the replacement, record it with the new last four digits. The same works for the debit card on an account.'
       }
     },
 
@@ -555,6 +559,58 @@ export default {
       'This removes {name} from WealthMap. You will not be able to deposit, withdraw or ' +
       'transfer with it again.',
     deleted: '{name} deleted. Its history was kept.'
+  },
+
+  // Reporting a card lost, stolen, damaged or compromised — and the replacement
+  // that follows. Shared by credit cards and by the debit card on an account,
+  // because it is the same event either way.
+  cardLoss: {
+    badge: 'Reported',
+    reportAction: 'Report lost',
+    reportDebitAction: 'Report card lost',
+
+    reportTitle: 'Report this card',
+    reportIntro: 'Reporting {card}',
+    reason: 'What happened',
+    reasonLost: 'Lost',
+    reasonStolen: 'Stolen',
+    reasonDamaged: 'Damaged',
+    reasonCompromised: 'Number compromised',
+    reportedOn: 'When',
+    reportedOnHint: 'The day it stopped being usable.',
+    notesPlaceholder: 'Left it in a taxi',
+    reportConsequence:
+      'The card goes out of service. What it owes is unchanged and still falls due on its usual day — only its remaining credit stops counting toward what is safe to spend.',
+    confirmReport: 'Report card',
+    reportedToast: '{card} reported. Record the replacement when it arrives.',
+
+    replaceTitle: 'Record the replacement',
+    replacingNumber: 'Replacing',
+    newLastFour: 'New last 4 digits',
+    newLastFourHint: 'Leave empty if the new card carries the same number.',
+    replacedOn: 'Arrived on',
+    confirmReplace: 'Record replacement',
+    replacedToast: '{card} is back in service.',
+
+    recordReplacement: 'Record replacement',
+    foundIt: 'I found it',
+    foundTitle: 'Mark {card} as found?',
+    foundMessage:
+      'The card goes back into service with the number it already had. The report is kept, so the days it was missing stay on the record.',
+    recoveredToast: '{card} is back in service.',
+
+    bannerTitle: 'This card was reported {reason}',
+    bannerCredit: 'It cannot be used, so its available credit is left out of safe-to-spend. What it owes is unaffected.',
+    bannerDebit: 'The card cannot be used. The account balance is unaffected and still reachable by transfer.',
+
+    historyTitle: 'Card history',
+    statusOpen: 'Waiting for replacement',
+    statusReplaced: 'Replaced',
+    statusRecovered: 'Found',
+    reportedOnDate: 'Reported {date}',
+    replacedOnDate: 'Replaced {date}',
+    recoveredOnDate: 'Found {date}',
+    sameNumber: 'same number'
   },
 
   cards: {

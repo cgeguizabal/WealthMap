@@ -53,3 +53,9 @@
 }
 
 .state { display: grid; place-items: center; padding: var(--sp-12); color: var(--text-muted); }
+
+// Set apart from the movements above it: the history is about the card, not
+// about the money that moved through the account.
+.history-card {
+  margin-top: var(--sp-5);
+}

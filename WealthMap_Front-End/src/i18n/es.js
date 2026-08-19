@@ -76,6 +76,10 @@ export default {
       cutoff: {
         title: 'Este corte y el siguiente',
         body: 'Cada tarjeta muestra por separado lo que cae en el corte que cierra y lo que pasa al siguiente. Deber 100 no significa pagar 100 este mes.'
+      },
+      lost: {
+        title: 'Si pierdes o te roban una tarjeta',
+        body: 'Abre la tarjeta y elige Reportar pérdida. Queda fuera de servicio, así que su crédito deja de contar dentro de lo que puedes gastar — lo que debe no cambia. Cuando el banco mande el reemplazo, regístralo con los nuevos últimos 4 dígitos. Funciona igual con la tarjeta de débito de una cuenta.'
       }
     },
 
@@ -555,6 +559,58 @@ export default {
     deleteSecond:
       'Esto quita {name} de WealthMap. Ya no podrás depositar, retirar ni transferir con ella.',
     deleted: '{name} eliminada. Su historial se conservó.'
+  },
+
+  // Reportar una tarjeta perdida, robada, dañada o comprometida — y el reemplazo
+  // que llega después. Compartido por las tarjetas de crédito y por la tarjeta de
+  // débito de una cuenta, porque el hecho es el mismo.
+  cardLoss: {
+    badge: 'Reportada',
+    reportAction: 'Reportar pérdida',
+    reportDebitAction: 'Reportar tarjeta',
+
+    reportTitle: 'Reportar esta tarjeta',
+    reportIntro: 'Reportando {card}',
+    reason: 'Qué pasó',
+    reasonLost: 'Perdida',
+    reasonStolen: 'Robada',
+    reasonDamaged: 'Dañada',
+    reasonCompromised: 'Número comprometido',
+    reportedOn: 'Cuándo',
+    reportedOnHint: 'El día que dejó de poder usarse.',
+    notesPlaceholder: 'La dejé en un taxi',
+    reportConsequence:
+      'La tarjeta queda fuera de servicio. Lo que debe no cambia y sigue venciendo el día de siempre — lo único que deja de contar es su crédito disponible dentro de lo que puedes gastar.',
+    confirmReport: 'Reportar tarjeta',
+    reportedToast: '{card} reportada. Registra el reemplazo cuando llegue.',
+
+    replaceTitle: 'Registrar el reemplazo',
+    replacingNumber: 'Reemplaza a',
+    newLastFour: 'Nuevos últimos 4 dígitos',
+    newLastFourHint: 'Déjalo vacío si la nueva tarjeta trae el mismo número.',
+    replacedOn: 'Llegó el',
+    confirmReplace: 'Registrar reemplazo',
+    replacedToast: '{card} vuelve a estar en servicio.',
+
+    recordReplacement: 'Registrar reemplazo',
+    foundIt: 'La encontré',
+    foundTitle: '¿Marcar {card} como encontrada?',
+    foundMessage:
+      'La tarjeta vuelve al servicio con el número que ya tenía. El reporte se conserva, así que los días que estuvo perdida quedan registrados.',
+    recoveredToast: '{card} vuelve a estar en servicio.',
+
+    bannerTitle: 'Esta tarjeta fue reportada como {reason}',
+    bannerCredit: 'No se puede usar, así que su crédito disponible queda fuera de lo que puedes gastar. Lo que debe no cambia.',
+    bannerDebit: 'La tarjeta no se puede usar. El saldo de la cuenta no cambia y sigue disponible por transferencia.',
+
+    historyTitle: 'Historial de la tarjeta',
+    statusOpen: 'Esperando reemplazo',
+    statusReplaced: 'Reemplazada',
+    statusRecovered: 'Encontrada',
+    reportedOnDate: 'Reportada el {date}',
+    replacedOnDate: 'Reemplazada el {date}',
+    recoveredOnDate: 'Encontrada el {date}',
+    sameNumber: 'mismo número'
   },
 
   cards: {

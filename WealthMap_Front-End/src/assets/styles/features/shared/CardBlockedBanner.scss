@@ -1,0 +1,63 @@
+// Warning rather than negative: the card is out of service, which is a state to
+// act on, not an error. Negative is reserved for money going the wrong way.
+.blocked {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--warning-soft);
+}
+
+.blocked__icon {
+  flex: none;
+  margin-top: 1px;
+  color: var(--warning);
+}
+
+.blocked__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.blocked__title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.blocked__when {
+  margin-left: var(--sp-2);
+  font-weight: var(--fw-normal);
+  color: var(--text-muted);
+}
+
+.blocked__message {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.blocked__actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+@media (max-width: 640px) {
+  .blocked {
+    flex-wrap: wrap;
+  }
+
+  // Full width once wrapped, so the two actions do not end up stranded in a
+  // corner under a paragraph that spans the whole banner.
+  .blocked__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

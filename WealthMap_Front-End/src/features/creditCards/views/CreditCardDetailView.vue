@@ -4,12 +4,15 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { motion } from 'motion-v'
 import { fadeUp } from '@/composables/useMotionSafe'
 import { creditCardsApi } from '@/api/creditCards.api'
+import { cardIncidentsApi, CARD_KIND } from '@/api/cardIncidents.api'
 import { purchasesApi } from '@/api/purchases.api'
 import { installmentsApi } from '@/api/installments.api'
 import { useAsync } from '@/composables/useAsync'
 import { useMoney } from '@/composables/useMoney'
 import { useDateTime } from '@/composables/useDateTime'
 import { useDashboardStore } from '@/stores/dashboard.store'
+import { useUiStore } from '@/stores/ui.store'
+import { useToast } from '@/composables/useToast'
 
 import PageHeader from '@/components/layout/PageHeader.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
@@ -24,6 +27,10 @@ import BaseEmptyState from '@/components/base/BaseEmptyState.vue'
 import BaseTimestamp from '@/components/base/BaseTimestamp.vue'
 
 import CardFormModal from '../components/CardFormModal.vue'
+import CardBlockedBanner from '@/features/shared/components/CardBlockedBanner.vue'
+import CardIncidentHistory from '@/features/shared/components/CardIncidentHistory.vue'
+import ReportCardLostModal from '@/features/shared/components/ReportCardLostModal.vue'
+import ReplaceCardModal from '@/features/shared/components/ReplaceCardModal.vue'
 import CardPaymentModal from '../components/CardPaymentModal.vue'
 import LimitModal from '../components/LimitModal.vue'
 import PaymentsTable from '@/features/shared/components/PaymentsTable.vue'
@@ -36,6 +43,8 @@ const router = useRouter()
 const { format, formatPercent } = useMoney()
 const { formatDate, relativeDay } = useDateTime()
 const dashboard = useDashboardStore()
+const ui = useUiStore()
+const toast = useToast()
 
 const cardId = route.params.id
 
@@ -48,9 +57,22 @@ const { data: purchasePage, loading: loadingCharges, run: loadPurchases } =
   useAsync(() => purchasesApi.list({ creditCardId: cardId, page: 1, pageSize: 100 }))
 const { data: plans, run: loadPlans } = useAsync(installmentsApi.list, { initialData: [] })
 
+/** Every time this card was reported lost, and how each report ended. */
+const { data: incidents, run: loadIncidents } =
+  useAsync(() => cardIncidentsApi.list(CARD_KIND.CREDIT, cardId), { initialData: [] })
+
+/** What the report modals need: an id, a name, and the number being replaced. */
+const reportTarget = computed(() => ({
+  id: cardId,
+  name: card.value?.cardName ?? '',
+  lastFour: card.value?.lastFour ?? null
+}))
+
 const payOpen = ref(false)
 const editOpen = ref(false)
 const limitOpen = ref(false)
+const reportOpen = ref(false)
+const replaceOpen = ref(false)
 const tab = ref('charges')
 
 /** Computed so the headers follow the language selector rather than freezing. */
@@ -150,7 +172,29 @@ function refresh() {
   loadPayments()
   loadPurchases()
   loadPlans()
+  loadIncidents()
   dashboard.invalidate()
+}
+
+/**
+ * Confirmed rather than done outright: it closes the open report, and a report
+ * closed by accident cannot be reopened — only filed again on a new date.
+ */
+async function markRecovered() {
+  const confirmed = await ui.confirm({
+    title: t('cardLoss.foundTitle', { card: card.value.cardName }),
+    message: t('cardLoss.foundMessage'),
+    confirmLabel: t('cardLoss.foundIt')
+  })
+
+  if (!confirmed) return
+
+  await cardIncidentsApi.recover(CARD_KIND.CREDIT, cardId, {
+    recoveredOn: new Date().toISOString().slice(0, 10)
+  })
+
+  toast.success(t('cardLoss.recoveredToast', { card: card.value.cardName }))
+  refresh()
 }
 
 onMounted(() => {
@@ -158,6 +202,7 @@ onMounted(() => {
   loadPayments()
   loadPurchases()
   loadPlans()
+  loadIncidents()
 })
 </script>
 
@@ -193,8 +238,21 @@ onMounted(() => {
             <template #icon><BaseIcon name="pencil" :size="15" /></template>
             {{ t('common.edit') }}
           </BaseButton>
+          <BaseButton v-if="!card.blockedOn" variant="ghost" @click="reportOpen = true">
+            <template #icon><BaseIcon name="alert" :size="15" /></template>
+            {{ t('cardLoss.reportAction') }}
+          </BaseButton>
         </template>
       </PageHeader>
+
+      <CardBlockedBanner
+        v-if="card.blockedOn"
+        :kind="CARD_KIND.CREDIT"
+        :reason="card.blockReason"
+        :blocked-on="card.blockedOn"
+        @replace="replaceOpen = true"
+        @recover="markRecovered"
+      />
 
       <div class="summary">
         <div class="summary__figures">
@@ -410,9 +468,25 @@ onMounted(() => {
         />
       </BaseCard>
 
+      <!-- After the tables: the history is context for the card, not a task on it. -->
+      <CardIncidentHistory :incidents="incidents ?? []" class="history-card" />
+
       <CardPaymentModal v-model="payOpen" :card="card" @saved="refresh" />
       <CardFormModal v-model="editOpen" :card="card" @saved="refresh" />
       <LimitModal v-model="limitOpen" :card="card" @saved="refresh" />
+
+      <ReportCardLostModal
+        v-model="reportOpen"
+        :kind="CARD_KIND.CREDIT"
+        :card="reportTarget"
+        @saved="refresh"
+      />
+      <ReplaceCardModal
+        v-model="replaceOpen"
+        :kind="CARD_KIND.CREDIT"
+        :card="reportTarget"
+        @saved="refresh"
+      />
     </motion.div>
   </div>
 </template>

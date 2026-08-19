@@ -1,0 +1,27 @@
+// Shared by both card-report modals: they ask different questions about the same
+// event, and two stylesheets that had to stay identical would drift.
+.form { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.form__error {
+  padding: var(--sp-3);
+  border: 1px solid var(--negative);
+  border-radius: var(--radius);
+  background: var(--negative-soft);
+  color: var(--negative);
+  font-size: var(--fs-sm);
+}
+
+.form__note {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+// The consequence of reporting, set apart from the fields it follows.
+.form__note--muted {
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--canvas-alt);
+  color: var(--text-subtle);
+  font-size: var(--fs-xs);
+}

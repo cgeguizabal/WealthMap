@@ -61,6 +61,9 @@ const hasDebitCard = computed(() => props.account.debitCardType && props.account
           </dt>
           <dd class="numeric">
             <template v-if="account.debitCardLastFour">••••{{ account.debitCardLastFour }}</template>
+            <BaseBadge v-if="account.debitCardBlockedOn" variant="warning" size="sm">
+              {{ t('cardLoss.badge') }}
+            </BaseBadge>
             <span v-else class="account__unknown">{{ t('accounts.numberUnknown') }}</span>
           </dd>
         </div>

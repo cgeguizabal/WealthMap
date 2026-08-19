@@ -5,6 +5,7 @@ import { useMoney } from '@/composables/useMoney'
 import BaseIcon from '@/components/base/BaseIcon.vue'
 import BaseButton from '@/components/base/BaseButton.vue'
 import BaseProgress from '@/components/base/BaseProgress.vue'
+import BaseBadge from '@/components/base/BaseBadge.vue'
 import { useI18n } from '@/composables/useI18n'
 import { useDateTime } from '@/composables/useDateTime'
 
@@ -39,7 +40,14 @@ const variant = computed(() => {
         <div class="card__identity">
           <BaseIcon name="card" :size="16" />
           <div>
-            <h3 class="card__name">{{ card.cardName }}</h3>
+            <h3 class="card__name">
+              {{ card.cardName }}
+              <!-- On the tile rather than only on the detail screen: this is the
+                   list where a user scans for the card they meant to deal with. -->
+              <BaseBadge v-if="card.blockedOn" variant="warning" size="sm">
+                {{ t('cardLoss.badge') }}
+              </BaseBadge>
+            </h3>
             <p class="card__bank">
               {{ card.bankName }}
               <!-- Only when set: a placeholder would imply data that is simply absent. -->
