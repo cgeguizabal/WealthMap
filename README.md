@@ -51,6 +51,7 @@ POST /api/v1/auth/login      { "email", "password" }
 |---|---|
 | Accounts | `/api/v1/accounts` · `{id}/deposit` · `{id}/withdraw` · `transfer` · `{id}/movements` · `{id}/block` · `{id}/unblock` |
 | Credit cards | `/api/v1/credit-cards` · `{id}/limit` · `{id}/payments` |
+| Lost cards | `credit-cards/{id}/loss-report` · `{id}/replacement` · `{id}/recovery` · `{id}/incidents`, and the same four under `accounts/{id}/debit-card` |
 | Jobs & income | `/api/v1/jobs` · `{jobId}/deductions` · `/api/v1/additional-incomes` |
 | Stores | `/api/v1/stores` (shared catalog: everyone reads, only the creator edits) |
 | Purchases | `/api/v1/purchases` (debit / credit / cash) |

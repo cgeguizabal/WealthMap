@@ -90,6 +90,9 @@ is a string both ways (`"Account"` / `"External"`, case-insensitive on input).
 | Payment `sourceType` | `Account` · `External` |
 | `trackingMode` | `1` Manual · `2` EmailSync |
 | `debitCardType` | `1` None · `2` Physical · `3` Digital |
+| Card report `reason` | `1` Lost · `2` Stolen · `3` Damaged · `4` Compromised |
+| Card report `kind` (response) | `CreditCard` · `DebitCard` |
+| Card report `status` (response) | `Open` · `Replaced` · `Recovered` |
 | Bank default `direction` | `1` Inbound · `2` Outbound |
 
 ---
@@ -184,8 +187,13 @@ and `null`.
   "balance": 1000.00, "currency": "USD", "isBlockedForSaving": false,
   "lastFour": "6868", "trackingMode": "Manual",
   "debitCardType": "Physical", "debitCardLastFour": "4417",
+  "debitCardBlockedOn": null, "debitCardBlockReason": null,
   "notes": null, "createdAt": "2026-08-01T12:00:00Z" }
 ```
+
+`debitCardBlockedOn` is the day the debit card was reported lost, stolen, damaged or compromised,
+and `null` while it is in service. Only the card is out of action — the balance is untouched. See
+[Lost and replaced cards](#lost-and-replaced-cards).
 
 ### `PUT /api/v1/accounts/{id}`
 
@@ -312,6 +320,7 @@ has no debit-card fields — those belong to an account.
   "usedCredit": 1800.00, "availableCredit": 3200.00, "currency": "USD",
   "annualInterestRate": 45.900, "paymentDueDay": 15, "statementCutoffDay": 28,
   "lastFour": "7765", "trackingMode": "Manual",
+  "blockedOn": null, "blockReason": null,
   "nextCutoffDate": "2026-08-28", "nextDueDate": "2026-09-17",
   "daysUntilCutoff": 14, "daysUntilDue": 34,
   "lastCutoffDate": "2026-07-28",
@@ -320,6 +329,11 @@ has no debit-card fields — those belong to an account.
 ```
 
 `availableCredit` is computed, never stored.
+
+`blockedOn` is the day the card was reported lost, stolen, damaged or compromised, and `null`
+while it is in service. A blocked card still owes what it owes and still falls due on its usual day;
+what stops is its credit counting toward safe-to-spend. See
+[Lost and replaced cards](#lost-and-replaced-cards).
 
 `nextDueDate` is when **today's balance** must be paid — the first due day *after* the next cutoff,
 not simply the next occurrence of `paymentDueDay`. It is the same date the dashboard's safe-to-spend
@@ -420,6 +434,105 @@ There is **no charge endpoint** — cards are charged by purchases and installme
 Every payment against this card, newest first, from any source. See [Payments](#payments).
 
 ---
+
+---
+
+## Lost and replaced cards
+
+The same four operations exist for a credit card and for the debit card on an account. They differ
+only in the path — a credit card is a card, a debit card belongs to an account:
+
+| | Credit card | Debit card |
+|---|---|---|
+| Report | `POST /api/v1/credit-cards/{id}/loss-report` | `POST /api/v1/accounts/{id}/debit-card/loss-report` |
+| Replace | `POST /api/v1/credit-cards/{id}/replacement` | `POST /api/v1/accounts/{id}/debit-card/replacement` |
+| Found | `POST /api/v1/credit-cards/{id}/recovery` | `POST /api/v1/accounts/{id}/debit-card/recovery` |
+| History | `GET /api/v1/credit-cards/{id}/incidents` | `GET /api/v1/accounts/{id}/debit-card/incidents` |
+
+Changing a card's last four was always possible through `/tracking` and `/debit-card`. These
+endpoints exist because a number that silently becomes a different one is indistinguishable from a
+typo being corrected, and the two are opposite events.
+
+### `POST .../loss-report` → **200**
+
+```json
+{ "reason": 2, "reportedOn": "2026-08-19", "notes": "taken on the bus" }
+```
+
+`reportedOn` and `notes` are optional; omitted, the date is **today in the caller's time zone**
+(the `X-Time-Zone` header, §Conventions). A date more than a day ahead of UTC → **400**.
+
+Takes the card out of service and opens a report. Two things change and nothing else does:
+
+- The card stops contributing to **safe-to-spend**. Its credit exists on paper but cannot be reached.
+- A report is opened, holding the digits the card had at the time — the only copy that survives a
+  replacement overwriting them.
+
+**What deliberately does not change:** the balance owed, the statement dates, and the card's ability
+to accept charges. On a stolen card the charges that most need recording are the thief's, so
+`POST /purchases` against a blocked card still succeeds.
+
+The dashboard's `totalAvailableCredit` also still counts it — that figure is limits minus balances,
+a factual aggregate, where safe-to-spend is a spending judgement.
+
+Reporting a card that already has an open report → **400**. Reporting an archived card → **400**.
+Reporting the debit card of an account whose `debitCardType` is `None` → **400**.
+
+### `POST .../replacement` → **200**
+
+```json
+{ "newLastFour": "9876", "replacedOn": "2026-08-25", "notes": null }
+```
+
+Closes the open report and puts the card back in service under the new number.
+
+**`newLastFour` is optional, and omitting it means "unchanged", not "cleared".** Some banks reissue
+the same number after damage, and nobody should have to invent a number to close a report. Present,
+it must match `^\d{4}$`.
+
+Addressed by card rather than by report id: the user reports a card lost and, weeks later, a new one
+arrives. Asking which report that settles would be asking about bookkeeping they never saw. There is
+at most one open report per card.
+
+No open report → **400** *"There is no open report for this card."* A `replacedOn` earlier than the
+report → **400**. On a card in `EmailSync`, digits that do not validate → **400**, same message as
+`/tracking`.
+
+### `POST .../recovery` → **200**
+
+```json
+{ "recoveredOn": "2026-08-21", "notes": "found in a coat pocket" }
+```
+
+Closes the report because the card came back. The number is untouched and the card returns to
+service. Both fields optional; the date defaults to today.
+
+The report is **kept**, not deleted. Without this the only way out of a mistaken report would be to
+record a replacement that never arrived, putting a fiction in the history to correct a mistake.
+
+No open report → **400**.
+
+### `GET .../incidents` → **200**
+
+```json
+[ { "id": "...", "kind": "CreditCard", "cardId": "...", "cardName": "Gold",
+    "reason": "Stolen", "status": "Replaced",
+    "reportedOn": "2026-08-19", "lastFourAtReport": "7765",
+    "replacedOn": "2026-08-25", "newLastFour": "9876",
+    "recoveredOn": null, "notes": "taken on the bus",
+    "createdAt": "2026-08-19T18:44:10Z" } ]
+```
+
+Newest first. `status` is derived from the two outcome dates, never stored — `Replaced` if
+`replacedOn` is set, `Recovered` if `recoveredOn` is, otherwise `Open`. The two are mutually
+exclusive, in the domain and in a check constraint.
+
+`lastFourAtReport` and `newLastFour` are both encrypted at rest, like the digits on the card they
+were copied from. A `newLastFour` of `null` on a `Replaced` report means the bank reissued the
+same number.
+
+`cardName` is resolved at read time rather than stored, so a card renamed after the report shows
+under its current name.
 
 ## Jobs & income
 

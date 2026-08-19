@@ -936,7 +936,8 @@ currencies are not converted. The alerts panel is collapsible; the count stays v
 Card grid with per-currency totals (never summed across currencies). Deposit, withdraw, transfer,
 block/unblock. The transfer modal excludes the source account and any different-currency account
 from the destination list. Detail view shows paged movements with the stored `balanceAfter` — the
-running balance is a recorded fact from the API, never recomputed in the browser.
+running balance is a recorded fact from the API, never recomputed in the browser. The account's
+debit card can be reported lost from the same screen (§8.20).
 
 ### 8.4 Credit cards — `/credit-cards`, `/credit-cards/:id`
 Utilisation bars (amber at 50%, red at 80%). Limit updates have their own endpoint and their own
@@ -966,7 +967,7 @@ disappearing, so the column keeps lining up.
 
 The due date comes from the server's `nextDueDate` — the first due day *after* the next cutoff — so
 the card screen and the dashboard's safe-to-spend figure cannot disagree about the same money.
-Tracking fields on this form are covered in §8.14.
+Tracking fields on this form are covered in §8.14; reporting a card lost, in §8.20.
 
 ### 8.5 Payments — `/payments`
 User-wide ledger across cards, debts and installments, with date and target-type filters. Source is
@@ -1260,6 +1261,43 @@ with a name on it; once paid it becomes ordinary account balance and counts like
 
 **Delete and cancel differ**, and the confirmation says which is happening: cancel keeps the row,
 delete removes it and takes the deposit back out of the account.
+
+---
+
+### 8.20 Reporting a lost card — on `/credit-cards/:id` and `/accounts/:id`
+
+Four components in `features/shared/components/`, used unchanged by both screens, because losing a
+credit card and losing a debit card is the same event with a different endpoint:
+
+| Component | Role |
+|---|---|
+| `ReportCardLostModal` | What happened, when, and a note. Takes the card out of service |
+| `ReplaceCardModal` | The new last four and when it arrived |
+| `CardBlockedBanner` | Says the card is out of service; offers replacement and "I found it" |
+| `CardIncidentHistory` | Every report against this card, and how each one ended |
+
+The kind is a prop, and `cardIncidents.api.js` turns it into a base path — `/credit-cards/{id}`
+or `/accounts/{id}/debit-card`. Nothing else in the four components knows which kind it is
+looking at.
+
+**The report action only appears when the card is in service**, and the banner only when it is not.
+The two are alternatives, so showing both would invite reporting a card that is already reported —
+which the API refuses, but a form that can only fail should not be offered.
+
+**`newLastFour` is optional and empty means "unchanged".** Some banks reissue the same number after
+damage. The hint says so, because an empty field that silently means something is a field users fill
+in with a guess.
+
+**"I found it" goes through `ui.confirm`**, unlike the other two. It closes the report, and a
+report closed by accident cannot be reopened — only filed again on a new date.
+
+A blocked card shows a badge in the list as well as the banner on its own screen. The list is where
+someone scans for the card they meant to deal with, and a state only visible after opening it is a
+state they will act against.
+
+Both modals call `dashboard.invalidate()`: blocking a credit card changes safe-to-spend, and so
+does unblocking it. Nothing else on the screen moves, which is exactly why the figure would otherwise
+look wrong for no visible reason.
 
 ---
 

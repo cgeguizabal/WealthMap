@@ -13,7 +13,8 @@ Read it top to bottom once. After that it works as a reference.
 1. [What WealthMap is](#1-what-wealthmap-is)
 2. [The architecture, and why layers exist at all](#2-the-architecture-and-why-layers-exist-at-all)
 3. [The patterns, one at a time](#3-the-patterns-one-at-a-time)
-4. [The modules](#4-the-modules) — including the [payments ledger](#413-payments-ledger)
+4. [The modules](#4-the-modules) — including the [payments ledger](#413-payments-ledger) and
+   [lost cards](#415-lost-and-replaced-cards)
 5. [The database schema](#5-the-database-schema)
 6. [Decisions and their reasoning](#6-decisions-and-their-reasoning)
 7. [Running, testing, migrating](#7-running-testing-migrating)
@@ -499,6 +500,9 @@ that the balance stops counting toward the dashboard credit totals.
 identifies a card and an account the same way, so the two must fail with the same wording.
 `InstrumentTracking` holds the check once for both.
 
+**A card can be reported lost, stolen, damaged or compromised**, which takes it out of service until
+a replacement is recorded against it — see §4.15.
+
 **The statement split.** `UsedCredit` is one running total, which is not an actionable number: owing
 $100 where $50 closed on the last statement and $50 was spent yesterday means $50 is due on the 15th
 and the rest is not due for another month. `StatementCycle.Split` divides the balance three ways —
@@ -745,6 +749,9 @@ payday against a bill that the payday covers. The assumption is that the deposit
 payment is made, which holds when the user pays the bill themselves; a direct debit taken at
 midnight against a salary posted at noon would need the two ordered the other way.
 
+**A card reported lost contributes no headroom** (§4.15). Its credit is real and its balance is
+still projected as an outflow, but the user cannot reach it until the replacement arrives.
+
 The invariant to test against: **charging X to a card lowers safe-to-spend by exactly X.** Never
 more.
 
@@ -760,8 +767,9 @@ if the condition is still true later, it will be raised again.
 **An alert carries the parts it was built from, not only the finished sentence** (§6.13). Alongside
 the English `Title` and `Message`, `Params` holds the names, amounts, currency, dates and day counts
 that went into them — raw, as invariant decimals and ISO dates, so a client can format them in its
-own locale. Notifications persist those parts in a `jsonb` column beside the text, which is what lets
-a row raised today be read in a language chosen next month. Rows written before the column exists
+own locale. Notifications persist those parts in a column beside the text, which is what lets a row
+raised today be read in a language chosen next month. It began as `jsonb` and became `text` when
+the column was encrypted (§3.10). Rows written before the column exists
 have `{}` and fall back to their stored English.
 
 `GoalDeadlinePassed` is its own `AlertType`. It used to share `GoalBehindSchedule`, which left "is
@@ -907,6 +915,85 @@ event rather than an exceptional one.
 
 ---
 
+### 4.15 Lost and replaced cards
+
+`POST /{id}/loss-report`, `POST /{id}/replacement`, `POST /{id}/recovery`,
+`GET /{id}/incidents` — on `/credit-cards` and, with a `/debit-card` segment, on `/accounts`.
+
+A card's last four was always editable. That is not what this module is for. **A number that
+silently becomes a different one is indistinguishable from a typo being corrected**, and the two are
+opposite events: one is a fix, the other is a card that stopped existing on a particular day. This
+records the second.
+
+`CardIncident` carries a `CardKind` discriminator rather than existing twice, the same shape as
+the payments ledger (§4.13). A credit card is an entity; a debit card is two fields on an account.
+The lifecycle is identical either way, so `CardId` means the card for one kind and the account for
+the other, and the kind travels with it. No foreign key — a column cannot reference two tables — so
+every handler loads the card through its own user-scoped repository before writing.
+
+Status is derived from the dates, as on freelance work (§4.14):
+
+```csharp
+public CardIncidentStatus Status =>
+    ReplacedOn is not null ? CardIncidentStatus.Replaced
+    : RecoveredOn is not null ? CardIncidentStatus.Recovered
+    : CardIncidentStatus.Open;
+```
+
+**The report keeps its own copy of both numbers.** The card only ever holds its current one, so
+without `last_four_at_report` a replacement would erase the very thing the record exists to
+remember. Both are encrypted, like the digits they were copied from.
+
+#### What blocking does, and what it deliberately does not
+
+A blocked card stops contributing to **safe-to-spend** and nothing else. Its credit exists on paper
+but the user cannot reach it, so counting it would put unreachable money into a spending limit.
+
+```csharp
+private static Money AvailableCredit(Money zero, IEnumerable<CreditCard> cards) =>
+    cards.Aggregate(zero, (sum, c) =>
+        !c.IsBlocked && c.CreditLimit.Amount > c.UsedCredit.Amount
+            ? sum + (c.CreditLimit - c.UsedCredit)
+            : sum);
+```
+
+**`Charge` still succeeds on a blocked card.** On a stolen card the charges that most need
+recording are the thief's, and a card that refused them would be unusable exactly when the statement
+had to be reconciled. The balance owed, the statement dates and the payment schedule are all
+untouched: losing the plastic does not forgive what was spent on it.
+
+**The dashboard's `TotalAvailableCredit` still counts it.** That figure is limits minus balances —
+a factual aggregate — where safe-to-spend is a judgement about what can be spent. Worth knowing
+because the two can disagree while a card is blocked, by design.
+
+For a debit card, blocking has no computed consequence at all: the account balance is untouched and
+still reachable by transfer or in branch. The state exists so the app can say "this card is not
+usable" rather than showing a number that no longer opens anything.
+
+#### Why the card carries `blocked_on` as well
+
+It duplicates the open report's `reported_on`, which is the one place the codebase stores a fact
+twice on purpose. `LiquidityProjection` decides safe-to-spend from the cards alone; without the
+column it would have to load every card's report history to learn which cards it may still count.
+The report is the historical record, the card is the current state, and the copy is taken once.
+
+#### Replacement is addressed by card, not by report
+
+The user reports a card lost and, weeks later, a new one arrives. Asking which report that
+replacement settles would be asking about bookkeeping they never saw. There is at most one open
+report per card — the entity refuses a second while one is open — so naming the card is unambiguous.
+
+`newLastFour` is optional, and **null means "unchanged" rather than "cleared"**. Some banks reissue
+the same number after damage, and a replacement is never the moment to forget which card this is.
+
+#### Recovery is a real outcome
+
+Cards turn up in coat pockets. Without `POST /recovery` the only way out of a mistaken report would
+be to record a replacement that never arrived — putting a fiction in the history to correct a
+mistake. The report is kept rather than deleted, so the days the card was unusable stay explained.
+
+---
+
 ## 5. The database schema
 
 PostgreSQL on Neon, `snake_case` via `UseSnakeCaseNamingConvention()`, money as `numeric(18,2)`,
@@ -915,9 +1002,9 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | Table | Purpose | Notable columns / constraints |
 |---|---|---|
 | `users` | identity + profile | `email` **encrypted**, `email_lookup` (`char(64)`, **unique**) is the blind index that replaced the unique index on `email`; `full_name` and `country` encrypted; `currency` = reporting currency; `terms_accepted_at` + `accepted_policy_version` |
-| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` + `tracking_mode`, `debit_card_type` + `debit_card_last_four` (both `text`, encrypted); `name` and `notes` encrypted; CHECKs `(tracking_mode = 1) OR (last_four IS NOT NULL)` and `(debit_card_type <> 1) OR (debit_card_last_four IS NULL)` |
+| `accounts` | where money lives | `balance` + `currency`, `is_blocked_for_saving`, `is_archived` + `archived_at`, `last_four` + `tracking_mode`, `debit_card_type` + `debit_card_last_four` (both `text`, encrypted), `debit_card_blocked_on` + `debit_card_block_reason`; `name` and `notes` encrypted; CHECKs `(tracking_mode = 1) OR (last_four IS NOT NULL)` and `(debit_card_type <> 1) OR (debit_card_last_four IS NULL)` |
 | `account_movements` | immutable audit trail | `type`, `amount`, `balance_after`, `related_entity_id`; indexes `(user_id, occurred_at)`, `(account_id, occurred_at)` |
-| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`text`, nullable, encrypted) + `tracking_mode`; `card_name` and `notes` encrypted; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
+| `credit_cards` | cards | `credit_limit`, `used_credit`, `is_archived` + `archived_at`, `last_four` (`text`, nullable, encrypted) + `tracking_mode`, `blocked_on` + `block_reason` (§4.15); `card_name` and `notes` encrypted; CHECK `used_credit <= credit_limit`, day ranges 1–31, `(tracking_mode = 1) OR (last_four IS NOT NULL)` |
 | `jobs` | one per user | `gross_monthly_salary`, `salary_posting_starts_on`; FK deposit account `RESTRICT` |
 | `salary_deposits` | one row per settled payday | `scheduled_date`, `amount`, `account_movement_id`; **unique `(job_id, scheduled_date)`** — the exactly-once guarantee |
 | `job_payment_days` | 1–3 per job | CHECK `day_of_month BETWEEN 1 AND 31` |
@@ -933,10 +1020,11 @@ timestamps as `timestamptz` (UTC always), ids as `uuid`.
 | `product_goals` | product targets | `name` encrypted; nullable `deadline` |
 | `notifications` | persisted alerts | `type`, `severity`, `is_read`; `title`, `message` and `params` **encrypted** — `params` moved from `jsonb` to `text` to hold ciphertext; index `(user_id, is_read)` |
 | `payments` | every payment, any source | `target_type` + `target_id` (polymorphic, no FK), `source_type`, nullable `source_account_id` (FK `RESTRICT`); CHECK source and account agree; indexes `(user_id, occurred_at)`, `(target_type, target_id)` |
+| `card_incidents` | a card reported lost, and how it ended | `kind` + `card_id` (polymorphic, no FK — §4.15), `reason`, `reported_on`, nullable `replaced_on`/`recovered_on` that status is derived from; `last_four_at_report`, `new_last_four` and `notes` **encrypted**; index `(user_id, kind, card_id)`; CHECKs never both outcomes, and neither before `reported_on` |
 | `refresh_tokens` | one row per issued refresh token | `token_hash` (SHA-256 hex, **unique**), `expires_at`, `revoked_at`, `replaced_by_token_hash`; FK `users` cascade |
 | `bank_defaults` | fallback account per bank, per direction | `bank_name`, `direction`, `default_account_id`; **unique `(user_id, bank_name, direction)`**; FK `users` cascade, FK `accounts` **`RESTRICT`** (§6.14) |
 
-Twenty-two migrations, `InitialCreate` through `AddFreelanceJobs`.
+Twenty-two migrations, `InitialCreate` through `AddCardIncidents`.
 
 `AddPayments` carries a **data backfill**, not just a schema change. Reading "Paid" from an empty
 new table would have silently zeroed the report's historical figures — a regression introduced by an

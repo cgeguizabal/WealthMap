@@ -161,6 +161,10 @@ Apply `docs/DB_ROLES.sql` as the database owner, then point the application's co
 The application role can read and write rows but cannot create, alter or drop a table. Re-run the
 grants after any migration that adds a table.
 
+The most recent one that does is `AddCardIncidents` (19 August 2026), which adds `card_incidents`.
+Without the re-run the app authenticates fine and fails only when a card is reported — the table it
+cannot see is one nothing else touches.
+
 ---
 
 ## 4. Configuration that must be set
